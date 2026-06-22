@@ -1,0 +1,630 @@
+{
+  "cooperatives": [
+    {
+      "id": "coop-aceh-gayo",
+      "name": "Koperasi Produsen Kopi Gayo Organik",
+      "province": "Aceh",
+      "city": "Takengon",
+      "latitude": 4.695135,
+      "longitude": 96.749397,
+      "member_count": 450,
+      "active_members": 380,
+      "annual_revenue": 2400000000
+    },
+    {
+      "id": "coop-sumut-toba",
+      "name": "Koperasi Serba Usaha Toba Mandiri",
+      "province": "Sumatera Utara",
+      "city": "Balige",
+      "latitude": 2.333333,
+      "longitude": 98.983333,
+      "member_count": 300,
+      "active_members": 210,
+      "annual_revenue": 980000000
+    },
+    {
+      "id": "coop-sumbar-solok",
+      "name": "Koperasi Tani Solok Radjo",
+      "province": "Sumatera Barat",
+      "city": "Solok",
+      "latitude": -0.789512,
+      "longitude": 100.654321,
+      "member_count": 520,
+      "active_members": 490,
+      "annual_revenue": 3100000000
+    },
+    {
+      "id": "coop-lampung-tani",
+      "name": "Koperasi Tani Lampung Makmur",
+      "province": "Lampung",
+      "city": "Kalianda",
+      "latitude": -5.712345,
+      "longitude": 105.587654,
+      "member_count": 800,
+      "active_members": 680,
+      "annual_revenue": 4500000000
+    },
+    {
+      "id": "coop-lampung-timur",
+      "name": "Koperasi Agrobisnis Lampung Timur",
+      "province": "Lampung",
+      "city": "Metro",
+      "latitude": -5.123412,
+      "longitude": 105.654321,
+      "member_count": 350,
+      "active_members": 290,
+      "annual_revenue": 1200000000
+    },
+    {
+      "id": "coop-jabar-garut",
+      "name": "Koperasi Madu Hutan Priangan",
+      "province": "Jawa Barat",
+      "city": "Garut",
+      "latitude": -7.227906,
+      "longitude": 107.908699,
+      "member_count": 120,
+      "active_members": 85,
+      "annual_revenue": 450000000
+    },
+    {
+      "id": "coop-jateng-boyolali",
+      "name": "Koperasi Susu Warga Mulya Boyolali",
+      "province": "Jawa Tengah",
+      "city": "Boyolali",
+      "latitude": -7.531234,
+      "longitude": 110.598765,
+      "member_count": 1200,
+      "active_members": 1050,
+      "annual_revenue": 8200000000
+    },
+    {
+      "id": "coop-jateng-daging",
+      "name": "Koperasi Ternak Lembu Perkasa",
+      "province": "Jawa Tengah",
+      "city": "Boyolali",
+      "latitude": -7.512345,
+      "longitude": 110.612345,
+      "member_count": 280,
+      "active_members": 190,
+      "annual_revenue": 1850000000
+    },
+    {
+      "id": "coop-jatim-banyuwangi",
+      "name": "Koperasi Tani Organik Banyuwangi",
+      "province": "Jawa Timur",
+      "city": "Banyuwangi",
+      "latitude": -8.219234,
+      "longitude": 114.369123,
+      "member_count": 600,
+      "active_members": 540,
+      "annual_revenue": 2900000000
+    },
+    {
+      "id": "coop-jatim-nelayan",
+      "name": "Koperasi Perikanan Muncar Bahari",
+      "province": "Jawa Timur",
+      "city": "Banyuwangi",
+      "latitude": -8.432109,
+      "longitude": 114.210987,
+      "member_count": 410,
+      "active_members": 320,
+      "annual_revenue": 2150000000
+    },
+    {
+      "id": "coop-jatim-malang",
+      "name": "Koperasi Susu & Kopi Kawi",
+      "province": "Jawa Timur",
+      "city": "Malang",
+      "latitude": -7.98189,
+      "longitude": 112.626503,
+      "member_count": 850,
+      "active_members": 710,
+      "annual_revenue": 4800000000
+    },
+    {
+      "id": "coop-bali-kintamani",
+      "name": "Koperasi Merta Sari Kintamani",
+      "province": "Bali",
+      "city": "Kintamani",
+      "latitude": -8.243214,
+      "longitude": 115.342154,
+      "member_count": 240,
+      "active_members": 180,
+      "annual_revenue": 890000000
+    },
+    {
+      "id": "coop-ntb-lombok",
+      "name": "Koperasi Tani Jagung Sumbawa NTB",
+      "province": "Nusa Tenggara Barat",
+      "city": "Sumbawa Besar",
+      "latitude": -8.502934,
+      "longitude": 117.429444,
+      "member_count": 950,
+      "active_members": 820,
+      "annual_revenue": 5600000000
+    },
+    {
+      "id": "coop-ntb-rumputlaut",
+      "name": "Koperasi Samudra Lestari Lombok",
+      "province": "Nusa Tenggara Barat",
+      "city": "Lombok Barat",
+      "latitude": -8.652933,
+      "longitude": 116.324944,
+      "member_count": 180,
+      "active_members": 140,
+      "annual_revenue": 620000000
+    },
+    {
+      "id": "coop-kalsel-madu",
+      "name": "Koperasi Madu Kelulut Martapura",
+      "province": "Kalimantan Selatan",
+      "city": "Martapura",
+      "latitude": -3.419384,
+      "longitude": 114.840754,
+      "member_count": 150,
+      "active_members": 110,
+      "annual_revenue": 510000000
+    },
+    {
+      "id": "coop-sulsel-bantaeng",
+      "name": "Koperasi Kakao Tunas Harapan",
+      "province": "Sulawesi Selatan",
+      "city": "Bantaeng",
+      "latitude": -5.547665,
+      "longitude": 119.932731,
+      "member_count": 320,
+      "active_members": 260,
+      "annual_revenue": 1100000000
+    },
+    {
+      "id": "coop-sulsel-pinrang",
+      "name": "Koperasi Tambak Udang Windu Pinrang",
+      "province": "Sulawesi Selatan",
+      "city": "Pinrang",
+      "latitude": -3.789123,
+      "longitude": 119.654321,
+      "member_count": 210,
+      "active_members": 150,
+      "annual_revenue": 1450000000
+    },
+    {
+      "id": "coop-sulut-minahasa",
+      "name": "Koperasi Produsen Kelapa Minahasa",
+      "province": "Sulawesi Utara",
+      "city": "Tondano",
+      "latitude": 1.314839,
+      "longitude": 124.912079,
+      "member_count": 480,
+      "active_members": 390,
+      "annual_revenue": 2100000000
+    },
+    {
+      "id": "coop-maluku-rempah",
+      "name": "Koperasi Banda Pala Lestari",
+      "province": "Maluku",
+      "city": "Banda Neira",
+      "latitude": -4.524312,
+      "longitude": 129.904321,
+      "member_count": 140,
+      "active_members": 95,
+      "annual_revenue": 380000000
+    },
+    {
+      "id": "coop-papua-wamena",
+      "name": "Koperasi Baliem Madu & Kopi",
+      "province": "Papua",
+      "city": "Wamena",
+      "latitude": -4.098765,
+      "longitude": 138.94321,
+      "member_count": 190,
+      "active_members": 160,
+      "annual_revenue": 780000000
+    }
+  ],
+  "commodities": [
+    {
+      "id": "com-1",
+      "cooperative_id": "coop-aceh-gayo",
+      "name": "Kopi Arabika",
+      "category": "Perkebunan",
+      "monthly_capacity": 45.0,
+      "available_stock": 35.0,
+      "unit": "ton",
+      "harvest_period": "Musiman (Oktober-Desember)"
+    },
+    {
+      "id": "com-2",
+      "cooperative_id": "coop-sumut-toba",
+      "name": "Kopi Robusta",
+      "category": "Perkebunan",
+      "monthly_capacity": 20.0,
+      "available_stock": 12.0,
+      "unit": "ton",
+      "harvest_period": "Dua kali setahun"
+    },
+    {
+      "id": "com-3",
+      "cooperative_id": "coop-sumbar-solok",
+      "name": "Kopi Arabika",
+      "category": "Perkebunan",
+      "monthly_capacity": 30.0,
+      "available_stock": 25.0,
+      "unit": "ton",
+      "harvest_period": "Musiman (Maret-Mei)"
+    },
+    {
+      "id": "com-4",
+      "cooperative_id": "coop-sumbar-solok",
+      "name": "Beras Organik",
+      "category": "Pertanian",
+      "monthly_capacity": 60.0,
+      "available_stock": 48.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 4 bulan"
+    },
+    {
+      "id": "com-5",
+      "cooperative_id": "coop-lampung-tani",
+      "name": "Jagung",
+      "category": "Pertanian",
+      "monthly_capacity": 250.0,
+      "available_stock": 210.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 3 bulan"
+    },
+    {
+      "id": "com-6",
+      "cooperative_id": "coop-lampung-timur",
+      "name": "Jagung",
+      "category": "Pertanian",
+      "monthly_capacity": 120.0,
+      "available_stock": 95.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 3 bulan"
+    },
+    {
+      "id": "com-7",
+      "cooperative_id": "coop-lampung-tani",
+      "name": "Kelapa",
+      "category": "Perkebunan",
+      "monthly_capacity": 80.0,
+      "available_stock": 65.0,
+      "unit": "ton",
+      "harvest_period": "Kontinu (Setiap bulan)"
+    },
+    {
+      "id": "com-8",
+      "cooperative_id": "coop-jabar-garut",
+      "name": "Madu",
+      "category": "Kehutanan",
+      "monthly_capacity": 5.0,
+      "available_stock": 4.2,
+      "unit": "ton",
+      "harvest_period": "Musiman (Mei-Agustus)"
+    },
+    {
+      "id": "com-9",
+      "cooperative_id": "coop-jateng-boyolali",
+      "name": "Susu Sapi",
+      "category": "Peternakan",
+      "monthly_capacity": 300.0,
+      "available_stock": 280.0,
+      "unit": "ton",
+      "harvest_period": "Harian"
+    },
+    {
+      "id": "com-10",
+      "cooperative_id": "coop-jateng-daging",
+      "name": "Daging Sapi",
+      "category": "Peternakan",
+      "monthly_capacity": 50.0,
+      "available_stock": 38.0,
+      "unit": "ton",
+      "harvest_period": "Kontinu"
+    },
+    {
+      "id": "com-11",
+      "cooperative_id": "coop-jatim-banyuwangi",
+      "name": "Beras Organik",
+      "category": "Pertanian",
+      "monthly_capacity": 100.0,
+      "available_stock": 85.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 4 bulan"
+    },
+    {
+      "id": "com-12",
+      "cooperative_id": "coop-jatim-banyuwangi",
+      "name": "Bawang Merah",
+      "category": "Pertanian",
+      "monthly_capacity": 40.0,
+      "available_stock": 32.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 3 bulan"
+    },
+    {
+      "id": "com-13",
+      "cooperative_id": "coop-jatim-nelayan",
+      "name": "Ikan Nila",
+      "category": "Perikanan",
+      "monthly_capacity": 60.0,
+      "available_stock": 45.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 3-4 bulan"
+    },
+    {
+      "id": "com-14",
+      "cooperative_id": "coop-jatim-nelayan",
+      "name": "Udang",
+      "category": "Perikanan",
+      "monthly_capacity": 35.0,
+      "available_stock": 28.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 3 bulan"
+    },
+    {
+      "id": "com-15",
+      "cooperative_id": "coop-jatim-nelayan",
+      "name": "Rumput Laut",
+      "category": "Perikanan",
+      "monthly_capacity": 80.0,
+      "available_stock": 60.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 45 hari"
+    },
+    {
+      "id": "com-16",
+      "cooperative_id": "coop-jatim-malang",
+      "name": "Susu Sapi",
+      "category": "Peternakan",
+      "monthly_capacity": 150.0,
+      "available_stock": 130.0,
+      "unit": "ton",
+      "harvest_period": "Harian"
+    },
+    {
+      "id": "com-17",
+      "cooperative_id": "coop-jatim-malang",
+      "name": "Kopi Robusta",
+      "category": "Perkebunan",
+      "monthly_capacity": 30.0,
+      "available_stock": 22.0,
+      "unit": "ton",
+      "harvest_period": "Musiman (Juli-September)"
+    },
+    {
+      "id": "com-18",
+      "cooperative_id": "coop-bali-kintamani",
+      "name": "Kopi Arabika",
+      "category": "Perkebunan",
+      "monthly_capacity": 25.0,
+      "available_stock": 18.0,
+      "unit": "ton",
+      "harvest_period": "Musiman (Juni-Agustus)"
+    },
+    {
+      "id": "com-19",
+      "cooperative_id": "coop-bali-kintamani",
+      "name": "Kakao",
+      "category": "Perkebunan",
+      "monthly_capacity": 15.0,
+      "available_stock": 10.0,
+      "unit": "ton",
+      "harvest_period": "Musiman"
+    },
+    {
+      "id": "com-20",
+      "cooperative_id": "coop-ntb-lombok",
+      "name": "Jagung",
+      "category": "Pertanian",
+      "monthly_capacity": 300.0,
+      "available_stock": 250.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 3 bulan"
+    },
+    {
+      "id": "com-21",
+      "cooperative_id": "coop-ntb-rumputlaut",
+      "name": "Rumput Laut",
+      "category": "Perikanan",
+      "monthly_capacity": 70.0,
+      "available_stock": 55.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 45 hari"
+    },
+    {
+      "id": "com-22",
+      "cooperative_id": "coop-kalsel-madu",
+      "name": "Madu",
+      "category": "Kehutanan",
+      "monthly_capacity": 6.0,
+      "available_stock": 4.5,
+      "unit": "ton",
+      "harvest_period": "Bulanan"
+    },
+    {
+      "id": "com-23",
+      "cooperative_id": "coop-kalsel-madu",
+      "name": "Kelapa",
+      "category": "Perkebunan",
+      "monthly_capacity": 30.0,
+      "available_stock": 20.0,
+      "unit": "ton",
+      "harvest_period": "Bulanan"
+    },
+    {
+      "id": "com-24",
+      "cooperative_id": "coop-sulsel-bantaeng",
+      "name": "Kakao",
+      "category": "Perkebunan",
+      "monthly_capacity": 40.0,
+      "available_stock": 30.0,
+      "unit": "ton",
+      "harvest_period": "Musiman"
+    },
+    {
+      "id": "com-25",
+      "cooperative_id": "coop-sulsel-pinrang",
+      "name": "Udang",
+      "category": "Perikanan",
+      "monthly_capacity": 50.0,
+      "available_stock": 42.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 3-4 bulan"
+    },
+    {
+      "id": "com-26",
+      "cooperative_id": "coop-sulsel-pinrang",
+      "name": "Ikan Nila",
+      "category": "Perikanan",
+      "monthly_capacity": 40.0,
+      "available_stock": 30.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 3 bulan"
+    },
+    {
+      "id": "com-27",
+      "cooperative_id": "coop-sulut-minahasa",
+      "name": "Kelapa",
+      "category": "Perkebunan",
+      "monthly_capacity": 120.0,
+      "available_stock": 95.0,
+      "unit": "ton",
+      "harvest_period": "Bulanan"
+    },
+    {
+      "id": "com-28",
+      "cooperative_id": "coop-sulut-minahasa",
+      "name": "Kakao",
+      "category": "Perkebunan",
+      "monthly_capacity": 20.0,
+      "available_stock": 14.0,
+      "unit": "ton",
+      "harvest_period": "Musiman"
+    },
+    {
+      "id": "com-29",
+      "cooperative_id": "coop-maluku-rempah",
+      "name": "Rumput Laut",
+      "category": "Perikanan",
+      "monthly_capacity": 40.0,
+      "available_stock": 30.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 45 hari"
+    },
+    {
+      "id": "com-30",
+      "cooperative_id": "coop-papua-wamena",
+      "name": "Madu",
+      "category": "Kehutanan",
+      "monthly_capacity": 8.0,
+      "available_stock": 6.8,
+      "unit": "ton",
+      "harvest_period": "Musiman"
+    },
+    {
+      "id": "com-31",
+      "cooperative_id": "coop-papua-wamena",
+      "name": "Kakao",
+      "category": "Perkebunan",
+      "monthly_capacity": 15.0,
+      "available_stock": 11.0,
+      "unit": "ton",
+      "harvest_period": "Musiman"
+    },
+    {
+      "id": "com-32",
+      "cooperative_id": "coop-jabar-garut",
+      "name": "Ayam Petelur",
+      "category": "Peternakan",
+      "monthly_capacity": 30.0,
+      "available_stock": 24.0,
+      "unit": "ton",
+      "harvest_period": "Harian"
+    },
+    {
+      "id": "com-33",
+      "cooperative_id": "coop-sumut-toba",
+      "name": "Cabai",
+      "category": "Pertanian",
+      "monthly_capacity": 15.0,
+      "available_stock": 11.0,
+      "unit": "ton",
+      "harvest_period": "Setiap 2 bulan"
+    }
+  ],
+  "buyers": [
+    {
+      "id": "buyer-indofood",
+      "company_name": "PT Indofood Sukses Makmur Tbk",
+      "city": "Jakarta",
+      "industry": "Makanan & Minuman"
+    },
+    {
+      "id": "buyer-mayora",
+      "company_name": "PT Mayora Indah Tbk",
+      "city": "Tangerang",
+      "industry": "Makanan & Minuman"
+    },
+    {
+      "id": "buyer-sidomuncul",
+      "company_name": "PT Industri Jamu dan Farmasi Sido Muncul Tbk",
+      "city": "Semarang",
+      "industry": "Farmasi & Herbal"
+    },
+    {
+      "id": "buyer-charoen",
+      "company_name": "PT Charoen Pokphand Indonesia Tbk",
+      "city": "Jakarta",
+      "industry": "Pakan Ternak & Pengolahan Daging"
+    },
+    {
+      "id": "buyer-kapalapi",
+      "company_name": "PT Kapal Api Global",
+      "city": "Surabaya",
+      "industry": "Pengolahan Kopi"
+    }
+  ],
+  "market_requests": [
+    {
+      "id": "req-1",
+      "buyer_id": "buyer-indofood",
+      "commodity_name": "Jagung",
+      "quantity": 500.0,
+      "unit": "ton",
+      "status": "Menunggu Pemenuhan"
+    },
+    {
+      "id": "req-2",
+      "buyer_id": "buyer-kapalapi",
+      "commodity_name": "Kopi Robusta",
+      "quantity": 30.0,
+      "unit": "ton",
+      "status": "Menunggu Pemenuhan"
+    },
+    {
+      "id": "req-3",
+      "buyer_id": "buyer-mayora",
+      "commodity_name": "Kakao",
+      "quantity": 60.0,
+      "unit": "ton",
+      "status": "Menunggu Pemenuhan"
+    },
+    {
+      "id": "req-4",
+      "buyer_id": "buyer-sidomuncul",
+      "commodity_name": "Madu",
+      "quantity": 15.0,
+      "unit": "ton",
+      "status": "Menunggu Pemenuhan"
+    },
+    {
+      "id": "req-5",
+      "buyer_id": "buyer-charoen",
+      "commodity_name": "Jagung",
+      "quantity": 100.0,
+      "unit": "ton",
+      "status": "Menunggu Pemenuhan"
+    }
+  ]
+}
