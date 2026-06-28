@@ -126,4 +126,10 @@ aruna/
 
 ---
 
+**Digagas oleh:**
+1. Lelianto Eko Pradana
+2. Juergen Kliensman Batubara
+
+---
+
 *Dibuat dengan ❤️ untuk memberdayakan koperasi Indonesia.*
