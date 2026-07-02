@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Lightbulb, AlertCircle, ShieldAlert,
-  Search, Info, Building2, MapPin
+  Search, Info, Building2, MapPin, Award
 } from 'lucide-react';
 import Link from 'next/link';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 
 interface InsightsClientProps {
   cooperatives: CooperativeWithCommodities[];
@@ -21,6 +22,20 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
   );
   const [selectedSeverity, setSelectedSeverity] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const coopOptions = useMemo(() => {
+    return [
+      { value: 'all', label: `Semua Koperasi (${cooperatives.length})` },
+      ...cooperatives.map(c => ({ value: c.id, label: c.name }))
+    ];
+  }, [cooperatives]);
+
+  const severityOptions = [
+    { value: 'all', label: 'Semua Tingkat' },
+    { value: 'Kritis', label: 'Kritis' },
+    { value: 'Peringatan', label: 'Peringatan' },
+    { value: 'Info', label: 'Info' }
+  ];
 
   // 1. Gather all insights nationally
   const allInsights = useMemo(() => {
@@ -66,28 +81,28 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
   }, [allInsights, selectedCoopId, selectedSeverity, searchQuery]);
 
   return (
-    <div className="page-shell flex-1 py-8 dark:bg-slate-950">
+    <div className="page-shell flex-1 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
             <Lightbulb className="h-8 w-8 text-brand-orange" /> Rekomendasi & AI Insights
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Analisis diagnostik otomatis menggunakan 10+ aturan kepatuhan koperasi nasional.
           </p>
         </div>
 
         {/* National Alerts Summary Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-8">
-          <Card className="border-red-200 bg-red-50 dark:border-red-900/50 dark:bg-red-950/20">
+          <Card className="border-red-200 bg-red-50/50">
             <CardContent className="p-5 flex items-center gap-4">
-              <div className="h-11 w-11 rounded-xl bg-red-100 dark:bg-red-950/40 flex items-center justify-center text-brand-red">
+              <div className="h-11 w-11 rounded-xl bg-red-100 flex items-center justify-center text-brand-red">
                 <ShieldAlert className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-xs text-slate-500 font-bold block uppercase">Diagnosis Kritis</span>
+                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Diagnosis Kritis</span>
                 <span className="text-xl font-black text-brand-red">
                   {severityCounts.Kritis} Temuan
                 </span>
@@ -95,13 +110,13 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
             </CardContent>
           </Card>
 
-          <Card className="border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/20">
+          <Card className="border-amber-200 bg-amber-50/60">
             <CardContent className="p-5 flex items-center gap-4">
-              <div className="h-11 w-11 rounded-xl bg-amber-100 dark:bg-amber-950/40 flex items-center justify-center text-brand-orange">
+              <div className="h-11 w-11 rounded-xl bg-amber-100 flex items-center justify-center text-brand-orange">
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-xs text-slate-500 font-bold block uppercase">Peringatan</span>
+                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Peringatan</span>
                 <span className="text-xl font-black text-brand-orange">
                   {severityCounts.Peringatan} Isu
                 </span>
@@ -109,14 +124,14 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
             </CardContent>
           </Card>
 
-          <Card className="border-blue-200 bg-blue-50 dark:border-blue-900/50 dark:bg-blue-950/20">
+          <Card className="border-blue-200 bg-blue-50/50">
             <CardContent className="p-5 flex items-center gap-4">
-              <div className="h-11 w-11 rounded-xl bg-blue-100 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
+              <div className="h-11 w-11 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
                 <Info className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-xs text-slate-500 font-bold block uppercase">Rekomendasi</span>
-                <span className="text-xl font-black text-blue-600 dark:text-blue-400">
+                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Rekomendasi</span>
+                <span className="text-xl font-black text-blue-600">
                   {severityCounts.Info} Peluang
                 </span>
               </div>
@@ -125,12 +140,12 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
         </div>
 
         {/* Filter Controls Box */}
-        <Card className="border-slate-200 dark:border-slate-800 p-5 mb-8">
+        <Card className="border-slate-200/80 p-5 mb-8 bg-white shadow-xs">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
 
             {/* Search */}
             <div className="relative col-span-1 md:col-span-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Cari</label>
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Cari</label>
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                 <input
@@ -138,49 +153,35 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                   placeholder="Cari insight, nama koperasi..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-navy/30"
+                  className="w-full pl-9 pr-4 py-2.5 border border-slate-200 rounded-lg text-xs font-semibold bg-slate-50 focus:outline-none focus:ring-1 focus:ring-brand-navy"
                 />
               </div>
             </div>
 
             {/* Cooperative Filter */}
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Koperasi</label>
-              <select
-                value={selectedCoopId}
-                onChange={(e) => setSelectedCoopId(e.target.value)}
-                className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-navy/30"
-              >
-                <option value="all">Semua ({cooperatives.length})</option>
-                {cooperatives.map(coop => (
-                  <option key={coop.id} value={coop.id}>{coop.name}</option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect
+              label="Koperasi"
+              options={coopOptions}
+              value={selectedCoopId}
+              onChange={(val) => setSelectedCoopId(val)}
+            />
 
             {/* Severity Filter */}
-            <div>
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-1.5">Tingkat</label>
-              <select
-                value={selectedSeverity}
-                onChange={(e) => setSelectedSeverity(e.target.value)}
-                className="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-navy/30"
-              >
-                <option value="all">Semua Tingkat</option>
-                <option value="Kritis">Kritis</option>
-                <option value="Peringatan">Peringatan</option>
-                <option value="Info">Info</option>
-              </select>
-            </div>
+            <CustomSelect
+              label="Tingkat Isu"
+              options={severityOptions}
+              value={selectedSeverity}
+              onChange={(val) => setSelectedSeverity(val)}
+            />
 
           </div>
         </Card>
 
         {/* Insights Results List */}
         <div className="space-y-4">
-          <div className="flex justify-between items-center text-sm font-bold text-slate-500">
-            <span>Laporan Diagnostik</span>
-            <span className="text-brand-red">{filteredInsights.length} Insight</span>
+          <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+            <span>Diagnosis AI Insights</span>
+            <span className="text-brand-red font-bold">{filteredInsights.length} Insight Temuan</span>
           </div>
 
           {filteredInsights.length === 0 ? (
@@ -196,17 +197,17 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                 return (
                   <Card
                     key={ins.id}
-                    className={`border-l-4 hover:shadow-md transition-shadow ${
-                      isCritical ? 'border-l-red-500 border-red-200 dark:border-red-900/50' :
-                      isWarning ? 'border-l-amber-500 border-amber-200 dark:border-amber-900/50' :
-                      'border-l-blue-500 border-blue-200 dark:border-blue-900/50'
+                    className={`border-l-4 hover:shadow-md transition-shadow bg-white ${
+                      isCritical ? 'border-l-red-500 border-red-200' :
+                      isWarning ? 'border-l-amber-500 border-amber-200' :
+                      'border-l-blue-500 border-blue-200'
                     }`}
                   >
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start gap-2">
                         <div className="flex items-center gap-2">
                           <Building2 className="h-4 w-4 text-slate-400" />
-                          <span className="text-xs text-slate-600 dark:text-slate-400 font-bold uppercase truncate max-w-[200px]">
+                          <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider truncate max-w-[200px]">
                             {ins.coopName}
                           </span>
                         </div>
@@ -215,13 +216,13 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                             isCritical ? 'destructive' :
                             isWarning ? 'warning' : 'secondary'
                           }
-                          className="text-xs px-2.5 py-0.5"
+                          className="text-[10px] px-2.5 py-0.5"
                         >
                           {ins.severity}
                         </Badge>
                       </div>
 
-                      <CardTitle className="text-base font-bold text-slate-900 dark:text-white mt-2">
+                      <CardTitle className="text-base font-black text-slate-900 mt-2">
                         {ins.title}
                       </CardTitle>
 
@@ -231,20 +232,20 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                       </div>
                     </CardHeader>
 
-                    <CardContent className="pt-2 space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                    <CardContent className="pt-2 space-y-3 text-xs text-slate-600">
                       {/* Description */}
-                      <p className="leading-relaxed bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-100 dark:border-slate-800">
+                      <p className="leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 text-slate-600">
                         {ins.description}
                       </p>
 
                       {/* Recommendation */}
                       <div className="space-y-1.5">
-                        <span className="text-xs font-bold text-slate-500 block uppercase">
-                          Rekomendasi:
+                        <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+                          Rekomendasi Tindakan:
                         </span>
-                        <div className="p-3 bg-brand-navy/5 dark:bg-brand-navy/10 rounded-lg border border-brand-navy/10 dark:border-brand-navy/20 flex items-start gap-2">
-                          <Lightbulb className="h-4 w-4 text-brand-orange flex-shrink-0 mt-0.5" />
-                          <span className="font-medium text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+                        <div className="p-3 bg-brand-cream/30 rounded-lg border border-brand-navy/5 flex items-start gap-2">
+                          <Lightbulb className="h-4.5 w-4.5 text-brand-orange flex-shrink-0 mt-0.5" />
+                          <span className="font-semibold text-xs text-slate-700 leading-relaxed">
                             {ins.recommendation}
                           </span>
                         </div>
@@ -253,9 +254,9 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                       <div className="flex justify-end pt-1">
                         <Link
                           href={`/scoring?coopId=${ins.cooperative_id}`}
-                          className="text-xs font-bold text-brand-red hover:underline"
+                          className="text-xs font-bold text-brand-red hover:underline flex items-center gap-1"
                         >
-                          Buka Skor Koperasi &rarr;
+                          <Award className="h-4 w-4" /> Buka Skor Koperasi &rarr;
                         </Link>
                       </div>
                     </CardContent>

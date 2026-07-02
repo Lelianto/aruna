@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
+import { AuthProvider } from '@/context/AuthContext';
+import AuthGuard from '@/components/AuthGuard';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -29,25 +31,29 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[var(--bg-base)] text-slate-900 dark:bg-slate-950 dark:text-slate-50">
-        <Navbar />
+      <body className="min-h-full flex flex-col bg-[var(--bg-base)] text-slate-900">
+        <AuthProvider>
+          <Navbar />
 
-        <main className="flex-1 flex flex-col">
-          {children}
-        </main>
+          <main className="flex-1 flex flex-col">
+            <AuthGuard>
+              {children}
+            </AuthGuard>
+          </main>
+        </AuthProvider>
 
-        <footer className="border-t border-slate-200 bg-white py-5 dark:border-slate-800 dark:bg-slate-950">
+        <footer className="border-t border-slate-200 bg-white py-5">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
               <div className="flex flex-col items-center gap-1 sm:items-start">
-                <span className="text-sm font-bold text-slate-800 dark:text-white">
+                <span className="text-sm font-bold text-slate-800">
                   ARUNA &copy; 2026
                 </span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 text-center sm:text-left">
+                <span className="text-xs text-slate-500 text-center sm:text-left">
                   Digital Cooperatives Expo 2026 - Pilar 3: Pemanfaatan Potensi Ekonomi Desa
                 </span>
               </div>
-              <div className="flex gap-4 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex gap-4 text-xs text-slate-500">
                 <span className="flex items-center gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-brand-red"></span> Gotong royong
                 </span>

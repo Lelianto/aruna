@@ -8,6 +8,9 @@ export interface Cooperative {
   member_count: number;
   active_members: number;
   annual_revenue: number;
+  address?: string;
+  head?: string;
+  phone?: string;
   created_at?: string;
 }
 
@@ -28,6 +31,9 @@ export interface Buyer {
   company_name: string;
   city: string;
   industry: string;
+  nib?: string;
+  siup?: string;
+  verified?: boolean;
   created_at?: string;
 }
 

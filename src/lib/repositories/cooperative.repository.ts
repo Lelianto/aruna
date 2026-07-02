@@ -1,7 +1,10 @@
 import { Cooperative, CooperativeScore, Insight, CooperativeWithCommodities } from '@/types';
-import mockData from '../mock/data.json';
+import { db } from '../firebase/config';
+import { collection, getDocs, doc, getDoc, updateDoc, addDoc } from 'firebase/firestore';
+import { seedDatabaseIfEmpty } from '../firebase/seeder';
 import { calculateCooperativeScore } from '../services/score-engine';
 import { generateCooperativeInsights } from '../services/insight-engine';
+import { commodityRepository } from './commodity.repository';
 
 export interface CooperativeRepository {
   getAll(): Promise<Cooperative[]>;
@@ -11,53 +14,61 @@ export interface CooperativeRepository {
   getAllWithDetails(): Promise<CooperativeWithCommodities[]>;
   getByIdWithDetails(id: string): Promise<CooperativeWithCommodities | null>;
   getMaxRevenue(): Promise<number>;
+  updateCommodityStock(coopId: string, commId: string, newStock: number): Promise<void>;
+  updateCooperative(id: string, data: Partial<Omit<Cooperative, 'id'>>): Promise<void>;
 }
 
-export class MockCooperativeRepository implements CooperativeRepository {
-  private cooperatives: Cooperative[] = mockData.cooperatives;
-
+export class FirestoreCooperativeRepository implements CooperativeRepository {
   async getAll(): Promise<Cooperative[]> {
-    // Simulate network delay
-    return new Promise((resolve) => setTimeout(() => resolve(this.cooperatives), 50));
+    await seedDatabaseIfEmpty();
+    const snap = await getDocs(collection(db, 'cooperatives'));
+    const list: Cooperative[] = [];
+    snap.forEach((docSnap) => {
+      list.push({ id: docSnap.id, ...docSnap.data() } as Cooperative);
+    });
+    return list;
   }
 
   async getById(id: string): Promise<Cooperative | null> {
-    const coop = this.cooperatives.find(c => c.id === id);
-    return new Promise((resolve) => setTimeout(() => resolve(coop || null), 50));
+    await seedDatabaseIfEmpty();
+    const snap = await getDoc(doc(db, 'cooperatives', id));
+    if (!snap.exists()) return null;
+    return { id: snap.id, ...snap.data() } as Cooperative;
   }
 
   async getMaxRevenue(): Promise<number> {
-    if (this.cooperatives.length === 0) return 0;
-    return Math.max(...this.cooperatives.map(c => c.annual_revenue), 1);
+    const list = await this.getAll();
+    if (list.length === 0) return 0;
+    return Math.max(...list.map(c => c.annual_revenue), 1);
   }
 
   async getScore(cooperativeId: string): Promise<CooperativeScore | null> {
-    const coop = this.cooperatives.find(c => c.id === cooperativeId);
+    const coop = await this.getById(cooperativeId);
     if (!coop) return null;
-    
+
     const maxRev = await this.getMaxRevenue();
-    const commodities = mockData.commodities.filter(c => c.cooperative_id === cooperativeId);
-    const score = calculateCooperativeScore(coop, commodities, maxRev);
-    return new Promise((resolve) => resolve(score));
+    const commodities = await commodityRepository.getByCooperativeId(cooperativeId);
+    return calculateCooperativeScore(coop, commodities, maxRev);
   }
 
   async getInsights(cooperativeId: string): Promise<Insight[]> {
-    const coop = this.cooperatives.find(c => c.id === cooperativeId);
+    const coop = await this.getById(cooperativeId);
     if (!coop) return [];
 
     const score = await this.getScore(cooperativeId);
     if (!score) return [];
 
-    const commodities = mockData.commodities.filter(c => c.cooperative_id === cooperativeId);
-    const insights = generateCooperativeInsights(coop, commodities, score);
-    return new Promise((resolve) => resolve(insights));
+    const commodities = await commodityRepository.getByCooperativeId(cooperativeId);
+    return generateCooperativeInsights(coop, commodities, score);
   }
 
   async getAllWithDetails(): Promise<CooperativeWithCommodities[]> {
+    const coops = await this.getAll();
     const maxRev = await this.getMaxRevenue();
-    const result = await Promise.all(
-      this.cooperatives.map(async (coop) => {
-        const commodities = mockData.commodities.filter(c => c.cooperative_id === coop.id);
+    
+    return Promise.all(
+      coops.map(async (coop) => {
+        const commodities = await commodityRepository.getByCooperativeId(coop.id);
         const score = calculateCooperativeScore(coop, commodities, maxRev);
         const insights = generateCooperativeInsights(coop, commodities, score);
         return {
@@ -68,14 +79,13 @@ export class MockCooperativeRepository implements CooperativeRepository {
         };
       })
     );
-    return result;
   }
 
   async getByIdWithDetails(id: string): Promise<CooperativeWithCommodities | null> {
-    const coop = this.cooperatives.find(c => c.id === id);
+    const coop = await this.getById(id);
     if (!coop) return null;
 
-    const commodities = mockData.commodities.filter(c => c.cooperative_id === id);
+    const commodities = await commodityRepository.getByCooperativeId(id);
     const score = await this.getScore(id);
     const insights = await this.getInsights(id);
 
@@ -86,7 +96,20 @@ export class MockCooperativeRepository implements CooperativeRepository {
       insights
     };
   }
+
+  async updateCommodityStock(coopId: string, commId: string, newStock: number): Promise<void> {
+    const commRef = doc(db, 'commodities', commId);
+    const snap = await getDoc(commRef);
+    if (snap.exists()) {
+      await updateDoc(commRef, {
+        available_stock: Math.max(0, newStock)
+      });
+    }
+  }
+
+  async updateCooperative(id: string, data: Partial<Omit<Cooperative, 'id'>>): Promise<void> {
+    await updateDoc(doc(db, 'cooperatives', id), data);
+  }
 }
 
-// Export a singleton instance of the repository
-export const cooperativeRepository: CooperativeRepository = new MockCooperativeRepository();
+export const cooperativeRepository: CooperativeRepository = new FirestoreCooperativeRepository();

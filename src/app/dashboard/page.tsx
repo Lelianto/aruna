@@ -16,11 +16,11 @@ export default async function DashboardPage() {
 
   // 2. Calculate Stats
   const totalCooperatives = cooperatives.length;
-  const totalMembers = cooperatives.reduce((acc, c) => acc + c.member_count, 0);
-  const totalActiveMembers = cooperatives.reduce((acc, c) => acc + c.active_members, 0);
-  const totalCapacity = commodities.reduce((acc, c) => acc + c.monthly_capacity, 0);
-  const totalRequests = requests.reduce((acc, r) => acc + r.quantity, 0);
-  const totalProvinces = new Set(cooperatives.map(c => c.province)).size;
+  const totalMembers = cooperatives.reduce((acc, c) => acc + (c.member_count || 0), 0);
+  const totalActiveMembers = cooperatives.reduce((acc, c) => acc + (c.active_members || 0), 0);
+  const totalCapacity = commodities.reduce((acc, c) => acc + (c.monthly_capacity || 0), 0);
+  const totalRequests = requests.reduce((acc, r) => acc + (r.quantity || 0), 0);
+  const totalProvinces = new Set(cooperatives.map(c => c.province).filter(Boolean)).size;
   const activeRequestCount = requests.filter(r => r.status === 'Menunggu Pemenuhan').length;
   
   const averageScore = cooperatives.length > 0
@@ -112,5 +112,5 @@ export default async function DashboardPage() {
     categoriesData
   };
 
-  return <DashboardClient stats={stats} charts={charts} />;
+  return <DashboardClient stats={stats} charts={charts} requests={requests} />;
 }

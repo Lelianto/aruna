@@ -81,42 +81,42 @@ export default async function KomoditasPage() {
   const totalStockAll = aggregates.reduce((sum, a) => sum + a.totalStock, 0);
 
   return (
-    <div className="page-shell flex-1 py-8 dark:bg-slate-950">
+    <div className="page-shell flex-1 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
             <Compass className="h-8 w-8 text-brand-red" /> Sebaran Komoditas Nasional
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm text-slate-500 mt-1">
             Monitoring kapasitas produksi bulanan dan ketersediaan stok pangan serta perkebunan rakyat di seluruh wilayah Nusantara.
           </p>
         </div>
 
         {/* Global Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-          <Card className="border-slate-200 dark:border-slate-800">
+          <Card className="border-slate-200/80">
             <CardContent className="p-5 flex items-center gap-4">
               <div className="h-11 w-11 rounded-xl bg-brand-navy/10 flex items-center justify-center text-brand-navy">
                 <Layers className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-xs text-slate-500 font-bold block uppercase">Kapasitas Nasional</span>
-                <span className="text-xl font-black text-slate-900 dark:text-white">
+                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Kapasitas Nasional</span>
+                <span className="text-xl font-black text-slate-900">
                   {Math.round(totalCapacityAll).toLocaleString('id-ID')} Ton/Bln
                 </span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 dark:border-slate-800">
+          <Card className="border-slate-200/80">
             <CardContent className="p-5 flex items-center gap-4">
               <div className="h-11 w-11 rounded-xl bg-brand-orange/10 flex items-center justify-center text-brand-orange">
                 <Compass className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-xs text-slate-500 font-bold block uppercase">Stok Siap Distribusi</span>
+                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Stok Siap Distribusi</span>
                 <span className="text-xl font-black text-brand-orange">
                   {Math.round(totalStockAll).toLocaleString('id-ID')} Ton
                 </span>
@@ -124,13 +124,13 @@ export default async function KomoditasPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200 dark:border-slate-800">
+          <Card className="border-slate-200/80">
             <CardContent className="p-5 flex items-center gap-4">
               <div className="h-11 w-11 rounded-xl bg-brand-red/10 flex items-center justify-center text-brand-red">
                 <Home className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-xs text-slate-500 font-bold block uppercase">Komoditas Terpetakan</span>
+                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Komoditas Terpetakan</span>
                 <span className="text-xl font-black text-brand-red">
                   {aggregates.length} Varietas
                 </span>
@@ -142,19 +142,19 @@ export default async function KomoditasPage() {
         {/* Commodities Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {aggregates.map(agg => (
-            <Card key={agg.name} className="border-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800">
+            <Card key={agg.name} className="border-slate-200/80 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md bg-white">
               <CardHeader className="pb-3 flex flex-row items-start justify-between gap-4">
                 <div>
-                  <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-bold uppercase dark:bg-slate-800 dark:text-slate-400">
+                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-bold uppercase">
                     {agg.category}
                   </span>
-                  <CardTitle className="text-lg font-black text-slate-900 dark:text-white mt-2">
+                  <CardTitle className="text-base font-black text-slate-900 mt-2">
                     {agg.name}
                   </CardTitle>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs text-slate-500 block font-bold">Kapasitas/Bln</span>
-                  <span className="text-base font-black text-brand-red">
+                  <span className="text-[9px] text-slate-400 block font-bold uppercase">Kapasitas/Bln</span>
+                  <span className="text-sm font-black text-brand-red">
                     {agg.totalCapacity} {agg.unit}
                   </span>
                 </div>
@@ -162,16 +162,16 @@ export default async function KomoditasPage() {
 
               <CardContent className="space-y-4">
                 {/* Stats */}
-                <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-900 p-3.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-lg border border-slate-100">
                   <div>
-                    <span className="text-xs text-slate-500 block font-bold uppercase">Stok Tersedia</span>
-                    <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    <span className="text-[9px] text-slate-400 block font-bold uppercase">Stok Tersedia</span>
+                    <span className="text-xs font-bold text-slate-800">
                       {agg.totalStock} {agg.unit}
                     </span>
                   </div>
                   <div>
-                    <span className="text-xs text-slate-500 block font-bold uppercase">Koperasi Penyedia</span>
-                    <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    <span className="text-[9px] text-slate-400 block font-bold uppercase">Koperasi Penyedia</span>
+                    <span className="text-xs font-bold text-slate-800">
                       {agg.coopCount} Mitra
                     </span>
                   </div>
@@ -179,12 +179,12 @@ export default async function KomoditasPage() {
 
                 {/* Sebaran Wilayah */}
                 <div>
-                  <span className="text-xs text-slate-500 font-bold block uppercase mb-2">Sebaran Geografis</span>
+                  <span className="text-[9px] text-slate-400 font-bold block uppercase mb-2">Sebaran Geografis</span>
                   <div className="flex flex-wrap gap-1.5">
                     {agg.provinces.map(prov => (
                       <span
                         key={prov}
-                        className="inline-flex items-center gap-1 text-xs bg-white border border-slate-200 text-slate-600 px-2 py-1 rounded-full dark:bg-slate-900 dark:border-slate-700 dark:text-slate-400"
+                        className="inline-flex items-center gap-1 text-[11px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full"
                       >
                         <MapPin className="h-3 w-3 text-brand-orange" />
                         {prov}
@@ -194,30 +194,30 @@ export default async function KomoditasPage() {
                 </div>
 
                 {/* Suppliers List */}
-                <div className="border-t border-slate-100 dark:border-slate-800 pt-3">
-                  <span className="text-xs text-slate-500 font-bold block uppercase mb-2">Daftar Koperasi Mitra</span>
+                <div className="border-t border-slate-100 pt-3">
+                  <span className="text-[9px] text-slate-400 font-bold block uppercase mb-2">Daftar Koperasi Mitra</span>
                   <div className="space-y-1.5">
                     {agg.suppliers.map(sup => (
-                      <div key={sup.coopId} className="flex justify-between items-center text-sm p-2.5 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-lg transition-colors">
+                      <div key={sup.coopId} className="flex justify-between items-center text-xs p-2.5 hover:bg-slate-50 rounded-lg transition-colors">
                         <div className="flex items-center gap-2">
-                          <span className={`inline-block font-bold text-xs px-1.5 py-0.5 rounded text-white ${
+                          <span className={`inline-block font-bold text-[9px] px-1.5 py-0.5 rounded text-white ${
                             sup.grade === 'A' ? 'bg-emerald-500' :
                             sup.grade === 'B' ? 'bg-blue-500' :
                             sup.grade === 'C' ? 'bg-amber-500' : 'bg-red-500'
                           }`}>
                             {sup.grade}
                           </span>
-                          <Link href={`/scoring?coopId=${sup.coopId}`} className="font-semibold text-slate-700 dark:text-slate-300 hover:text-brand-red hover:underline">
+                          <Link href={`/scoring?coopId=${sup.coopId}`} className="font-semibold text-slate-700 hover:text-brand-red hover:underline">
                             {sup.name}
                           </Link>
-                          <span className="text-xs text-slate-400">({sup.city})</span>
+                          <span className="text-[10px] text-slate-400">({sup.city})</span>
                         </div>
                         <div className="text-right">
-                          <span className="font-bold text-slate-800 dark:text-slate-200">
+                          <span className="font-bold text-slate-850">
                             {sup.stock} {agg.unit}
                           </span>
-                          <span className="text-xs text-slate-400 block">
-                            dari cap. {sup.capacity}
+                          <span className="text-[10px] text-slate-400 block mt-0.5">
+                            cap. {sup.capacity}
                           </span>
                         </div>
                       </div>

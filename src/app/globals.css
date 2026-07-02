@@ -6,34 +6,36 @@
 @import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 /* ── Design Tokens ── */
 :root {
   /* Brand */
-  --brand-red:    #dc2626;
-  --brand-navy:   #123042;
-  --brand-orange: #ea7a12;
-  --brand-yellow: #f6c453;
-  --brand-cream:  #f7f3e8;
+  --brand-red:    #d9383a; /* Crimson Red hangat */
+  --brand-navy:   #123042; /* Deep Navy */
+  --brand-orange: #ea7a12; /* Amber Orange */
+  --brand-yellow: #f6c453; /* Gold Yellow */
+  --brand-cream:  #fcfaf4; /* Soft warm cream */
 
   /* Surface */
-  --bg-base:      #f6f7f2;
+  --bg-base:      #faf9f6; /* Premium warm off-white */
   --bg-surface:   #ffffff;
   --bg-elevated:  #ffffff;
 
   /* Text */
-  --text-primary:   #17202a;
-  --text-secondary: #536170;
-  --text-muted:     #8a96a3;
+  --text-primary:   #123042; /* Gunakan navy sebagai teks utama */
+  --text-secondary: #4a5d6e; /* Slate grey untuk teks sekunder */
+  --text-muted:     #8fa0b0;
 
   /* Borders */
-  --border-subtle:  rgba(0,0,0,0.07);
-  --border-default: rgba(0,0,0,0.12);
+  --border-subtle:  rgba(18, 48, 66, 0.06);
+  --border-default: rgba(18, 48, 66, 0.12);
 
   /* Shadows */
-  --shadow-card:  0 1px 2px rgba(15,23,42,0.04), 0 10px 26px rgba(15,23,42,0.05);
-  --shadow-hover: 0 10px 28px rgba(15,23,42,0.10);
-  --shadow-glow-red:    0 0 24px rgba(214,40,40,0.25);
-  --shadow-glow-orange: 0 0 24px rgba(247,127,0,0.25);
+  --shadow-card:  0 6px 20px rgba(18, 48, 66, 0.025), 0 2px 6px rgba(18, 48, 66, 0.015);
+  --shadow-hover: 0 16px 36px rgba(18, 48, 66, 0.06);
+  --shadow-glow-red:    0 0 24px rgba(217, 56, 58, 0.15);
+  --shadow-glow-orange: 0 0 24px rgba(234, 122, 18, 0.15);
 }
 
 /* ── @theme for Tailwind v4 ── */
@@ -67,7 +69,7 @@ html {
 
 body {
   background:
-    linear-gradient(180deg, rgba(247,243,232,0.8) 0%, rgba(246,247,242,1) 280px),
+    linear-gradient(180deg, #f7f3e8 0%, #faf9f6 280px),
     var(--bg-base);
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -78,7 +80,7 @@ body {
 /* ── Typography ── */
 h1, h2, h3 {
   font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
 ::selection {
@@ -88,7 +90,7 @@ h1, h2, h3 {
 .page-shell {
   min-height: 100%;
   background:
-    linear-gradient(180deg, rgba(247,243,232,0.88) 0, rgba(246,247,242,0) 280px),
+    linear-gradient(180deg, #fcfbf8 0, #faf9f6 280px),
     var(--bg-base);
 }
 
@@ -111,48 +113,22 @@ h1, h2, h3 {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid rgba(18,48,66,0.12);
-  background: rgba(255,255,255,0.76);
+  border: 1px solid rgba(18,48,66,0.08);
+  background: rgba(255,255,255,0.9);
   color: var(--brand-navy);
   border-radius: 999px;
   padding: 0.35rem 0.75rem;
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0;
+  letter-spacing: 0.05em;
 }
 
 .metric-tile {
-  border: 1px solid rgba(18,48,66,0.10);
-  background: rgba(255,255,255,0.82);
-  border-radius: 8px;
+  border: 1px solid rgba(18,48,66,0.08);
+  background: rgba(255,255,255,0.9);
+  border-radius: 12px;
   box-shadow: var(--shadow-card);
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background:
-      linear-gradient(180deg, rgba(18,48,66,0.45) 0%, rgba(2,6,23,1) 320px),
-      #020617;
-    color: #f8fafc;
-  }
-
-  .page-shell {
-    background:
-      linear-gradient(180deg, rgba(18,48,66,0.54) 0, rgba(2,6,23,0) 320px),
-      #020617;
-  }
-
-  .metric-tile {
-    border-color: rgba(148,163,184,0.18);
-    background: rgba(15,23,42,0.82);
-  }
-
-  .kicker {
-    border-color: rgba(148,163,184,0.18);
-    background: rgba(15,23,42,0.76);
-    color: #f8fafc;
-  }
 }
 
 /* ── Glass Panels ── */

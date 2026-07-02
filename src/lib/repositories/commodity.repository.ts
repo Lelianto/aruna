@@ -1,5 +1,7 @@
 import { Commodity } from '@/types';
-import mockData from '../mock/data.json';
+import { db } from '../firebase/config';
+import { collection, getDocs, doc, getDoc, query, where, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { seedDatabaseIfEmpty } from '../firebase/seeder';
 
 export interface CommodityRepository {
   getAll(): Promise<Commodity[]>;
@@ -7,41 +9,75 @@ export interface CommodityRepository {
   getByCooperativeId(cooperativeId: string): Promise<Commodity[]>;
   getUniqueNames(): Promise<string[]>;
   getTotalsByCategory(): Promise<Record<string, { capacity: number; stock: number }>>;
+  addCommodity(data: Omit<Commodity, 'id'>): Promise<string>;
+  updateCommodity(id: string, data: Partial<Omit<Commodity, 'id'>>): Promise<void>;
+  deleteCommodity(id: string): Promise<void>;
 }
 
-export class MockCommodityRepository implements CommodityRepository {
-  private commodities: Commodity[] = mockData.commodities;
-
+export class FirestoreCommodityRepository implements CommodityRepository {
   async getAll(): Promise<Commodity[]> {
-    return new Promise((resolve) => setTimeout(() => resolve(this.commodities), 50));
+    await seedDatabaseIfEmpty();
+    const snap = await getDocs(collection(db, 'commodities'));
+    const list: Commodity[] = [];
+    snap.forEach((docSnap) => {
+      list.push({ id: docSnap.id, ...docSnap.data() } as Commodity);
+    });
+    return list;
   }
 
   async getById(id: string): Promise<Commodity | null> {
-    const com = this.commodities.find(c => c.id === id);
-    return new Promise((resolve) => setTimeout(() => resolve(com || null), 50));
+    await seedDatabaseIfEmpty();
+    const snap = await getDoc(doc(db, 'commodities', id));
+    if (!snap.exists()) return null;
+    return { id: snap.id, ...snap.data() } as Commodity;
   }
 
   async getByCooperativeId(cooperativeId: string): Promise<Commodity[]> {
-    const list = this.commodities.filter(c => c.cooperative_id === cooperativeId);
-    return new Promise((resolve) => resolve(list));
+    if (!cooperativeId) return [];
+    await seedDatabaseIfEmpty();
+    const q = query(collection(db, 'commodities'), where('cooperative_id', '==', cooperativeId));
+    const snap = await getDocs(q);
+    const list: Commodity[] = [];
+    snap.forEach((docSnap) => {
+      list.push({ id: docSnap.id, ...docSnap.data() } as Commodity);
+    });
+    return list;
   }
 
   async getUniqueNames(): Promise<string[]> {
-    const names = Array.from(new Set(this.commodities.map(c => c.name)));
-    return new Promise((resolve) => resolve(names.sort()));
+    const list = await this.getAll();
+    const names = Array.from(new Set(list.map(c => c.name)));
+    return names.sort();
   }
 
   async getTotalsByCategory(): Promise<Record<string, { capacity: number; stock: number }>> {
+    const list = await this.getAll();
     const totals: Record<string, { capacity: number; stock: number }> = {};
-    for (const c of this.commodities) {
+    for (const c of list) {
       if (!totals[c.category]) {
         totals[c.category] = { capacity: 0, stock: 0 };
       }
       totals[c.category].capacity += c.monthly_capacity;
       totals[c.category].stock += c.available_stock;
     }
-    return new Promise((resolve) => resolve(totals));
+    return totals;
+  }
+
+  async addCommodity(data: Omit<Commodity, 'id'>): Promise<string> {
+    const ref = await addDoc(collection(db, 'commodities'), {
+      ...data,
+      created_at: new Date().toISOString(),
+    });
+    return ref.id;
+  }
+
+  async updateCommodity(id: string, data: Partial<Omit<Commodity, 'id'>>): Promise<void> {
+    await updateDoc(doc(db, 'commodities', id), data);
+  }
+
+  async deleteCommodity(id: string): Promise<void> {
+    await deleteDoc(doc(db, 'commodities', id));
   }
 }
 
-export const commodityRepository: CommodityRepository = new MockCommodityRepository();
+export const commodityRepository: CommodityRepository = new FirestoreCommodityRepository();
