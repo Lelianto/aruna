@@ -19,6 +19,13 @@ import { Button } from '@/components/ui/button';
 
 type Tab = 'profil' | 'komoditas' | 'pesanan';
 
+interface DashboardTab {
+  key: Tab;
+  label: string;
+  icon: React.ComponentType<any>;
+  badge?: number;
+}
+
 interface MarketRequestWithBuyer extends MarketRequest {
   buyer?: Buyer;
 }
@@ -136,23 +143,24 @@ export default function MitraDashboardClient() {
               Kelola profil, komoditas, dan permintaan pasar koperasi Anda
             </p>
           </div>
+          
           {coop && (
-            <div className="text-right hidden sm:block">
-              <span className="text-xs font-bold text-brand-navy block">{coop.name}</span>
-              <span className="text-xs text-slate-400 flex items-center justify-end gap-1 mt-0.5">
-                <MapPin className="h-3 w-3" />{coop.city}, {coop.province}
-              </span>
+            <div className="text-right">
+              <div className="text-sm font-bold text-slate-900">{coop.name}</div>
+              <div className="text-xs text-slate-500">{coop.city}, {coop.province}</div>
             </div>
           )}
         </div>
 
         {/* Tab Nav */}
         <div className="flex gap-1 bg-slate-100 p-1 rounded-xl w-fit">
-          {([
-            { key: 'profil', label: 'Profil Koperasi', icon: Building2 },
-            { key: 'komoditas', label: 'Komoditas', icon: Warehouse, badge: commodities.length },
-            { key: 'pesanan', label: 'Permintaan Pasar', icon: ShoppingCart, badge: requests.filter(r => r.status === 'Menunggu Pemenuhan').length },
-          ] as const).map(tab => (
+          {(
+            [
+              { key: 'profil', label: 'Profil Koperasi', icon: Building2 },
+              { key: 'komoditas', label: 'Komoditas', icon: Warehouse, badge: commodities.length },
+              { key: 'pesanan', label: 'Permintaan Pasar', icon: ShoppingCart, badge: requests.filter(r => r.status === 'Menunggu Pemenuhan').length },
+            ] as DashboardTab[]
+          ).map((tab) => (
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
@@ -165,9 +173,11 @@ export default function MitraDashboardClient() {
               <tab.icon className="h-4 w-4" />
               {tab.label}
               {tab.badge !== undefined && tab.badge > 0 && (
-                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
-                  activeTab === tab.key ? 'bg-brand-red text-white' : 'bg-slate-300 text-slate-600'
-                }`}>
+                <span
+                  className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${
+                    activeTab === tab.key ? 'bg-brand-red text-white' : 'bg-slate-300 text-slate-600'
+                  }`}
+                >
                   {tab.badge}
                 </span>
               )}
