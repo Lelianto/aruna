@@ -13,6 +13,17 @@ CREATE TABLE cooperatives (
     active_members INT NOT NULL DEFAULT 0,
     annual_revenue DECIMAL(15, 2) NOT NULL DEFAULT 0.00,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- New document compliance and SimkopDes integration fields
+    nib VARCHAR(13) NULL,
+    nib_document_url TEXT NULL,
+    nib_status VARCHAR(20) DEFAULT 'unsubmitted' CHECK (nib_status IN ('unsubmitted', 'pending', 'verified', 'rejected')),
+    sk_number VARCHAR(50) NULL,
+    sk_document_url TEXT NULL,
+    sk_status VARCHAR(20) DEFAULT 'unsubmitted' CHECK (sk_status IN ('unsubmitted', 'pending', 'verified', 'rejected')),
+    simkopdes_id VARCHAR(20) NULL,
+    cash_reserve DECIMAL(15, 2) DEFAULT 0.00,
+    
     CONSTRAINT chk_active_members CHECK (active_members <= member_count)
 );
 
@@ -29,12 +40,13 @@ CREATE TABLE commodities (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. Buyers Table (National Offtakers / Companies)
+-- 3. Buyers Table (National Offtakers / Companies / UMKMs)
 CREATE TABLE buyers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_name VARCHAR(255) NOT NULL,
     city VARCHAR(100) NOT NULL,
     industry VARCHAR(100) NOT NULL,
+    buyer_type VARCHAR(20) DEFAULT 'industri' CHECK (buyer_type IN ('industri', 'umkm')),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

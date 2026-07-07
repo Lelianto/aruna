@@ -7,7 +7,7 @@ import { LogIn, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const { user, loading, needsRoleSelection, signInWithGoogle } = useAuth();
+  const { user, userData, loading, needsRoleSelection, signInWithGoogle } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -23,6 +23,37 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     );
+  }
+
+  // If role is not selected yet, redirect to select-role page (except if we are already there)
+  if (user && needsRoleSelection && pathname !== '/select-role') {
+    if (typeof window !== 'undefined') {
+      router.push('/select-role');
+    }
+    return null;
+  }
+
+  // Role-Based Access Control (RBAC) Route Guard
+  if (user && userData?.role) {
+    const role = userData.role;
+    const isAllowed = 
+      role === 'admin' || 
+      isPublicPath || 
+      pathname === '/select-role' ||
+      (role === 'buyer' && pathname.startsWith('/marketplace')) ||
+      (role === 'koperasi' && (pathname === '/peta' || pathname === '/komoditas' || pathname.startsWith('/mitra-dashboard') || pathname.startsWith('/scoring'))) ||
+      (role === 'customer' && pathname.startsWith('/marketplace'));
+
+    if (!isAllowed) {
+      let redirectPath = '/';
+      if (role === 'koperasi') redirectPath = '/mitra-dashboard';
+      else if (role === 'buyer' || role === 'customer') redirectPath = '/marketplace';
+      
+      if (typeof window !== 'undefined') {
+        router.replace(redirectPath);
+      }
+      return null;
+    }
   }
 
   // If path is public, just render it
@@ -58,14 +89,6 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
         </div>
       </div>
     );
-  }
-
-  // If role is not selected yet, redirect to select-role page (except if we are already there)
-  if (needsRoleSelection && pathname !== '/select-role') {
-    if (typeof window !== 'undefined') {
-      router.push('/select-role');
-    }
-    return null;
   }
 
   // Render protected content

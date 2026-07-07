@@ -5,11 +5,12 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Building2, Users, MapPin, Compass, ShieldAlert, Check, Plus, Trash2, ArrowRight } from 'lucide-react';
+import { Building2, Users, MapPin, Compass, ShieldAlert, Check, Plus, Trash2, ArrowRight, FileText, XCircle, Loader2 } from 'lucide-react';
 import { db } from '@/lib/firebase/config';
 import { collection, addDoc, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 import PinpointMapWrapper from '@/components/map/PinpointMapWrapper';
 import { Cooperative, Buyer } from '@/types';
+import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
 
 export default function OnboardingMitraPage() {
   const { userData, user, loading } = useAuth();
@@ -38,6 +39,7 @@ export default function OnboardingMitraPage() {
     company_name: '',
     city: '',
     industry: '',
+    address: '',
     nib: '',
     siup: ''
   });
@@ -158,8 +160,8 @@ export default function OnboardingMitraPage() {
   // Submit Buyer
   const handleBuyerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!buyerData.company_name || !buyerData.city || !buyerData.industry) {
-      alert("Harap lengkapi nama perusahaan, kota, dan industri buyer.");
+    if (!buyerData.company_name || !buyerData.city || !buyerData.industry || !buyerData.address) {
+      alert("Harap lengkapi nama perusahaan, kota, industri, dan alamat kirim buyer.");
       return;
     }
 
@@ -171,13 +173,14 @@ export default function OnboardingMitraPage() {
         company_name: buyerData.company_name,
         city: buyerData.city,
         industry: buyerData.industry,
+        address: buyerData.address,
         nib: buyerData.nib || '',
         siup: buyerData.siup || '',
         verified: isVerified
       });
 
       // Reset
-      setBuyerData({ company_name: '', city: '', industry: '', nib: '', siup: '' });
+      setBuyerData({ company_name: '', city: '', industry: '', address: '', nib: '', siup: '' });
       alert("Perusahaan buyer berhasil didaftarkan!");
       setActiveTab('list');
     } catch (err) {
@@ -223,7 +226,7 @@ export default function OnboardingMitraPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6 font-sans">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       
       {/* Header */}
       <div className="space-y-1">
@@ -433,6 +436,18 @@ export default function OnboardingMitraPage() {
                 </div>
               </div>
 
+              <div className="space-y-1">
+                <label className="text-[9px] font-bold text-slate-500 uppercase">Alamat Lengkap Pabrik / Gudang Penerima:</label>
+                <textarea
+                  required
+                  placeholder="Contoh: Jl. Industri Raya No. 45, Kawasan Industri Jababeka, Cikarang, Bekasi"
+                  value={buyerData.address}
+                  onChange={(e) => setBuyerData({ ...buyerData, address: e.target.value })}
+                  rows={2}
+                  className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800 resize-none font-sans"
+                />
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 pt-3">
                 <div className="space-y-1">
                   <label className="text-[9px] font-bold text-slate-500 uppercase">NIB (Nomor Induk Berusaha) - Opsional:</label>
@@ -490,17 +505,99 @@ export default function OnboardingMitraPage() {
                 <p className="p-6 text-center text-xs text-slate-400 italic">Tidak ada koperasi terdaftar.</p>
               ) : (
                 coops.map((coop) => (
-                  <div key={coop.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
-                    <div>
-                      <h4 className="font-extrabold text-xs text-slate-800">{coop.name}</h4>
+                  <div key={coop.id} className="p-4 flex items-start justify-between hover:bg-slate-50/50 transition-colors gap-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-extrabold text-xs text-slate-800">{coop.name}</h4>
+                        {coop.simkopdes_id ? (
+                          <span className="text-[9px] font-black bg-emerald-50 border border-emerald-200 text-emerald-700 px-1.5 py-0.2 rounded-full uppercase">SimkopDes</span>
+                        ) : (
+                          <span className="text-[9px] font-black bg-slate-55 border border-slate-250 text-slate-400 px-1.5 py-0.2 rounded-full uppercase">Offline</span>
+                        )}
+                      </div>
                       <p className="text-[10px] text-slate-400 font-semibold">{coop.address} — {coop.city}, {coop.province}</p>
                       <p className="text-[9px] text-slate-400 mt-1">Ketua: <strong className="text-slate-600">{coop.head || '-'}</strong> | Kontak: <strong className="text-slate-650">{coop.phone || '-'}</strong></p>
+                      
+                      {/* Document Compliance Verification Action Panel */}
+                      {(coop.nib_status === 'pending' || coop.sk_status === 'pending') && (
+                        <div className="mt-3 p-3 bg-orange-50/30 rounded-xl border border-brand-orange/20 space-y-2 max-w-lg">
+                          <span className="text-[9px] font-black text-brand-orange uppercase tracking-wider block">Verifikasi Dokumen Kepatuhan (KYC)</span>
+                          
+                          {/* NIB Verification */}
+                          {coop.nib_status === 'pending' && (
+                            <div className="flex items-center justify-between gap-3 text-[11px] bg-white p-2 rounded-lg border border-slate-200">
+                              <div>
+                                <span className="font-bold text-slate-700 block">NIB: {coop.nib}</span>
+                                {coop.nib_document_url && (
+                                  <a href={coop.nib_document_url} target="_blank" rel="noreferrer" className="text-[9px] text-brand-orange font-black hover:underline block mt-0.5">
+                                    Lihat Dokumen NIB &rarr;
+                                  </a>
+                                )}
+                              </div>
+                              <div className="flex gap-1.5 shrink-0">
+                                <button
+                                  onClick={async () => {
+                                    await cooperativeRepository.verifyCooperativeDocs(coop.id, 'nib', 'verified');
+                                    alert('Dokumen NIB terverifikasi. Nilai ARUNA Score koperasi diperbarui!');
+                                  }}
+                                  className="p-1 px-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  <Check className="h-3 w-3" /> Setujui
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    await cooperativeRepository.verifyCooperativeDocs(coop.id, 'nib', 'rejected');
+                                    alert('Dokumen NIB ditolak.');
+                                  }}
+                                  className="p-1 px-2 bg-rose-500 hover:bg-rose-600 text-white rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  <XCircle className="h-3 w-3" /> Tolak
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* SK Verification */}
+                          {coop.sk_status === 'pending' && (
+                            <div className="flex items-center justify-between gap-3 text-[11px] bg-white p-2 rounded-lg border border-slate-200">
+                              <div>
+                                <span className="font-bold text-slate-700 block">SK Pendirian: {coop.sk_number}</span>
+                                {coop.sk_document_url && (
+                                  <a href={coop.sk_document_url} target="_blank" rel="noreferrer" className="text-[9px] text-brand-orange font-black hover:underline block mt-0.5">
+                                    Lihat Dokumen SK &rarr;
+                                  </a>
+                                )}
+                              </div>
+                              <div className="flex gap-1.5 shrink-0">
+                                <button
+                                  onClick={async () => {
+                                    await cooperativeRepository.verifyCooperativeDocs(coop.id, 'sk', 'verified');
+                                    alert('Dokumen SK Pendirian terverifikasi. Nilai ARUNA Score koperasi diperbarui!');
+                                  }}
+                                  className="p-1 px-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  <Check className="h-3 w-3" /> Setujui
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    await cooperativeRepository.verifyCooperativeDocs(coop.id, 'sk', 'rejected');
+                                    alert('Dokumen SK Pendirian ditolak.');
+                                  }}
+                                  className="p-1 px-2 bg-rose-500 hover:bg-rose-600 text-white rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                >
+                                  <XCircle className="h-3 w-3" /> Tolak
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeleteCoop(coop.id)}
-                      className="border-red-100 hover:bg-red-50 hover:text-brand-red text-[11px] p-2 h-8 cursor-pointer"
+                      className="border-red-100 hover:bg-red-50 hover:text-brand-red text-[11px] p-2 h-8 cursor-pointer shrink-0"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -509,13 +606,13 @@ export default function OnboardingMitraPage() {
               )}
             </CardContent>
           </Card>
-
+ 
           {/* Buyers List */}
           <Card className="bg-white border-slate-200/80 shadow-xs">
             <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-xs font-black uppercase text-brand-red tracking-wider">Daftar Buyer Industri Terdaftar</CardTitle>
-                <CardDescription className="text-[10px] mt-0.5">Total: {buyers.length} Buyer Industri</CardDescription>
+                <CardTitle className="text-xs font-black uppercase text-brand-red tracking-wider">Daftar Buyer Terdaftar</CardTitle>
+                <CardDescription className="text-[10px] mt-0.5">Total: {buyers.length} Buyer Terdaftar</CardDescription>
               </div>
             </CardHeader>
             <CardContent className="p-0 divide-y">
@@ -527,10 +624,15 @@ export default function OnboardingMitraPage() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-extrabold text-xs text-slate-800">{b.company_name}</h4>
-                        {b.verified ? (
-                          <span className="text-[9px] font-black bg-emerald-50 border border-emerald-200 text-emerald-700 px-1.5 py-0.2 rounded-full uppercase">Verified</span>
+                        {b.buyer_type === 'umkm' ? (
+                          <span className="text-[9px] font-black bg-orange-50 border border-orange-200 text-orange-700 px-1.5 py-0.2 rounded-full uppercase">Mitra UMKM</span>
                         ) : (
-                          <span className="text-[9px] font-black bg-slate-55 border border-slate-250 text-slate-500 px-1.5 py-0.2 rounded-full uppercase">Unverified</span>
+                          <span className="text-[9px] font-black bg-red-50 border border-red-200 text-brand-red px-1.5 py-0.2 rounded-full uppercase">Offtaker Industri</span>
+                        )}
+                        {b.verified ? (
+                          <span className="text-[9px] font-black bg-emerald-50 border border-emerald-250 text-emerald-700 px-1.5 py-0.2 rounded-full uppercase">Verified</span>
+                        ) : (
+                          <span className="text-[9px] font-black bg-slate-100 border border-slate-200 text-slate-400 px-1.5 py-0.2 rounded-full uppercase">Unverified</span>
                         )}
                       </div>
                       <p className="text-[10px] text-slate-400 font-semibold">{b.industry} — {b.city}</p>
@@ -542,7 +644,7 @@ export default function OnboardingMitraPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeleteBuyer(b.id)}
-                      className="border-red-100 hover:bg-red-50 hover:text-brand-red text-[11px] p-2 h-8 cursor-pointer"
+                      className="border-red-100 hover:bg-red-50 hover:text-brand-red text-[11px] p-2 h-8 cursor-pointer shrink-0"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </Button>
@@ -551,7 +653,7 @@ export default function OnboardingMitraPage() {
               )}
             </CardContent>
           </Card>
-
+ 
         </div>
       )}
 

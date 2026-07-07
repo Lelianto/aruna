@@ -42,7 +42,15 @@
       "longitude": 105.587654,
       "member_count": 800,
       "active_members": 680,
-      "annual_revenue": 4500000000
+      "annual_revenue": 4500000000,
+      "simkopdes_id": "KDKMP-10482",
+      "nib": "9120108375122",
+      "nib_document_url": "https://placehold.co/600x400/003049/ffffff?text=NIB+Lampung+Makmur",
+      "nib_status": "pending",
+      "sk_number": "SK-2026/KOP-LPG/005",
+      "sk_document_url": "https://placehold.co/600x400/d62828/ffffff?text=SK+Lampung+Makmur",
+      "sk_status": "pending",
+      "cash_reserve": 150000000
     },
     {
       "id": "coop-lampung-timur",
@@ -558,31 +566,54 @@
       "id": "buyer-indofood",
       "company_name": "PT Indofood Sukses Makmur Tbk",
       "city": "Jakarta",
-      "industry": "Makanan & Minuman"
+      "industry": "Makanan & Minuman",
+      "buyer_type": "industri"
     },
     {
       "id": "buyer-mayora",
       "company_name": "PT Mayora Indah Tbk",
       "city": "Tangerang",
-      "industry": "Makanan & Minuman"
+      "industry": "Makanan & Minuman",
+      "buyer_type": "industri"
     },
     {
       "id": "buyer-sidomuncul",
       "company_name": "PT Industri Jamu dan Farmasi Sido Muncul Tbk",
       "city": "Semarang",
-      "industry": "Farmasi & Herbal"
+      "industry": "Farmasi & Herbal",
+      "buyer_type": "industri"
     },
     {
       "id": "buyer-charoen",
       "company_name": "PT Charoen Pokphand Indonesia Tbk",
       "city": "Jakarta",
-      "industry": "Pakan Ternak & Pengolahan Daging"
+      "industry": "Pakan Ternak & Pengolahan Daging",
+      "buyer_type": "industri"
     },
     {
       "id": "buyer-kapalapi",
       "company_name": "PT Kapal Api Global",
       "city": "Surabaya",
-      "industry": "Pengolahan Kopi"
+      "industry": "Pengolahan Kopi",
+      "buyer_type": "industri"
+    },
+    {
+      "id": "buyer-katering",
+      "company_name": "Katering Warung Selera (UMKM)",
+      "city": "Bandung",
+      "industry": "Jasa Makanan & Katering",
+      "buyer_type": "umkm",
+      "nib": "8120309180211",
+      "verified": true
+    },
+    {
+      "id": "buyer-rotigembong",
+      "company_name": "Roti Gembong Nusantara (UMKM)",
+      "city": "Yogyakarta",
+      "industry": "Toko Roti & Bakeri",
+      "buyer_type": "umkm",
+      "nib": "7109204918231",
+      "verified": true
     }
   ],
   "market_requests": [
@@ -623,6 +654,22 @@
       "buyer_id": "buyer-charoen",
       "commodity_name": "Jagung",
       "quantity": 100.0,
+      "unit": "ton",
+      "status": "Menunggu Pemenuhan"
+    },
+    {
+      "id": "req-6",
+      "buyer_id": "buyer-katering",
+      "commodity_name": "Beras Organik",
+      "quantity": 2.5,
+      "unit": "ton",
+      "status": "Menunggu Pemenuhan"
+    },
+    {
+      "id": "req-7",
+      "buyer_id": "buyer-rotigembong",
+      "commodity_name": "Madu Hutan",
+      "quantity": 1.2,
       "unit": "ton",
       "status": "Menunggu Pemenuhan"
     }

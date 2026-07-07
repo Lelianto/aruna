@@ -583,7 +583,7 @@ export default function PitchPage() {
 
   return (
     <div className="flex-1 py-10 bg-slate-50 dark:bg-slate-900/50">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">

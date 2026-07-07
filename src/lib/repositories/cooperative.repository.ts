@@ -1,6 +1,6 @@
 import { Cooperative, CooperativeScore, Insight, CooperativeWithCommodities } from '@/types';
 import { db } from '../firebase/config';
-import { collection, getDocs, doc, getDoc, updateDoc, addDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, updateDoc, addDoc, setDoc } from 'firebase/firestore';
 import { seedDatabaseIfEmpty } from '../firebase/seeder';
 import { calculateCooperativeScore } from '../services/score-engine';
 import { generateCooperativeInsights } from '../services/insight-engine';
@@ -16,6 +16,7 @@ export interface CooperativeRepository {
   getMaxRevenue(): Promise<number>;
   updateCommodityStock(coopId: string, commId: string, newStock: number): Promise<void>;
   updateCooperative(id: string, data: Partial<Omit<Cooperative, 'id'>>): Promise<void>;
+  verifyCooperativeDocs(coopId: string, type: 'nib' | 'sk', status: 'verified' | 'rejected'): Promise<void>;
 }
 
 export class FirestoreCooperativeRepository implements CooperativeRepository {
@@ -109,6 +110,41 @@ export class FirestoreCooperativeRepository implements CooperativeRepository {
 
   async updateCooperative(id: string, data: Partial<Omit<Cooperative, 'id'>>): Promise<void> {
     await updateDoc(doc(db, 'cooperatives', id), data);
+  }
+
+  async verifyCooperativeDocs(coopId: string, type: 'nib' | 'sk', status: 'verified' | 'rejected'): Promise<void> {
+    const updateData: any = {};
+    if (type === 'nib') {
+      updateData.nib_status = status;
+    } else {
+      updateData.sk_status = status;
+    }
+
+    const coopRef = doc(db, 'cooperatives', coopId);
+    await updateDoc(coopRef, updateData);
+
+    // Dynamic ARUNA Score calculation after verification
+    const updatedCoopSnap = await getDoc(coopRef);
+    if (updatedCoopSnap.exists()) {
+      const updatedCoop = { id: coopId, ...updatedCoopSnap.data() } as Cooperative;
+      const commodities = await commodityRepository.getByCooperativeId(coopId);
+      const maxRev = await this.getMaxRevenue();
+      
+      // Calculate new score with compliance bonus
+      const newScore = calculateCooperativeScore(updatedCoop, commodities, maxRev);
+
+      // Save updated score to Firestore
+      const scoreRef = doc(db, 'scores', coopId);
+      await setDoc(scoreRef, {
+        cooperative_id: coopId,
+        health_score: newScore.health_score,
+        growth_score: newScore.growth_score,
+        supply_score: newScore.supply_score,
+        final_score: newScore.final_score,
+        grade: newScore.grade,
+        updated_at: new Date().toISOString()
+      });
+    }
   }
 }
 

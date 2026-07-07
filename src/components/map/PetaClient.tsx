@@ -63,7 +63,25 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
   const [loadingGemini, setLoadingGemini] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (selectedCoopId && !geminiInsights[selectedCoopId]) {
+    if (selectedCoopId) {
+      if (geminiInsights[selectedCoopId]) return;
+
+      const cacheKey = `aruna_ai_insights_${selectedCoopId}`;
+      const cached = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null;
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          const age = Date.now() - parsed.timestamp;
+          const ONE_DAY = 24 * 60 * 60 * 1000;
+          if (age < ONE_DAY) {
+            setGeminiInsights(prev => ({ ...prev, [selectedCoopId]: parsed.data }));
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to parse cached insights", e);
+        }
+      }
+
       const fetchAiInsights = async () => {
         setLoadingGemini(prev => ({ ...prev, [selectedCoopId]: true }));
         try {
@@ -71,6 +89,12 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
           if (res.ok) {
             const data = await res.json();
             setGeminiInsights(prev => ({ ...prev, [selectedCoopId]: data }));
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(cacheKey, JSON.stringify({
+                timestamp: Date.now(),
+                data
+              }));
+            }
           }
         } catch (err) {
           console.error("Error fetching Gemini insights:", err);
@@ -120,10 +144,26 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
   }, [selectedCoopId, cooperatives]);
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100dvh-68px)] overflow-hidden">
+    <div className="flex-1 bg-[#faf9f6] min-h-screen relative font-sans py-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col gap-6 h-[calc(100vh-120px)]">
+        
+        {/* Page Title Header */}
+        <div className="flex justify-between items-center shrink-0">
+          <div>
+            <span className="text-[10px] bg-brand-red text-white px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
+              Peta Potensi Gotong Royong
+            </span>
+            <h1 className="text-xl font-black text-slate-900 leading-tight mt-1">
+              Command Center Pemetaan Komoditas Nusantara
+            </h1>
+          </div>
+        </div>
 
-      {/* Sidebar - Controls and List */}
-      <div className="w-full md:w-[380px] lg:w-[420px] border-r border-slate-200 bg-white flex flex-col shrink-0 h-[45dvh] md:h-full overflow-hidden shadow-sm">
+        {/* Workspace Body */}
+        <div className="flex-1 flex flex-col md:flex-row gap-6 min-h-0">
+
+          {/* Sidebar - Controls and List */}
+          <div className="w-full md:w-[380px] lg:w-[420px] bg-white border border-slate-200/80 rounded-2xl flex flex-col shrink-0 h-full overflow-hidden shadow-3xs">
         
         {/* If a cooperative is selected, show its Inspector Panel in the sidebar */}
         {selectedCoop ? (
@@ -434,8 +474,8 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
         )}
       </div>
 
-      {/* Map Area — fills all remaining space, never scrolls */}
-      <div className="flex-1 min-w-0 h-[55dvh] md:h-full bg-slate-200 relative overflow-hidden">
+      {/* Map Area — beautiful matching card */}
+      <div className="flex-1 min-w-0 bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-3xs relative h-full">
         <MapWrapper 
           cooperatives={filteredCooperatives} 
           selectedCoopId={selectedCoopId}
@@ -443,5 +483,7 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
       </div>
 
     </div>
+  </div>
+</div>
   );
 }

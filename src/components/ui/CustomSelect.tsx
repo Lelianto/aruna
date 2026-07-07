@@ -49,7 +49,6 @@ export function CustomSelect({ options, value, onChange, label, className = '', 
         <span className={selectedOption ? 'text-slate-800' : 'text-slate-400 font-medium'}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
-        <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (

@@ -54,8 +54,15 @@ export function performGotongRoyongMatch(
   const matches: AllocationMatch[] = [];
   let remaining = targetQuantity;
 
+  const isUmkmRequest = (request as any).buyer?.buyer_type === 'umkm' || targetQuantity < 10;
+
   for (const candidate of candidateCoops) {
     if (remaining <= 0) break;
+
+    // Direct Match Single Source: For small/UMKM orders, direct match to only 1 best-suited cooperative
+    if (isUmkmRequest && matches.length >= 1) {
+      break;
+    }
 
     const stock = candidate.commodity.available_stock;
     const allocated = Math.min(remaining, stock);

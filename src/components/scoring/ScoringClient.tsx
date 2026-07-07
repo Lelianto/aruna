@@ -293,10 +293,10 @@ export default function ScoringClient({ cooperatives, initialCoopId }: ScoringCl
                       </td>
                       <td className="p-4 text-slate-600 font-semibold">{coop.province}</td>
                       <td className="p-4 text-center text-slate-600 font-semibold">
-                        {Math.round((coop.active_members / coop.member_count) * 100)}%
+                        {coop.member_count ? Math.round(((coop.active_members || 0) / coop.member_count) * 100) : 0}%
                       </td>
                       <td className="p-4 text-right text-slate-600 font-bold">
-                        Rp {coop.annual_revenue.toLocaleString('id-ID')}
+                        Rp {(coop.annual_revenue || 0).toLocaleString('id-ID')}
                       </td>
                       <td className="p-4 text-center font-black text-brand-navy text-sm">
                         {score?.final_score || 0}

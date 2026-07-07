@@ -14,18 +14,22 @@ export async function seedDatabaseIfEmpty() {
     
     // 1. Seed Buyers
     console.log('Seeding buyers...');
-    for (const buyer of mockData.buyers) {
+    for (const buyer of mockData.buyers as any[]) {
       await setDoc(doc(db, 'buyers', buyer.id), {
         id: buyer.id,
         company_name: buyer.company_name,
         city: buyer.city,
-        industry: buyer.industry
+        industry: buyer.industry,
+        buyer_type: buyer.buyer_type || 'industri',
+        nib: buyer.nib || '',
+        siup: buyer.siup || '',
+        verified: buyer.verified || false
       });
     }
 
     // 2. Seed Cooperatives
     console.log('Seeding cooperatives...');
-    for (const coop of mockData.cooperatives) {
+    for (const coop of mockData.cooperatives as any[]) {
       await setDoc(doc(db, 'cooperatives', coop.id), {
         id: coop.id,
         name: coop.name,
@@ -35,7 +39,15 @@ export async function seedDatabaseIfEmpty() {
         longitude: coop.longitude,
         member_count: coop.member_count,
         active_members: coop.active_members,
-        annual_revenue: coop.annual_revenue
+        annual_revenue: coop.annual_revenue,
+        simkopdes_id: coop.simkopdes_id || `KDKMP-${Math.floor(10000 + Math.random() * 90000)}`,
+        nib: coop.nib || null,
+        nib_document_url: coop.nib_document_url || null,
+        nib_status: coop.nib_status || 'unsubmitted',
+        sk_number: coop.sk_number || null,
+        sk_document_url: coop.sk_document_url || null,
+        sk_status: coop.sk_status || 'unsubmitted',
+        cash_reserve: coop.cash_reserve || 50000000
       });
     }
 

@@ -19,19 +19,21 @@ export default function Navbar() {
     { name: 'ARUNA Score', href: '/scoring', icon: Award },
     { name: 'AI Insights', href: '/insights', icon: Lightbulb },
     { name: 'Onboarding', href: '/onboarding-mitra', icon: UserPlus },
-    { name: 'Portal Saya', href: '/mitra-dashboard', icon: LayoutDashboard },
-    { name: 'Pitch Deck', href: '/pitch', icon: Presentation }
+    { name: 'Portal Saya', href: '/mitra-dashboard', icon: LayoutDashboard }
   ];
 
   const filteredNavItems = navItems.filter(item => {
     if (!user || !userData?.role) {
-      return item.href === '/pitch';
+      return false;
     }
     if (userData.role === 'buyer') {
-      return item.href === '/peta' || item.href === '/marketplace' || item.href === '/pitch';
+      return item.href === '/marketplace';
+    }
+    if (userData.role === 'customer') {
+      return item.href === '/marketplace';
     }
     if (userData.role === 'koperasi') {
-      return item.href === '/peta' || item.href === '/komoditas' || item.href === '/mitra-dashboard' || item.href === '/pitch';
+      return item.href === '/peta' || item.href === '/komoditas' || item.href === '/mitra-dashboard';
     }
     // Admin has access to all
     return true;
@@ -51,7 +53,7 @@ export default function Navbar() {
                   ARUNA
                 </span>
                 <span className="text-[10px] font-bold text-slate-500 uppercase leading-none">
-                  Supply Command Center
+                  Analitik Usaha Rakyat Nusantara
                 </span>
               </div>
             </Link>
@@ -65,11 +67,10 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1.5 whitespace-nowrap px-2.5 py-2 rounded-md text-xs font-bold transition-all duration-200 ${
-                    isActive
+                  className={`flex items-center gap-1.5 whitespace-nowrap px-2.5 py-2 rounded-md text-xs font-bold transition-all duration-200 ${isActive
                       ? 'bg-brand-navy text-white shadow-sm'
                       : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
-                  }`}
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   {item.name}
@@ -88,8 +89,8 @@ export default function Navbar() {
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="text-[9px] text-brand-orange font-bold uppercase tracking-wider block">
                       {userData?.role === 'admin' ? 'Admin Platform' :
-                       userData?.role === 'buyer' ? 'Buyer Industri' :
-                       userData?.role === 'koperasi' ? 'Ketua Koperasi' : 'Registrasi Peran'}
+                        userData?.role === 'buyer' ? 'Buyer Industri' :
+                          userData?.role === 'koperasi' ? 'Ketua Koperasi' : 'Registrasi Peran'}
                     </span>
                     <span className="text-slate-200 text-[9px]">|</span>
                     <Link href="/select-role" className="text-[9px] text-brand-red hover:underline font-extrabold block">
@@ -113,7 +114,7 @@ export default function Navbar() {
                 Masuk Google <LogIn className="h-4.5 w-4.5" />
               </button>
             )}
-            
+
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex md:hidden items-center justify-center rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900"
@@ -137,11 +138,10 @@ export default function Navbar() {
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-bold ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-bold ${isActive
                     ? 'bg-brand-navy text-white'
                     : 'text-slate-600 hover:bg-slate-100'
-                }`}
+                  }`}
               >
                 <Icon className="h-5 w-5" />
                 {item.name}
@@ -158,12 +158,12 @@ export default function Navbar() {
                   <div className="flex items-center justify-center gap-2">
                     <span className="text-[10px] text-brand-orange font-bold uppercase tracking-wider block">
                       {userData?.role === 'admin' ? 'Admin Platform' :
-                       userData?.role === 'buyer' ? 'Buyer Industri' :
-                       userData?.role === 'koperasi' ? 'Ketua Koperasi' : 'Registrasi Peran'}
+                        userData?.role === 'buyer' ? 'Buyer Industri' :
+                          userData?.role === 'koperasi' ? 'Ketua Koperasi' : 'Registrasi Peran'}
                     </span>
                     <span className="text-slate-300 text-[10px]">|</span>
-                    <Link 
-                      href="/select-role" 
+                    <Link
+                      href="/select-role"
                       onClick={() => setIsOpen(false)}
                       className="text-[10px] text-brand-red hover:underline font-extrabold block"
                     >

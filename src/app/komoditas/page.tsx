@@ -2,10 +2,22 @@ import React from 'react';
 import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
 import { commodityRepository } from '@/lib/repositories/commodity.repository';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Compass, Home, MapPin, Layers } from 'lucide-react';
+import { Compass, Home, MapPin, Layers, ShieldAlert, Coins } from 'lucide-react';
 import Link from 'next/link';
 
 export const revalidate = 0;
+
+interface SupplierDetail {
+  coopId: string;
+  name: string;
+  city: string;
+  province: string;
+  stock: number;
+  capacity: number;
+  grade: string;
+  price: number;
+  minimumStock: number;
+}
 
 interface CommodityAggregate {
   name: string;
@@ -15,15 +27,7 @@ interface CommodityAggregate {
   unit: string;
   coopCount: number;
   provinces: string[];
-  suppliers: Array<{
-    coopId: string;
-    name: string;
-    city: string;
-    province: string;
-    stock: number;
-    capacity: number;
-    grade: string;
-  }>;
+  suppliers: SupplierDetail[];
 }
 
 export default async function KomoditasPage() {
@@ -69,7 +73,9 @@ export default async function KomoditasPage() {
       province: coop.province,
       stock: com.available_stock,
       capacity: com.monthly_capacity,
-      grade: coop.score?.grade || 'D'
+      grade: coop.score?.grade || 'D',
+      price: com.price_per_unit || 12000, // standard fallback price
+      minimumStock: com.minimum_stock || 0
     });
   });
 
@@ -90,19 +96,19 @@ export default async function KomoditasPage() {
             <Compass className="h-8 w-8 text-brand-red" /> Sebaran Komoditas Nasional
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Monitoring kapasitas produksi bulanan dan ketersediaan stok pangan serta perkebunan rakyat di seluruh wilayah Nusantara.
+            Monitoring kapasitas produksi bulanan, rata-rata harga, dan ketersediaan stok pangan serta perkebunan rakyat di seluruh wilayah Nusantara.
           </p>
         </div>
 
         {/* Global Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
-          <Card className="border-slate-200/80">
+          <Card className="border-slate-200 bg-white">
             <CardContent className="p-5 flex items-center gap-4">
               <div className="h-11 w-11 rounded-xl bg-brand-navy/10 flex items-center justify-center text-brand-navy">
                 <Layers className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Kapasitas Nasional</span>
+                <span className="text-[10px] text-slate-400 font-black block uppercase tracking-wider">Kapasitas Nasional</span>
                 <span className="text-xl font-black text-slate-900">
                   {Math.round(totalCapacityAll).toLocaleString('id-ID')} Ton/Bln
                 </span>
@@ -110,13 +116,13 @@ export default async function KomoditasPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80">
+          <Card className="border-slate-200 bg-white">
             <CardContent className="p-5 flex items-center gap-4">
               <div className="h-11 w-11 rounded-xl bg-brand-orange/10 flex items-center justify-center text-brand-orange">
                 <Compass className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Stok Siap Distribusi</span>
+                <span className="text-[10px] text-slate-400 font-black block uppercase tracking-wider">Stok Siap Distribusi</span>
                 <span className="text-xl font-black text-brand-orange">
                   {Math.round(totalStockAll).toLocaleString('id-ID')} Ton
                 </span>
@@ -124,13 +130,13 @@ export default async function KomoditasPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200/80">
+          <Card className="border-slate-200 bg-white">
             <CardContent className="p-5 flex items-center gap-4">
               <div className="h-11 w-11 rounded-xl bg-brand-red/10 flex items-center justify-center text-brand-red">
                 <Home className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Komoditas Terpetakan</span>
+                <span className="text-[10px] text-slate-400 font-black block uppercase tracking-wider">Komoditas Terpetakan</span>
                 <span className="text-xl font-black text-brand-red">
                   {aggregates.length} Varietas
                 </span>
@@ -141,92 +147,114 @@ export default async function KomoditasPage() {
 
         {/* Commodities Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {aggregates.map(agg => (
-            <Card key={agg.name} className="border-slate-200/80 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md bg-white">
-              <CardHeader className="pb-3 flex flex-row items-start justify-between gap-4">
-                <div>
-                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-bold uppercase">
-                    {agg.category}
-                  </span>
-                  <CardTitle className="text-base font-black text-slate-900 mt-2">
-                    {agg.name}
-                  </CardTitle>
-                </div>
-                <div className="text-right">
-                  <span className="text-[9px] text-slate-400 block font-bold uppercase">Kapasitas/Bln</span>
-                  <span className="text-sm font-black text-brand-red">
-                    {agg.totalCapacity} {agg.unit}
-                  </span>
-                </div>
-              </CardHeader>
+          {aggregates.map(agg => {
+            // Compute average price for this aggregate
+            const totalPrices = agg.suppliers.reduce((sum, s) => sum + s.price, 0);
+            const avgPrice = agg.suppliers.length > 0 ? Math.round(totalPrices / agg.suppliers.length) : 0;
 
-              <CardContent className="space-y-4">
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-lg border border-slate-100">
+            return (
+              <Card key={agg.name} className="border-slate-200/80 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md bg-white">
+                <CardHeader className="pb-3 flex flex-row items-start justify-between gap-4">
                   <div>
-                    <span className="text-[9px] text-slate-400 block font-bold uppercase">Stok Tersedia</span>
-                    <span className="text-xs font-bold text-slate-800">
-                      {agg.totalStock} {agg.unit}
+                    <span className="text-[10px] bg-slate-100 text-slate-650 px-2.5 py-0.5 rounded-full font-black uppercase">
+                      {agg.category}
+                    </span>
+                    <CardTitle className="text-base font-black text-slate-900 mt-2">
+                      {agg.name}
+                    </CardTitle>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[9px] text-slate-400 block font-bold uppercase">Kapasitas/Bln</span>
+                    <span className="text-sm font-black text-brand-red">
+                      {agg.totalCapacity} {agg.unit}
                     </span>
                   </div>
-                  <div>
-                    <span className="text-[9px] text-slate-400 block font-bold uppercase">Koperasi Penyedia</span>
-                    <span className="text-xs font-bold text-slate-800">
-                      {agg.coopCount} Mitra
-                    </span>
-                  </div>
-                </div>
+                </CardHeader>
 
-                {/* Sebaran Wilayah */}
-                <div>
-                  <span className="text-[9px] text-slate-400 font-bold block uppercase mb-2">Sebaran Geografis</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {agg.provinces.map(prov => (
-                      <span
-                        key={prov}
-                        className="inline-flex items-center gap-1 text-[11px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full"
-                      >
-                        <MapPin className="h-3 w-3 text-brand-orange" />
-                        {prov}
+                <CardContent className="space-y-4">
+                  {/* Stats */}
+                  <div className="grid grid-cols-3 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-100 text-xs">
+                    <div>
+                      <span className="text-[9px] text-slate-400 block font-black uppercase">Stok Tersedia</span>
+                      <span className="font-extrabold text-slate-800">
+                        {agg.totalStock} {agg.unit}
                       </span>
-                    ))}
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 block font-black uppercase">Rata-rata Harga</span>
+                      <span className="font-extrabold text-brand-orange">
+                        Rp {avgPrice.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[9px] text-slate-400 block font-black uppercase">Koperasi Penyedia</span>
+                      <span className="font-extrabold text-slate-800">
+                        {agg.coopCount} Mitra
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Suppliers List */}
-                <div className="border-t border-slate-100 pt-3">
-                  <span className="text-[9px] text-slate-400 font-bold block uppercase mb-2">Daftar Koperasi Mitra</span>
-                  <div className="space-y-1.5">
-                    {agg.suppliers.map(sup => (
-                      <div key={sup.coopId} className="flex justify-between items-center text-xs p-2.5 hover:bg-slate-50 rounded-lg transition-colors">
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-block font-bold text-[9px] px-1.5 py-0.5 rounded text-white ${
-                            sup.grade === 'A' ? 'bg-emerald-500' :
-                            sup.grade === 'B' ? 'bg-blue-500' :
-                            sup.grade === 'C' ? 'bg-amber-500' : 'bg-red-500'
-                          }`}>
-                            {sup.grade}
-                          </span>
-                          <Link href={`/scoring?coopId=${sup.coopId}`} className="font-semibold text-slate-700 hover:text-brand-red hover:underline">
-                            {sup.name}
-                          </Link>
-                          <span className="text-[10px] text-slate-400">({sup.city})</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="font-bold text-slate-850">
-                            {sup.stock} {agg.unit}
-                          </span>
-                          <span className="text-[10px] text-slate-400 block mt-0.5">
-                            cap. {sup.capacity}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
+                  {/* Sebaran Wilayah */}
+                  <div>
+                    <span className="text-[9px] text-slate-450 font-black block uppercase mb-2">Sebaran Geografis</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {agg.provinces.map(prov => (
+                        <span
+                          key={prov}
+                          className="inline-flex items-center gap-1 text-[11px] bg-white border border-slate-205 text-slate-600 px-2.5 py-0.5 rounded-full font-semibold"
+                        >
+                          <MapPin className="h-3 w-3 text-brand-orange" />
+                          {prov}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+
+                  {/* Suppliers List */}
+                  <div className="border-t border-slate-100 pt-3">
+                    <span className="text-[9px] text-slate-450 font-black block uppercase mb-2">Daftar Koperasi Mitra</span>
+                    <div className="space-y-1.5">
+                      {agg.suppliers.map(sup => {
+                        const isLow = sup.stock <= sup.minimumStock;
+                        return (
+                          <div key={sup.coopId} className="flex justify-between items-center text-xs p-2.5 hover:bg-slate-50 rounded-lg transition-colors">
+                            <div className="flex items-center gap-2">
+                              <span className={`inline-block font-black text-[9px] px-1.5 py-0.5 rounded text-white ${
+                                sup.grade === 'A' ? 'bg-emerald-500' :
+                                sup.grade === 'B' ? 'bg-blue-500' :
+                                sup.grade === 'C' ? 'bg-amber-500' : 'bg-red-500'
+                              }`}>
+                                {sup.grade}
+                              </span>
+                              <Link href={`/scoring?coopId=${sup.coopId}`} className="font-black text-slate-700 hover:text-brand-red hover:underline">
+                                {sup.name}
+                              </Link>
+                              <span className="text-[10px] text-slate-400 font-bold">({sup.city})</span>
+                            </div>
+                            <div className="text-right flex items-center gap-2">
+                              {isLow && (
+                                <span className="text-[9px] font-black text-brand-red bg-red-50 border border-red-100 px-1.5 py-0.5 rounded flex items-center gap-0.5 animate-pulse">
+                                  <ShieldAlert className="h-3 w-3" /> Stok Kritis
+                                </span>
+                              )}
+                              <div className="text-right">
+                                <span className="font-black text-slate-850">
+                                  {sup.stock} {agg.unit}
+                                </span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5 font-bold">
+                                  Rp {sup.price.toLocaleString('id-ID')}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
       </div>

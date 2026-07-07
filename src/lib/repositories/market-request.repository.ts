@@ -1,6 +1,6 @@
 import { MarketRequest, MarketRequestWithBuyer } from '@/types';
 import { db } from '../firebase/config';
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, addDoc } from 'firebase/firestore';
 import { seedDatabaseIfEmpty } from '../firebase/seeder';
 import { buyerRepository } from './buyer.repository';
 
@@ -9,6 +9,7 @@ export interface MarketRequestRepository {
   getById(id: string): Promise<MarketRequest | null>;
   getAllWithBuyer(): Promise<MarketRequestWithBuyer[]>;
   getByIdWithBuyer(id: string): Promise<MarketRequestWithBuyer | null>;
+  create(request: Omit<MarketRequest, 'id'>): Promise<string>;
 }
 
 export class FirestoreMarketRequestRepository implements MarketRequestRepository {
@@ -50,6 +51,14 @@ export class FirestoreMarketRequestRepository implements MarketRequestRepository
       ...req,
       buyer: buyer || { id: req.buyer_id, company_name: 'Unknown Buyer', city: 'Unknown', industry: 'Unknown' }
     };
+  }
+
+  async create(request: Omit<MarketRequest, 'id'>): Promise<string> {
+    const docRef = await addDoc(collection(db, 'market_requests'), {
+      ...request,
+      created_at: new Date().toISOString()
+    });
+    return docRef.id;
   }
 }
 

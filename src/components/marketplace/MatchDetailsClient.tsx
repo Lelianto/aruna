@@ -264,7 +264,25 @@ export default function MatchDetailsClient({
   const [loadingGemini, setLoadingGemini] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    if (selectedCoopId && !geminiInsights[selectedCoopId]) {
+    if (selectedCoopId) {
+      if (geminiInsights[selectedCoopId]) return;
+
+      const cacheKey = `aruna_ai_insights_${selectedCoopId}`;
+      const cached = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null;
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          const age = Date.now() - parsed.timestamp;
+          const ONE_DAY = 24 * 60 * 60 * 1000;
+          if (age < ONE_DAY) {
+            setGeminiInsights(prev => ({ ...prev, [selectedCoopId]: parsed.data }));
+            return;
+          }
+        } catch (e) {
+          console.error("Failed to parse cached insights", e);
+        }
+      }
+
       const fetchAiInsights = async () => {
         setLoadingGemini(prev => ({ ...prev, [selectedCoopId]: true }));
         try {
@@ -272,6 +290,12 @@ export default function MatchDetailsClient({
           if (res.ok) {
             const data = await res.json();
             setGeminiInsights(prev => ({ ...prev, [selectedCoopId]: data }));
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(cacheKey, JSON.stringify({
+                timestamp: Date.now(),
+                data
+              }));
+            }
           }
         } catch (err) {
           console.error("Error fetching Gemini insights:", err);

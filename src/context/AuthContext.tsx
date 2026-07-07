@@ -15,7 +15,7 @@ interface UserData {
   uid: string;
   name: string;
   email: string;
-  role: 'admin' | 'buyer' | 'koperasi' | null;
+  role: 'admin' | 'buyer' | 'koperasi' | 'customer' | null;
   associatedId?: string; // id of buyer or cooperative
 }
 
@@ -26,7 +26,7 @@ interface AuthContextType {
   needsRoleSelection: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
-  setRoleForUser: (role: 'admin' | 'buyer' | 'koperasi', associatedId?: string) => Promise<void>;
+  setRoleForUser: (role: 'admin' | 'buyer' | 'koperasi' | 'customer', associatedId?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const setRoleForUser = async (role: 'admin' | 'buyer' | 'koperasi', associatedId?: string) => {
+  const setRoleForUser = async (role: 'admin' | 'buyer' | 'koperasi' | 'customer', associatedId?: string) => {
     if (!user) return;
     
     const userDocRef = doc(db, 'users', user.uid);

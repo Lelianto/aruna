@@ -27,15 +27,22 @@ export function calculateCooperativeScore(
   }
 
   // Final Score: 40% member_score, 30% revenue_score, 30% supply_score (scaled to 100)
-  const final_score = Math.round(
+  let raw_score = Math.round(
     (0.4 * member_score + 0.3 * revenue_score + 0.3 * supply_score) * 100
   );
+
+  // Document compliance bonus (+15 points if both verified, +7 if only one)
+  let complianceBonus = 0;
+  if (cooperative.nib_status === 'verified') complianceBonus += 7;
+  if (cooperative.sk_status === 'verified') complianceBonus += 8;
+  
+  const final_score = Math.min(100, raw_score + complianceBonus);
 
   // Grade Assignment
   let grade: 'A' | 'B' | 'C' | 'D' = 'D';
   if (final_score >= 85) grade = 'A';
   else if (final_score >= 70) grade = 'B';
-  else if (final_score >= 55) grade = 'C';
+  else if (final_score >= 50) grade = 'C';
 
   return {
     id: `score-${cooperative.id}`,

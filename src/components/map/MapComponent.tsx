@@ -162,7 +162,7 @@ export default function MapComponent({
 
                   <Link
                     href={`/scoring?coopId=${coop.id}`}
-                    className="block text-center text-xs bg-brand-red text-white py-1.5 rounded-lg font-semibold hover:bg-brand-red/90 transition-colors"
+                    className="block text-center text-xs bg-brand-red !text-white py-1.5 rounded-lg font-semibold hover:bg-brand-red/90 transition-colors"
                   >
                     Lihat Analitik Koperasi &rarr;
                   </Link>
