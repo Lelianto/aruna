@@ -1264,8 +1264,9 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
                 <input 
                   type="number" 
                   min={0}
+                  step="any"
                   value={item.qty}
-                  onChange={e => updateCartQty(item.commodity.id, parseInt(e.target.value) || 0, item.commodity.available_stock)}
+                  onChange={e => updateCartQty(item.commodity.id, parseFloat(e.target.value) || 0, item.commodity.available_stock)}
                   className="w-12 px-1 py-1 text-center border border-slate-250 rounded-md text-xs font-black bg-white focus:outline-none"
                 />
                 <span className="text-[9px] text-slate-400 uppercase font-black tracking-wider w-8">{item.commodity.unit}</span>
@@ -2299,8 +2300,9 @@ function PurchaseModule({ coopId, commodities, onRefresh, showToast }: {
           <input 
             type="number" 
             min={0}
+            step="any"
             value={purchaseQty}
-            onChange={e => setPurchaseQty(parseInt(e.target.value) || 0)}
+            onChange={e => setPurchaseQty(parseFloat(e.target.value) || 0)}
             disabled={!selectedCommId}
             className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none disabled:opacity-50"
           />
