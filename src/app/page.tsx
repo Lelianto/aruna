@@ -198,9 +198,9 @@ export default function LandingPage() {
               <WifiOff className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-extrabold text-sm text-slate-900">Arsitektur Offline-First</h3>
+              <h3 className="font-extrabold text-sm text-slate-900">Sistem Bekerja Offline</h3>
               <p className="text-xs text-slate-450 leading-relaxed">
-                 POS Kasir tetap dapat digunakan untuk transaksi saat internet mati. Data disimpan aman di IndexedDB lokal dan disinkronkan otomatis saat online.
+                 POS Kasir tetap dapat digunakan untuk transaksi saat internet mati. Data disimpan aman di memori lokal dan disinkronkan otomatis setelah internet aktif kembali.
               </p>
             </div>
           </div>
@@ -313,7 +313,7 @@ export default function LandingPage() {
               Sistem Pusat Kendali Siap Digunakan
             </div>
             <p className="text-[11px] text-slate-450 leading-relaxed max-w-xl">
-              Hubungkan database koperasi Anda secara real-time. Didukung sinkronisasi offline terpadu dan analisis AI prediktif untuk optimalisasi operasional.
+              Hubungkan data usaha koperasi Anda secara langsung. Didukung pencatatan luring terpadu dan analisis kecerdasan buatan prediktif untuk optimalisasi operasional.
             </p>
           </div>
           <Link href="/mitra-dashboard" className="w-full md:w-auto">
