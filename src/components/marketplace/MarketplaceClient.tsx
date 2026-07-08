@@ -42,7 +42,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   const { user, userData } = useAuth();
   
   // Tab control: 'gotong_royong' (Industrial requests) or 'customer' (Direct consumer search) or 'pesanan' (My orders)
-  const [activeMarketTab, setActiveMarketTab] = useState<'gotong_royong' | 'customer' | 'pesanan'>('gotong_royong');
+  const [activeMarketTab, setActiveMarketTab] = useState<'gotong_royong' | 'customer' | 'pesanan'>('customer');
   const [isUmkmUser, setIsUmkmUser] = useState(false);
 
   const showToggle = useMemo(() => {
@@ -53,8 +53,13 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
   // Set default view based on role and buyer scale
   useEffect(() => {
-    if (userData?.role === 'customer') {
+    if (!user) {
+      // Unauthenticated visitors see the commodity listing
       setActiveMarketTab('customer');
+    } else if (userData?.role === 'customer') {
+      setActiveMarketTab('customer');
+    } else if (userData?.role === 'koperasi') {
+      setActiveMarketTab('gotong_royong');
     } else if (userData?.role === 'buyer' && userData.associatedId) {
       const checkBuyerType = async () => {
         try {
@@ -65,6 +70,8 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
             if (data.buyer_type === 'umkm') {
               setIsUmkmUser(true);
               setActiveMarketTab('customer');
+            } else {
+              setActiveMarketTab('gotong_royong');
             }
           }
         } catch (e) {
@@ -73,7 +80,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
       };
       checkBuyerType();
     }
-  }, [userData]);
+  }, [user, userData]);
 
   // ─── STATE 1: GOTONG ROYONG ENGINE ──────────────────────────────────────────
   const [requests, setRequests] = useState<MarketRequestWithBuyer[]>(initialRequests);
