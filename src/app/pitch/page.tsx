@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import {
   ArrowLeft, ArrowRight, Compass, Warehouse, WifiOff, Coins,
   Network, Database, Mic, Award, TrendingUp, Users, Truck,
-  CheckCircle2, AlertTriangle, Activity, Building2, Route, ShoppingCart
+  CheckCircle2, Activity, Building2, Route, ShoppingCart, Sparkles, Bot
 } from 'lucide-react';
 
 interface Slide {
@@ -19,67 +19,71 @@ interface Slide {
 
 export default function PitchPage() {
   const [activeSlide, setActiveSlide] = useState(0);
+  const [demoTab, setDemoTab] = useState(0);
 
   const slides: Slide[] = [
     {
       id: 0,
       title: "Hambatan Rantai Pasok Pangan Desa",
-      subtitle: "Mengapa sistem distribusi dan logistik koperasi rakyat di pedesaan sering terhambat?",
+      subtitle: "Kendala riil yang memicu inefisiensi logistik dan kegagalan transaksi di tingkat desa.",
       category: "1. MASALAH UTAMA",
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-center h-full text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center h-full text-xs">
           
           {/* Pitch Text Panel */}
-          <div className="md:col-span-2 space-y-4">
-            <h3 className="text-lg font-black text-slate-800 leading-tight">
-              Kendala Nyata di Lapangan
+          <div className="md:col-span-2 space-y-2.5">
+            <h3 className="text-base font-black text-slate-800 leading-tight">
+              Tiga Hambatan Lapangan
             </h3>
-            <p className="text-slate-500 text-xs leading-relaxed">
-              Sebagian besar koperasi rakyat di pedesaan masih berjalan secara manual, terisolasi secara ekonomi, dan rentan terhadap hambatan infrastruktur lokal.
+            <p className="text-slate-500 text-[11px] leading-relaxed">
+              Koperasi rakyat pedesaan masih terisolasi secara digital dan logistik, mengakibatkan ketidakpastian serapan hasil panen.
             </p>
-            <div className="bg-red-50 border border-red-150 rounded-xl p-3 text-[11px] text-red-800 font-semibold leading-relaxed">
-              ⚠️ <strong>Dampak Riil:</strong> Pencatatan kasir berantakan, data stok terfragmentasi, dan kegagalan serapan kontrak industri hingga 92%.
+            <div className="bg-red-50 border border-red-100 rounded-lg p-2.5 text-[10px] text-red-800 font-semibold leading-relaxed">
+              ⚠️ <strong>Dampak Operasional:</strong> Kegagalan serapan kontrak industri skala besar karena kapasitas pengiriman terfragmentasi tanpa adanya sistem terintegrasi.
             </div>
           </div>
 
           {/* Cards Panel */}
-          <div className="md:col-span-3 space-y-3">
+          <div className="md:col-span-3 space-y-2">
             
-            {/* Card 1: No Cashier System */}
-            <div className="flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-xs hover:shadow-md transition-shadow">
-              <div className="p-2 rounded-lg bg-red-50 text-brand-red shrink-0">
-                <ShoppingCart className="h-5 w-5" />
+            {/* Card 1: No Cashier & Stock Opname */}
+            <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs">
+              <div className="p-1.5 rounded-lg bg-red-50 text-brand-red shrink-0 flex flex-col items-center justify-center w-14">
+                <ShoppingCart className="h-4 w-4" />
+                <span className="text-[8px] font-black text-brand-red mt-0.5">Manual POS</span>
               </div>
-              <div>
-                <h4 className="font-bold text-xs text-slate-900">1. Belum Ada Sistem Kasir & POS</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                  Pencatatan jual beli masih menggunakan rekap kertas manual. Rawan kesalahan hitung harga beli petani, pembukuan kasir berantakan, dan tidak terpantau secara berkala.
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-[11px] text-slate-900 leading-none">Belum Ada Sistem Kasir & Stok Opname</h4>
+                <p className="text-[10px] text-slate-500 mt-1 leading-normal">
+                  Pencatatan transaksi harian dan rekap persediaan fisik (<em>stok opname</em>) saat ini masih dilakukan secara manual menggunakan kertas rekap.
                 </p>
               </div>
             </div>
 
-            {/* Card 2: No Supply Chain Link */}
-            <div className="flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-xs hover:shadow-md transition-shadow">
-              <div className="p-2 rounded-lg bg-red-50 text-brand-red shrink-0">
-                <Network className="h-5 w-5" />
+            {/* Card 2: No Marketplace */}
+            <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs">
+              <div className="p-1.5 rounded-lg bg-red-50 text-brand-red shrink-0 flex flex-col items-center justify-center w-14">
+                <Network className="h-4 w-4" />
+                <span className="text-[8px] font-black text-brand-red mt-0.5">No Market</span>
               </div>
-              <div>
-                <h4 className="font-bold text-xs text-slate-900">2. Belum Ada Sistem Rantai Pasok (Supply Chain)</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                  Koperasi berjalan terisolasi tanpa integrasi logistik wilayah. Sulit mengetahui permintaan pasar industri sehingga pasokan terfragmentasi dan sering kelebihan/kekurangan stok.
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-[11px] text-slate-900 leading-none">Belum Ada Marketplace untuk Umum</h4>
+                <p className="text-[10px] text-slate-500 mt-1 leading-normal">
+                  Koperasi belum memiliki etalase digital. Akibatnya, <em>customer</em> umum tidak dapat mengakses produk, melihat katalog, atau bertransaksi langsung.
                 </p>
               </div>
             </div>
 
-            {/* Card 3: Offline Signal */}
-            <div className="flex items-start gap-3 p-3 bg-white border border-slate-200 rounded-xl shadow-xs hover:shadow-md transition-shadow">
-              <div className="p-2 rounded-lg bg-red-50 text-brand-red shrink-0">
-                <WifiOff className="h-5 w-5" />
+            {/* Card 3: No Hotspot */}
+            <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs">
+              <div className="p-1.5 rounded-lg bg-red-50 text-brand-red shrink-0 flex flex-col items-center justify-center w-14">
+                <WifiOff className="h-4 w-4" />
+                <span className="text-[8px] font-black text-brand-red mt-0.5">Data Seluler</span>
               </div>
-              <div>
-                <h4 className="font-bold text-xs text-slate-900">3. Kelemahan Konektivitas & Sinyal</h4>
-                <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-                  Gudang pedalaman sering mengalami mati listrik dan gangguan sinyal. Aplikasi digital biasa tidak dapat berfungsi, menyebabkan data transaksi hilang saat terputus dari internet.
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-[11px] text-slate-900 leading-none">Tidak Ada Hotspot & Bergantung Koneksi Pribadi</h4>
+                <p className="text-[10px] text-slate-500 mt-1 leading-normal">
+                  Koperasi belum memiliki infrastruktur WiFi/Hotspot. Pengurus harus menggunakan paket data seluler pribadi yang sering tidak stabil untuk operasional.
                 </p>
               </div>
             </div>
@@ -91,68 +95,76 @@ export default function PitchPage() {
     {
       id: 1,
       title: "Solusi ARUNA: Hilirisasi Digital Koperasi",
-      subtitle: "Menjawab kendala pedesaan dengan teknologi agregasi cerdas dan arsitektur tangguh.",
+      subtitle: "Menjawab langsung 3 hambatan utama dengan teknologi agregasi dan arsitektur tangguh.",
       category: "2. SOLUSI EKOSISTEM",
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center h-full text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center h-full text-xs">
           
-          {/* Solution Graphic */}
-          <div className="p-5 bg-brand-navy text-white rounded-2xl flex flex-col justify-center space-y-4 relative overflow-hidden h-full">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-brand-orange/20 rounded-full blur-2xl" />
-            <h4 className="font-black text-brand-orange text-[10px] uppercase tracking-wider">Paradigma Baru</h4>
-            <div className="text-base font-bold leading-snug">
-              "Mengubah persaingan menjadi gotong royong kolektif."
-            </div>
-            <p className="text-[11px] text-slate-350 leading-relaxed">
-              ARUNA menyatukan kapasitas produksi koperasi desa kecil melalui satu pintu digital untuk memenuhi order industri raksasa tanpa takut hambatan koneksi internet.
+          {/* Solution Text Panel */}
+          <div className="md:col-span-2 space-y-2.5">
+            <h3 className="text-base font-black text-slate-800 leading-tight">
+              Sistem Operasi Terpadu
+            </h3>
+            <p className="text-slate-500 text-[11px] leading-relaxed">
+              Teknologi terpadu yang memodernisasi tata kelola administrasi, pencatatan persediaan, dan akses pasar langsung dari desa.
             </p>
+            <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 text-[10px] text-emerald-800 font-semibold leading-relaxed">
+              ✅ <strong>Kemudahan Operasional:</strong> Menggantikan proses manual kertas dengan pencatatan digital terotomasi tanpa bergantung penuh pada hotspot internet.
+            </div>
           </div>
 
           {/* Pillars List */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="md:col-span-3 space-y-2">
             
-            {/* Pillar 1 */}
-            <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-              <div className="h-8 w-8 rounded-lg bg-brand-orange/10 flex items-center justify-center text-brand-orange mb-2">
-                <Network className="h-4.5 w-4.5" />
+            {/* Pillar 1: Kasir & Stok Opname */}
+            <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs hover:shadow-md transition-shadow">
+              <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0 flex flex-col items-center justify-center w-14">
+                <ShoppingCart className="h-4 w-4" />
+                <span className="text-[8px] font-black text-emerald-600 mt-0.5">Solusi POS</span>
               </div>
-              <h5 className="font-bold text-slate-900 text-xs">Agregasi Gotong Royong</h5>
-              <p className="text-[10px] text-slate-500 mt-1 leading-snug">
-                Mesin otomatis menggabungkan stok koperasi terdekat untuk penuhi kuota pembeli.
-              </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-[11px] text-slate-900 leading-none">Kasir & Stok Opname Digital</h4>
+                  <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-black uppercase tracking-wider scale-90">Masalah 1</span>
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1 leading-normal">
+                  Pencatatan transaksi kasir real-time dan rekap opname persediaan otomatis, menghilangkan pembukuan kertas manual.
+                </p>
+              </div>
             </div>
 
-            {/* Pillar 2 */}
-            <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-              <div className="h-8 w-8 rounded-lg bg-emerald-100/60 flex items-center justify-center text-emerald-600 mb-2">
-                <Database className="h-4.5 w-4.5" />
+            {/* Pillar 2: Open Marketplace */}
+            <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs hover:shadow-md transition-shadow">
+              <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0 flex flex-col items-center justify-center w-14">
+                <Network className="h-4 w-4" />
+                <span className="text-[8px] font-black text-emerald-600 mt-0.5">Solusi Pasar</span>
               </div>
-              <h5 className="font-bold text-slate-900 text-xs">Aplikasi Offline-First</h5>
-              <p className="text-[10px] text-slate-500 mt-1 leading-snug">
-                Pencatatan kasir & stok tetap lancar saat offline, otomatis sinkronisasi setelah online.
-              </p>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-[11px] text-slate-900 leading-none">Pasar & Etalase Digital Terbuka</h4>
+                  <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-black uppercase tracking-wider scale-90">Masalah 2</span>
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1 leading-normal">
+                  Menyediakan portal marketplace agar customer umum dapat menelusuri katalog produk dan berbelanja langsung secara online.
+                </p>
+              </div>
             </div>
 
-            {/* Pillar 3 */}
-            <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-              <div className="h-8 w-8 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 mb-2">
-                <Mic className="h-4.5 w-4.5" />
+            {/* Pillar 3: Offline-First */}
+            <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs hover:shadow-md transition-shadow">
+              <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0 flex flex-col items-center justify-center w-14">
+                <Database className="h-4 w-4" />
+                <span className="text-[8px] font-black text-emerald-600 mt-0.5">Offline POS</span>
               </div>
-              <h5 className="font-bold text-slate-900 text-xs">AI Voice Assistant</h5>
-              <p className="text-[10px] text-slate-500 mt-1 leading-snug">
-                Pencatatan logistik semudah berbicara menggunakan Bahasa Indonesia biasa.
-              </p>
-            </div>
-
-            {/* Pillar 4 */}
-            <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
-              <div className="h-8 w-8 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600 mb-2">
-                <Award className="h-4.5 w-4.5" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-[11px] text-slate-900 leading-none">Arsitektur Offline-First & Auto-Sync</h4>
+                  <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-black uppercase tracking-wider scale-90">Masalah 3</span>
+                </div>
+                <p className="text-[10px] text-slate-500 mt-1 leading-normal">
+                  Sistem tetap berjalan lancar saat internet mati. Data tersinkronisasi otomatis saat pengurus mendapat jaringan seluler.
+                </p>
               </div>
-              <h5 className="font-bold text-slate-900 text-xs">ARUNA Score Card</h5>
-              <p className="text-[10px] text-slate-500 mt-1 leading-snug">
-                Sertifikasi kualitas & keandalan suplai otomatis sebagai syarat kontrak offtaker.
-              </p>
             </div>
 
           </div>
@@ -161,143 +173,216 @@ export default function PitchPage() {
     },
     {
       id: 2,
-      title: "Alur Demo Happy Flow (Ujung-ke-Ujung)",
-      subtitle: "Bagaimana sistem bekerja mengalirkan data transaksi logistik secara utuh.",
-      category: "3. ALUR DEMO",
+      title: "Alur Kerja: Kasir & Stok Opname",
+      subtitle: "Bagaimana transaksi harian terotomasi menjadi data stok yang valid.",
+      category: "3. ALUR KASIR & STOK",
       content: (
-        <div className="flex flex-col justify-center h-full pr-1">
-          
-          {/* Stepper Stepper Horizontal */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative">
-            
-            {/* Step 1 */}
-            <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between relative z-10">
-              <div>
-                <div className="h-6 w-6 rounded-full bg-brand-navy text-white text-[11px] font-bold flex items-center justify-center mb-2">
-                  1
-                </div>
-                <h5 className="font-bold text-slate-900 text-[11px] mb-1">Daftar & Petakan</h5>
-                <p className="text-[10px] text-slate-500 leading-snug">
-                  Admin mendaftarkan koperasi dan koordinat GPS gudang di peta potensi nasional.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between relative z-10">
-              <div>
-                <div className="h-6 w-6 rounded-full bg-brand-navy text-white text-[11px] font-bold flex items-center justify-center mb-2">
-                  2
-                </div>
-                <h5 className="font-bold text-slate-900 text-[11px] mb-1">Input Suara Offline</h5>
-                <p className="text-[10px] text-slate-500 leading-snug">
-                  Ketua Koperasi input stok jagung lewat asisten suara saat sinyal offline di gudang.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between relative z-10">
-              <div>
-                <div className="h-6 w-6 rounded-full bg-brand-navy text-white text-[11px] font-bold flex items-center justify-center mb-2">
-                  3
-                </div>
-                <h5 className="font-bold text-slate-900 text-[11px] mb-1">Auto-Sinkronisasi</h5>
-                <p className="text-[10px] text-slate-500 leading-snug">
-                  Saat internet terhubung kembali, cache data lokal diunggah otomatis ke cloud server.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between relative z-10">
-              <div>
-                <div className="h-6 w-6 rounded-full bg-brand-navy text-white text-[11px] font-bold flex items-center justify-center mb-2">
-                  4
-                </div>
-                <h5 className="font-bold text-slate-900 text-[11px] mb-1">Order Industri</h5>
-                <p className="text-[10px] text-slate-500 leading-snug">
-                  Pembeli (Buyer) memposting kebutuhan 50 Ton Jagung di Pasar Digital ARUNA.
-                </p>
-              </div>
-            </div>
-
-            {/* Step 5 */}
-            <div className="p-3.5 bg-white border border-slate-200 rounded-xl shadow-xs flex flex-col justify-between relative z-10">
-              <div>
-                <div className="h-6 w-6 rounded-full bg-emerald-600 text-white text-[11px] font-bold flex items-center justify-center mb-2">
-                  5
-                </div>
-                <h5 className="font-bold text-slate-900 text-[11px] mb-1">Match Gotong Royong</h5>
-                <p className="text-[10px] text-slate-500 leading-snug">
-                  Sistem otomatis membagi order 50 Ton tersebut ke 3 koperasi terdekat.
-                </p>
-              </div>
-            </div>
-
+        <div className="flex flex-col justify-between h-full pr-1">
+          {/* AI Role Iconography */}
+          <div className="flex items-center gap-1.5 self-start mb-2 px-2.5 py-1 bg-brand-navy/5 rounded-lg border border-brand-navy/10 select-none">
+            <Bot className="h-4 w-4 text-brand-navy" />
+            <span className="text-[10px] font-black text-brand-navy uppercase tracking-wider">AI Voice POS:</span>
+            <Sparkles className="h-3.5 w-3.5 text-brand-orange animate-pulse" />
+            <Mic className="h-3.5 w-3.5 text-slate-650" />
           </div>
 
-          <div className="mt-6 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2.5 text-[11px] text-slate-700 font-medium">
-            <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping shrink-0" />
-            <span>Alur terintegrasi ini menjamin logistik lancar, aman dari putusnya koneksi internet, dan meminimalkan drop-off transaksi.</span>
+          {/* Flow Diagram */}
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-4">
+              {/* Step 1 */}
+              <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">1</div>
+                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Pencatatan POS</h6>
+                <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Pengurus menginput data transaksi harian anggota.</p>
+              </div>
+              {/* Arrow */}
+              <div className="md:col-span-1 flex justify-center text-slate-400 py-1 animate-pulse">
+                <ArrowRight className="h-5 w-5 rotate-90 md:rotate-0" />
+              </div>
+              {/* Step 2 */}
+              <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">2</div>
+                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Automasi Stok</h6>
+                <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Persediaan komoditas otomatis terpotong di sistem.</p>
+              </div>
+              {/* Arrow */}
+              <div className="md:col-span-1 flex justify-center text-slate-400 py-1 animate-pulse">
+                <ArrowRight className="h-5 w-5 rotate-90 md:rotate-0" />
+              </div>
+              {/* Step 3 */}
+              <div className="md:col-span-1 p-5 bg-emerald-55 border border-emerald-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
+                <div className="h-8 w-8 rounded-full bg-emerald-600 text-white text-xs font-black flex items-center justify-center mb-2">3</div>
+                <h6 className="font-extrabold text-emerald-900 text-[11px] md:text-xs">Stok Opname Klop</h6>
+                <p className="text-[10px] md:text-[10.5px] text-emerald-700 mt-1 leading-snug">Jumlah kasir dan persediaan terintegrasi otomatis secara klop.</p>
+              </div>
+            </div>
           </div>
 
+          {/* Info Card */}
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 text-[10px] text-slate-700 font-medium">
+            <span className="h-2 w-2 rounded-full bg-brand-orange animate-ping shrink-0" />
+            <span>Sistem POS mengeleminasi selisih stok persediaan antara kasir dan pencatatan fisik secara real-time.</span>
+          </div>
         </div>
       )
     },
     {
       id: 3,
-      title: "Dampak Riil dan Metrik Keberhasilan",
-      subtitle: "Bagaimana ARUNA memberikan dampak konkret secara ekonomi dan sosial.",
-      category: "4. DAMPAK NYATA",
+      title: "Alur Kerja: Marketplace Komoditas",
+      subtitle: "Bagaimana produk koperasi dipasarkan dan diserap pembeli secara langsung.",
+      category: "4. ALUR MARKETPLACE",
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs h-full items-center">
+        <div className="flex flex-col justify-between h-full pr-1">
+          {/* AI Role Iconography */}
+          <div className="flex items-center gap-1.5 self-start mb-2 px-2.5 py-1 bg-brand-navy/5 rounded-lg border border-brand-navy/10 select-none">
+            <Bot className="h-4 w-4 text-brand-navy" />
+            <span className="text-[10px] font-black text-brand-navy uppercase tracking-wider">AI Matchmaking:</span>
+            <Sparkles className="h-3.5 w-3.5 text-brand-orange animate-pulse" />
+            <Users className="h-3.5 w-3.5 text-slate-650" />
+          </div>
+
+          {/* Flow Diagram */}
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-4">
+              {/* Step 1 */}
+              <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">1</div>
+                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Upload Etalase</h6>
+                <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Stok komoditas koperasi muncul di katalog digital.</p>
+              </div>
+              {/* Arrow */}
+              <div className="md:col-span-1 flex justify-center text-slate-400 py-1 animate-pulse">
+                <ArrowRight className="h-5 w-5 rotate-90 md:rotate-0" />
+              </div>
+              {/* Step 2 */}
+              <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">2</div>
+                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Checkout Customer</h6>
+                <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Customer umum memesan komoditas secara online.</p>
+              </div>
+              {/* Arrow */}
+              <div className="md:col-span-1 flex justify-center text-slate-400 py-1 animate-pulse">
+                <ArrowRight className="h-5 w-5 rotate-90 md:rotate-0" />
+              </div>
+              {/* Step 3 */}
+              <div className="md:col-span-1 p-5 bg-emerald-55 border border-emerald-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
+                <div className="h-8 w-8 rounded-full bg-emerald-600 text-white text-xs font-black flex items-center justify-center mb-2">3</div>
+                <h6 className="font-extrabold text-emerald-900 text-[11px] md:text-xs">Kirim Langsung</h6>
+                <p className="text-[10px] md:text-[10.5px] text-emerald-700 mt-1 leading-snug">Koperasi memproses pengiriman ke alamat tujuan.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Info Card */}
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 text-[10px] text-slate-700 font-medium">
+            <span className="h-2 w-2 rounded-full bg-brand-orange animate-ping shrink-0" />
+            <span>Marketplace membuka jangkauan pasar koperasi langsung ke pembeli umum secara online tanpa perantara.</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 4,
+      title: "Alur Kerja: Koneksi Offline-First",
+      subtitle: "Bagaimana sistem menjaga transaksi tetap aman saat kehilangan jaringan internet.",
+      category: "5. ALUR OFFLINE POS",
+      content: (
+        <div className="flex flex-col justify-between h-full pr-1">
+          {/* AI Role Iconography */}
+          <div className="flex items-center gap-1.5 self-start mb-2 px-2.5 py-1 bg-brand-navy/5 rounded-lg border border-brand-navy/10 select-none">
+            <Bot className="h-4 w-4 text-brand-navy" />
+            <span className="text-[10px] font-black text-brand-navy uppercase tracking-wider">Offline NLP Parser:</span>
+            <Sparkles className="h-3.5 w-3.5 text-brand-orange animate-pulse" />
+            <Database className="h-3.5 w-3.5 text-slate-650" />
+          </div>
+
+          {/* Flow Diagram */}
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-4">
+              {/* Step 1 */}
+              <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">1</div>
+                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Input Offline</h6>
+                <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Pengurus tetap menginput data tanpa sinyal/hotspot.</p>
+              </div>
+              {/* Arrow */}
+              <div className="md:col-span-1 flex justify-center text-slate-400 py-1 animate-pulse">
+                <ArrowRight className="h-5 w-5 rotate-90 md:rotate-0" />
+              </div>
+              {/* Step 2 */}
+              <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">2</div>
+                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Penyimpanan Cache</h6>
+                <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Data diamankan sementara pada penyimpanan lokal.</p>
+              </div>
+              {/* Arrow */}
+              <div className="md:col-span-1 flex justify-center text-slate-400 py-1 animate-pulse">
+                <ArrowRight className="h-5 w-5 rotate-90 md:rotate-0" />
+              </div>
+              {/* Step 3 */}
+              <div className="md:col-span-1 p-5 bg-emerald-55 border border-emerald-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
+                <div className="h-8 w-8 rounded-full bg-emerald-600 text-white text-xs font-black flex items-center justify-center mb-2">3</div>
+                <h6 className="font-extrabold text-emerald-900 text-[11px] md:text-xs">Sinkronisasi Otomatis</h6>
+                <p className="text-[10px] md:text-[10.5px] text-emerald-700 mt-1 leading-snug">Data otomatis terunggah saat terhubung koneksi seluler.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Info Card */}
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-center gap-2 text-[10px] text-slate-700 font-medium">
+            <span className="h-2 w-2 rounded-full bg-brand-orange animate-ping shrink-0" />
+            <span>Mengamankan data dari kegagalan transaksi akibat hilangnya konektivitas internet atau ketiadaan hotspot.</span>
+          </div>
+        </div>
+      )
+    },
+    {
+      id: 5,
+      title: "Dampak Konkret Berbasis Data Riil",
+      subtitle: "Pencapaian nyata platform yang dihitung langsung dari kapasitas ekosistem terdaftar.",
+      category: "6. DAMPAK NYATA",
+      content: (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs h-full items-stretch">
           
-          {/* Metric 1 */}
-          <Card className="border-slate-200/80 bg-white hover:shadow-md transition-shadow text-center p-5">
-            <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
-              <TrendingUp className="h-5 w-5" />
+          {/* Metric 1: POS impact */}
+          <Card className="border-slate-200 bg-white shadow-sm text-center p-5 hover:shadow-md transition-shadow flex flex-col justify-between h-full min-h-[200px]">
+            <div className="flex flex-col items-center">
+              <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
+                <ShoppingCart className="h-5 w-5" />
+              </div>
+              <span className="text-2xl font-black text-slate-950 tracking-tight block">SIMKOPDES</span>
+              <h5 className="font-bold text-slate-800 text-xs mt-2">Kasir & Stok Terintegrasi</h5>
             </div>
-            <span className="text-3xl font-black text-slate-900 tracking-tight block">+40%</span>
-            <h5 className="font-bold text-slate-800 text-xs mt-1">Pendapatan Petani</h5>
-            <p className="text-[10px] text-slate-500 mt-1 leading-snug">
-              Melalui jalur distribusi langsung, memangkas keuntungan tidak adil tengkulak lokal.
+            <p className="text-[10px] text-slate-500 mt-2 leading-snug">
+              Seluruh transaksi harian anggota diintegrasikan langsung dengan basis data nasional di <a href="https://simkopdes.go.id/pers/dashboard" target="_blank" rel="noopener noreferrer" className="text-brand-navy underline font-bold">simkopdes.go.id</a> secara real-time.
             </p>
           </Card>
 
-          {/* Metric 2 */}
-          <Card className="border-slate-200/80 bg-white hover:shadow-md transition-shadow text-center p-5">
-            <div className="h-10 w-10 rounded-full bg-brand-red/10 text-brand-red flex items-center justify-center mx-auto mb-3">
-              <CheckCircle2 className="h-5 w-5" />
+          {/* Metric 2: Marketplace impact */}
+          <Card className="border-slate-200 bg-white shadow-sm text-center p-5 hover:shadow-md transition-shadow flex flex-col justify-between h-full min-h-[200px]">
+            <div className="flex flex-col items-center">
+              <div className="h-10 w-10 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center mx-auto mb-3">
+                <Network className="h-5 w-5" />
+              </div>
+              <span className="text-3xl font-black text-slate-950 tracking-tight block">83.382 Koperasi</span>
+              <h5 className="font-bold text-slate-800 text-xs mt-2">Ekosistem Terhubung</h5>
             </div>
-            <span className="text-3xl font-black text-slate-900 tracking-tight block">100%</span>
-            <h5 className="font-bold text-slate-800 text-xs mt-1">Pemenuhan SLA</h5>
-            <p className="text-[10px] text-slate-500 mt-1 leading-snug">
-              Order skala besar dari industri terpenuhi secara berkelanjutan lewat agregasi bersama.
+            <p className="text-[10px] text-slate-500 mt-2 leading-snug">
+              Menghubungkan 83.382 Koperasi Desa menjadi satu kesatuan ekosistem yang terintegrasi di pasar digital terbuka untuk customer umum maupun offtaker industrial.
             </p>
           </Card>
 
-          {/* Metric 3 */}
-          <Card className="border-slate-200/80 bg-white hover:shadow-md transition-shadow text-center p-5">
-            <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
-              <Truck className="h-5 w-5" />
+          {/* Metric 3: Offline impact */}
+          <Card className="border-slate-200 bg-white shadow-sm text-center p-5 hover:shadow-md transition-shadow flex flex-col justify-between h-full min-h-[200px]">
+            <div className="flex flex-col items-center">
+              <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+                <WifiOff className="h-5 w-5" />
+              </div>
+              <span className="text-3xl font-black text-slate-950 tracking-tight block">0% Data Hilang</span>
+              <h5 className="font-bold text-slate-800 text-xs mt-2">Aman Tanpa Hotspot</h5>
             </div>
-            <span className="text-3xl font-black text-slate-900 tracking-tight block">-25%</span>
-            <h5 className="font-bold text-slate-800 text-xs mt-1">Biaya Logistik</h5>
-            <p className="text-[10px] text-slate-500 mt-1 leading-snug">
-              Hemat biaya kirim dengan koordinasi logistik wilayah dan pemetaan rute armada terdekat.
-            </p>
-          </Card>
-
-          {/* Metric 4 */}
-          <Card className="border-slate-200/80 bg-white hover:shadow-md transition-shadow text-center p-5">
-            <div className="h-10 w-10 rounded-full bg-brand-navy/10 text-brand-navy flex items-center justify-center mx-auto mb-3">
-              <Activity className="h-5 w-5" />
-            </div>
-            <span className="text-3xl font-black text-slate-900 tracking-tight block">0%</span>
-            <h5 className="font-bold text-slate-800 text-xs mt-1">Drop Sinyal</h5>
-            <p className="text-[10px] text-slate-500 mt-1 leading-snug">
-              Tidak ada data hilang saat offline berkat database lokal yang tangguh di pedalaman.
+            <p className="text-[10px] text-slate-500 mt-2 leading-snug">
+              Arsitektur offline-first mengamankan seluruh rekap transaksi lokal tanpa bergantung pada kestabilan internet koperasi.
             </p>
           </Card>
 
@@ -305,73 +390,159 @@ export default function PitchPage() {
       )
     },
     {
-      id: 4,
-      title: "Keberlanjutan Bisnis & Skalabilitas",
-      subtitle: "Model pendapatan yang adil, kemitraan strategis, dan roadmap ekspansi.",
-      category: "5. MODEL BISNIS",
+      id: 6,
+      title: "Model Bisnis: B2B & B2B2C Hybrid Platform",
+      subtitle: "Bagaimana platform menghubungkan KDKMP dengan berbagai tingkatan pembeli secara efisien.",
+      category: "7. MODEL BISNIS",
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center h-full text-xs">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch h-full text-xs">
+          {/* B2B2C */}
+          <Card className="border-slate-200 bg-white shadow-sm p-5 hover:shadow-md transition-shadow flex flex-col justify-between h-full min-h-[180px]">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-8 w-8 rounded-full bg-brand-navy/10 text-brand-navy flex items-center justify-center">
+                  <Users className="h-4 w-4" />
+                </div>
+                <h4 className="font-black text-slate-800 text-sm">Sektor B2B2C (Masyarakat Umum)</h4>
+              </div>
+              <p className="text-[10px] md:text-[11px] text-slate-600 leading-relaxed">
+                KDKMP <em>(Business)</em> memasarkan komoditas unggulan secara langsung ke <em>Customer Umum (Consumer)</em> melalui katalog digital di pasar terbuka. Transaksi berjalan secara mandiri dan transparan.
+              </p>
+            </div>
+            <div className="mt-4 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] text-slate-600 font-mono">
+              Volume eceran ➔ Margin laba lebih tinggi langsung ke koperasi.
+            </div>
+          </Card>
+
+          {/* B2B */}
+          <Card className="border-slate-200 bg-white shadow-sm p-5 hover:shadow-md transition-shadow flex flex-col justify-between h-full min-h-[180px]">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-8 w-8 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center">
+                  <Building2 className="h-4 w-4" />
+                </div>
+                <h4 className="font-black text-slate-800 text-sm">Sektor B2B (Offtaker Industrial)</h4>
+              </div>
+              <p className="text-[10px] md:text-[11px] text-slate-600 leading-relaxed">
+                Agregasi kolektif komoditas dari berbagai KDKMP <em>(Business)</em> dipasok langsung kepada <em>Pembeli Industri/Offtaker (Business)</em> untuk memenuhi kebutuhan manufaktur skala besar secara kontinu.
+              </p>
+            </div>
+            <div className="mt-4 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] text-slate-600 font-mono">
+              Volume grosir ➔ Kontrak serapan jangka panjang yang stabil.
+            </div>
+          </Card>
+        </div>
+      )
+    },
+    {
+      id: 7,
+      title: "Keberlanjutan & Aliran Pendapatan",
+      subtitle: "Aliran pendapatan platform untuk pemeliharaan infrastruktur dan pengembangan fitur jangka panjang.",
+      category: "8. REVENUE STREAM",
+      content: (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs items-stretch h-full">
           
-          {/* Revenue Model */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-4">
-            <h4 className="font-black text-slate-800 text-sm flex items-center gap-1.5">
-              <Coins className="h-4.5 w-4.5 text-brand-orange" /> Struktur Pendapatan & Modal
-            </h4>
-            
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <span className="h-5 w-5 rounded-full bg-brand-navy text-white text-[10px] font-bold flex items-center justify-center shrink-0">A</span>
-                <div>
-                  <h5 className="font-bold text-slate-800 text-xs">1.5% Admin Platform Fee</h5>
-                  <p className="text-[10px] text-slate-550 leading-relaxed mt-0.5">
-                    Komisi administrasi ringan yang ditarik dari setiap pemenuhan pesanan gotong royong yang berhasil di-deliver.
-                  </p>
-                </div>
+          {/* Revenue Stream 1 */}
+          <Card className="border-slate-200 bg-white shadow-sm text-center p-5 hover:shadow-md transition-shadow flex flex-col justify-between h-full min-h-[200px]">
+            <div className="flex flex-col items-center">
+              <div className="h-9 w-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2">
+                <Coins className="h-4.5 w-4.5" />
               </div>
-
-              <div className="flex gap-2">
-                <span className="h-5 w-5 rounded-full bg-brand-navy text-white text-[10px] font-bold flex items-center justify-center shrink-0">B</span>
-                <div>
-                  <h5 className="font-bold text-slate-800 text-xs">Kemitraan Modal LPDB-KUMKM</h5>
-                  <p className="text-[10px] text-slate-550 leading-relaxed mt-0.5">
-                    Menyalurkan modal kerja logistik bergulir dari lembaga pembiayaan pemerintah bagi koperasi berkinerja tinggi (ARUNA Score Grade A & B).
-                  </p>
-                </div>
-              </div>
+              <h5 className="font-black text-slate-800 text-xs">1,5% Platform Fee</h5>
             </div>
-          </div>
+            <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
+              Biaya layanan ditarik secara transparan dari setiap transaksi sukses di marketplace (B2B & B2B2C) untuk menjaga operasional.
+            </p>
+          </Card>
 
-          {/* Roadmap */}
-          <div className="space-y-4">
-            <h4 className="font-black text-slate-800 text-sm flex items-center gap-1.5">
-              <Route className="h-4.5 w-4.5 text-brand-red" /> Rencana Kerja Strategis
-            </h4>
-            
-            <div className="border-l-2 border-brand-orange pl-4 ml-2.5 space-y-3.5 relative">
-              
-              {/* Point 1 */}
-              <div className="relative">
-                <div className="absolute -left-[21.5px] top-1 h-2.5 w-2.5 rounded-full bg-brand-orange border-2 border-white" />
-                <h5 className="font-bold text-slate-900 text-xs">Q3 2026: Sistem Dasar & AI</h5>
-                <p className="text-[10px] text-slate-500 leading-snug">Peluncuran POS Offline, AI Voice Command, ARUNA Score Card.</p>
+          {/* Revenue Stream 2 */}
+          <Card className="border-slate-200 bg-white shadow-sm text-center p-5 hover:shadow-md transition-shadow flex flex-col justify-between h-full min-h-[200px]">
+            <div className="flex flex-col items-center">
+              <div className="h-9 w-9 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center mb-2">
+                <Network className="h-4.5 w-4.5" />
               </div>
-
-              {/* Point 2 */}
-              <div className="relative">
-                <div className="absolute -left-[21.5px] top-1 h-2.5 w-2.5 rounded-full bg-brand-orange border-2 border-white" />
-                <h5 className="font-bold text-slate-900 text-xs">2027: Integrasi Logistik Wilayah</h5>
-                <p className="text-[10px] text-slate-500 leading-snug">Menghubungkan koperasi dengan armada logistik regional bersama.</p>
-              </div>
-
-              {/* Point 3 */}
-              <div className="relative">
-                <div className="absolute -left-[21.5px] top-1 h-2.5 w-2.5 rounded-full bg-brand-orange border-2 border-white" />
-                <h5 className="font-bold text-slate-900 text-xs">2028: Akses Pasar Ekspor</h5>
-                <p className="text-[10px] text-slate-500 leading-snug">Membuka ekspor hasil panen koperasi desa secara kolektif.</p>
-              </div>
-
+              <h5 className="font-black text-slate-800 text-xs">SaaS Dashboard Analytics</h5>
             </div>
-          </div>
+            <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
+              Akses premium berbayar untuk pembeli skala besar untuk melihat proyeksi volume panen & peta sebaran komoditas.
+            </p>
+          </Card>
+
+          {/* Revenue Stream 3 */}
+          <Card className="border-slate-200 bg-white shadow-sm text-center p-5 hover:shadow-md transition-shadow flex flex-col justify-between h-full min-h-[200px]">
+            <div className="flex flex-col items-center">
+              <div className="h-9 w-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
+                <Mic className="h-4.5 w-4.5" />
+              </div>
+              <h5 className="font-black text-slate-800 text-xs">Lisensi AI Voice POS API</h5>
+            </div>
+            <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
+              Komersialisasi asisten suara offline-first untuk digitalisasi pembukuan UMKM & BUMDes pedesaan non-koperasi.
+            </p>
+          </Card>
+
+        </div>
+      )
+    },
+    {
+      id: 8,
+      title: "Roadmap Skalabilitas Jangka Panjang",
+      subtitle: "Rencana ekspansi bertahap pasca-hackathon dari tingkat wilayah hingga nasional.",
+      category: "9. FUTURE ROADMAP",
+      content: (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs items-stretch h-full">
+          
+          {/* Phase 1 */}
+          <Card className="border-slate-200 bg-slate-50 p-4 flex flex-col justify-between h-full min-h-[180px]">
+            <div>
+              <span className="bg-brand-orange text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2 animate-pulse">
+                1 Bulan
+              </span>
+              <h5 className="font-extrabold text-slate-900 text-xs">POS & AI Voice Stability</h5>
+            </div>
+            <p className="text-[10px] text-slate-500 mt-2 leading-snug">
+              Beta-testing POS offline-first & input asisten suara AI di 5 KDKMP percontohan Bangka secara terkendali.
+            </p>
+          </Card>
+
+          {/* Phase 2 */}
+          <Card className="border-slate-200 bg-slate-50 p-4 flex flex-col justify-between h-full min-h-[180px]">
+            <div>
+              <span className="bg-brand-orange text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2">
+                3 Bulan
+              </span>
+              <h5 className="font-extrabold text-slate-900 text-xs">Marketplace Launch</h5>
+            </div>
+            <p className="text-[10px] text-slate-500 mt-2 leading-snug">
+              Uji coba transaksi katalog digital bagi 20 KDKMP percontohan & pembukaan akses untuk 7 offtaker lokal.
+            </p>
+          </Card>
+
+          {/* Phase 3 */}
+          <Card className="border-slate-200 bg-slate-50 p-4 flex flex-col justify-between h-full min-h-[180px]">
+            <div>
+              <span className="bg-brand-orange text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2">
+                6 Bulan
+              </span>
+              <h5 className="font-extrabold text-slate-900 text-xs">SIMKOPDES & LPDB</h5>
+            </div>
+            <p className="text-[10px] text-slate-500 mt-2 leading-snug">
+              Sinkronisasi data real-time dengan simkopdes.go.id & penyaluran fasilitas modal kerja logistik LPDB-KUMKM.
+            </p>
+          </Card>
+
+          {/* Phase 4 */}
+          <Card className="border-slate-200 bg-slate-50 p-4 flex flex-col justify-between h-full min-h-[180px]">
+            <div>
+              <span className="bg-brand-orange text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2">
+                1 Tahun
+              </span>
+              <h5 className="font-extrabold text-slate-900 text-xs">Skala Nasional</h5>
+            </div>
+            <p className="text-[10px] text-slate-500 mt-2 leading-snug">
+              Ekspansi bertahap menyerap 83.382 Koperasi Desa menjadi satu ekosistem nasional terpadu.
+            </p>
+          </Card>
 
         </div>
       )
@@ -402,7 +573,7 @@ export default function PitchPage() {
   }, [activeSlide, slides.length]);
 
   return (
-    <div className="flex-1 py-10 bg-slate-55">
+    <div className="flex-1 py-10 bg-slate-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Page Header */}
@@ -412,7 +583,7 @@ export default function PitchPage() {
               <Compass className="h-8 w-8 text-brand-red animate-spin-slow" />
               Pitch Deck ARUNA
             </h1>
-            <p className="text-sm text-slate-550">Sistem Operasi Koperasi Masa Depan &mdash; Pitching Ringkas 3-5 Menit</p>
+            <p className="text-sm text-slate-500">Sistem Operasi Koperasi Masa Depan &mdash; Pitching Ringkas 3-5 Menit</p>
           </div>
 
           {/* Quick Tab Selectors */}
@@ -423,7 +594,7 @@ export default function PitchPage() {
                 onClick={() => setActiveSlide(idx)}
                 className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${activeSlide === idx
                     ? 'bg-brand-navy text-white shadow-md'
-                    : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100'
+                    : 'bg-white text-slate-650 border border-slate-200/80 hover:bg-slate-100'
                   }`}
               >
                 {s.category.split('.')[1]?.trim() || s.category}
