@@ -19,9 +19,9 @@ export default function LandingPage() {
 
   const splits = useMemo(() => {
     return [
-      { name: 'Koperasi Lampung Makmur', share: 0.36, grade: 'A', loc: 'Lampung' },
-      { name: 'Koperasi NTB Sejahtera', share: 0.34, grade: 'B', loc: 'Lombok Barat' },
-      { name: 'Koperasi Jatim Tani Bersatu', share: 0.30, grade: 'A', loc: 'Banyuwangi' }
+      { name: 'Koperasi Merah Putih Lampung', share: 0.36, grade: 'A', loc: 'Lampung' },
+      { name: 'Koperasi Merah Putih NTB', share: 0.34, grade: 'B', loc: 'Lombok Barat' },
+      { name: 'Koperasi Merah Putih Jatim', share: 0.30, grade: 'A', loc: 'Banyuwangi' }
     ].map(coop => {
       const allocated = Math.round(simulateValue * coop.share);
       return {
@@ -59,15 +59,15 @@ export default function LandingPage() {
             </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-brand-navy leading-[1.1] tracking-tight">
-              Agregasi Pasokan <br />
-              Tani Nusantara <br />
+              Konsolidasi Usaha <br />
+              Koperasi Merah Putih <br />
               <span className="bg-gradient-to-r from-brand-red via-brand-orange to-brand-navy bg-clip-text text-transparent">
                 Secara Gotong Royong
               </span>
             </h1>
 
             <p className="text-sm sm:text-base leading-relaxed text-slate-600 max-w-xl">
-              Platform modern yang menyatukan komoditas tani desa untuk memenuhi kontrak pasokan industri. Dilengkapi kasir POS offline-first dan asisten Gemma 4 AI.
+              Platform tata kelola modern Koperasi Desa/Kelurahan Merah Putih (KDMP). Mengkonsolidasikan unit usaha, memetakan potensi daerah, dan mempermudah operasional kasir POS terintegrasi.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -98,7 +98,7 @@ export default function LandingPage() {
                 Online & Sinkron
               </span>
               <span>•</span>
-              <span>Gemma 4 31B Terintegrasi</span>
+              <span>Asisten AI Terintegrasi</span>
             </div>
           </div>
 
@@ -110,7 +110,7 @@ export default function LandingPage() {
               
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
-                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Kalkulator Agregasi</span>
+                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Kalkulator Konsolidasi</span>
                   <h3 className="text-sm font-black text-slate-900 mt-0.5">
                     Permintaan Suplai Buyer <span className="text-slate-400 font-medium">({simulateValue} Ton)</span>
                   </h3>
@@ -224,7 +224,7 @@ export default function LandingPage() {
               <Network className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-extrabold text-sm text-slate-900">Agregasi Gotong Royong</h3>
+              <h3 className="font-extrabold text-sm text-slate-900">Konsolidasi Gotong Royong</h3>
               <p className="text-xs text-slate-450 leading-relaxed">
                 Mengkonsolidasikan kapasitas pasokan beberapa sentra produksi desa terdekat demi memenuhi kuota pembelian minimum dari industri/offtaker besar.
               </p>
@@ -251,7 +251,7 @@ export default function LandingPage() {
               <div className="space-y-1 text-left">
                 <h4 className="font-black text-xs text-slate-900">POS Kasir & Pembelian</h4>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Pencatatan kasir penjualan anggota & log stok masuk pembelian petani terintegrasi dengan penyesuaian stok instan.
+                  Pencatatan kasir penjualan anggota & log stok masuk pembelian produk anggota terintegrasi dengan penyesuaian stok instan.
                 </p>
               </div>
             </CardContent>

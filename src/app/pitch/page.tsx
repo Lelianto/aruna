@@ -24,7 +24,7 @@ export default function PitchPage() {
   const slides: Slide[] = [
     {
       id: 0,
-      title: "Who-What-How Much Framework Canvas",
+      title: "Kanvas Kerangka Kerja Who-What-How Much",
       subtitle: "Mendiagnosis krisis rantai pasok pangan dan perkebunan koperasi desa di Indonesia.",
       category: "1. LATAR BELAKANG & KRISIS",
       content: (
@@ -39,7 +39,7 @@ export default function PitchPage() {
               <div className="space-y-3">
                 <div>
                   <span className="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">Peran / Jabatan</span>
-                  <span className="font-bold text-slate-800">Ketua Koperasi Desa & Pengurus Kelompok Tani</span>
+                  <span className="font-bold text-slate-800">Pengurus Koperasi Desa & Anggota Unit Usaha</span>
                 </div>
                 <div>
                   <span className="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">Institusi / Industri</span>
@@ -47,7 +47,7 @@ export default function PitchPage() {
                 </div>
                 <div>
                   <span className="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">Skala (Jumlah)</span>
-                  <span className="font-bold text-slate-800">92% Koperasi Desa Mandiri (15.000+ Petani Tergabung)</span>
+                  <span className="font-bold text-slate-800">92% Koperasi Desa Mandiri (15.000+ Anggota Koperasi)</span>
                 </div>
                 <div>
                   <span className="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">Segmen Sekunder</span>
@@ -77,7 +77,7 @@ export default function PitchPage() {
                 <div>
                   <span className="text-[9px] text-emerald-600 font-bold block uppercase tracking-wider mb-1">Nilai Yang Diciptakan</span>
                   <p className="text-slate-650 font-semibold leading-relaxed">
-                    Dashboard Mandiri, Kasir POS terintegrasi, AI Command (Gemma 4) bertenaga suara, kepastian serapan harga adil, & sertifikasi kesiapan via ARUNA Score.
+                    Dashboard Mandiri, Kasir POS terintegrasi, AI Command bertenaga suara, kepastian serapan harga adil, & sertifikasi kesiapan via ARUNA Score.
                   </p>
                 </div>
               </div>
@@ -112,7 +112,7 @@ export default function PitchPage() {
                 <div>
                   <span className="text-[9px] text-slate-400 font-bold block uppercase tracking-wider">Dampak Setelah Solusi</span>
                   <p className="text-slate-650 font-bold">
-                    Efisiensi waktu 25%, kenaikan harga jual petani 40%, & potensi tambahan Rp 1.5 Milyar/tahun per sentra.
+                    Efisiensi waktu 25%, kenaikan harga jual anggota 40%, & potensi tambahan Rp 1.5 Milyar/tahun per sentra.
                   </p>
                 </div>
               </div>
@@ -134,7 +134,7 @@ export default function PitchPage() {
           {/* Persona Koperasi */}
           <Card className="border-slate-200 bg-white">
             <CardHeader className="pb-2">
-              <span className="text-[9px] bg-brand-red/10 text-brand-red px-2 py-0.5 rounded-full font-bold w-fit uppercase">Ketua Koperasi Tani</span>
+              <span className="text-[9px] bg-brand-red/10 text-brand-red px-2 py-0.5 rounded-full font-bold w-fit uppercase">Pengurus Koperasi Desa</span>
               <CardTitle className="text-base font-black text-slate-900 mt-1">Pak Joko (52 th, Tangerang)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2.5 text-slate-605 text-[11px] leading-relaxed">
@@ -165,7 +165,7 @@ export default function PitchPage() {
     },
     {
       id: 2,
-      title: "Value Proposition Canvas (VPC)",
+      title: "Kanvas Proposisi Nilai (VPC)",
       subtitle: "Menyelaraskan profil masalah koperasi dengan solusi penawar dari ARUNA.",
       category: "3. JEMBATAN SOLUSI",
       content: (
@@ -178,7 +178,7 @@ export default function PitchPage() {
             <div className="space-y-2">
               <div>
                 <strong className="text-slate-700 block mb-0.5">1. Customer Jobs:</strong>
-                <p className="text-slate-500">Menjual komoditas tani, menjaga kelangsungan hidup petani anggota, mengelola inventori panen desa.</p>
+                <p className="text-slate-500">Mengembangkan usaha koperasi, menyejahterakan anggota koperasi, mengelola inventori produk desa.</p>
               </div>
               <div>
                 <strong className="text-slate-700 block mb-0.5">2. Pains:</strong>
@@ -199,7 +199,7 @@ export default function PitchPage() {
             <div className="space-y-2">
               <div>
                 <strong className="text-brand-navy block mb-0.5">1. Products & Services:</strong>
-                <p className="text-slate-600">Portal Inventori & Kasir POS, AI Command Gemma 4 (NLOS), AI Insights Analitik, Arsitektur Sinkronisasi Offline-First.</p>
+                <p className="text-slate-600">Portal Inventori & Kasir POS, AI Command (NLOS), AI Insights Analitik, Arsitektur Sinkronisasi Offline-First.</p>
               </div>
               <div>
                 <strong className="text-brand-navy block mb-0.5">2. Pain Relievers:</strong>
@@ -216,7 +216,7 @@ export default function PitchPage() {
     },
     {
       id: 3,
-      title: "Use Case Canvas ARUNA",
+      title: "Kanvas Skenario Penggunaan ARUNA",
       subtitle: "Menentukan batasan fitur produk, teknologi, dan rencana awal pembuktian pasar.",
       category: "4. SPESIFIKASI MVP",
       content: (
@@ -227,7 +227,7 @@ export default function PitchPage() {
               <span className="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-black uppercase tracking-wider block w-fit mb-2">1. WHO (Target User)</span>
               <p className="font-bold text-slate-800 mb-1">Pengguna Utama:</p>
               <p className="text-slate-500 leading-relaxed">
-                Ketua Koperasi Desa, Produsen/Petani Lokal, & Procurement Manager Industri Besar (Offtaker).
+                Ketua Koperasi Desa, Unit Usaha Koperasi, Anggota, & Procurement Manager Industri Besar (Offtaker).
               </p>
             </div>
             <div className="text-[9px] text-slate-400 border-t pt-1.5 mt-2 italic">Persona spesifik di lapangan</div>
@@ -271,7 +271,7 @@ export default function PitchPage() {
                 <span className="text-[9px] bg-amber-600 text-white px-2 py-0.5 rounded font-black uppercase tracking-wider block w-fit mb-1">4. Validasi PMF</span>
                 <div className="space-y-1 text-[10px]">
                   <div><strong>Metode:</strong> Uji Pilot Jagung 100T Banten.</div>
-                  <div><strong>Metrik:</strong> SLA 100%, margin tani +40%.</div>
+                  <div><strong>Metrik:</strong> SLA 100%, margin koperasi +40%.</div>
                   <div><strong>Timeline:</strong> 3 Bulan Uji Panen.</div>
                 </div>
               </div>
@@ -282,8 +282,8 @@ export default function PitchPage() {
               <div>
                 <span className="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-black uppercase tracking-wider block w-fit mb-1">5. Scope & Tech Stack</span>
                 <div className="space-y-1 text-[10px] text-slate-500">
-                  <div><strong>Masuk:</strong> POS Cashier, Stock Opname, AI Command (Gemma 4), AI Insights (SWOT), Offline Sync (IndexedDB).</div>
-                  <div><strong>Tech:</strong> Next.js + Firebase + Gemma 4 31B.</div>
+                  <div><strong>Masuk:</strong> POS Cashier, Stock Opname, AI Command, AI Insights (SWOT), Offline Sync (IndexedDB).</div>
+                  <div><strong>Tech:</strong> Next.js + Firebase + AI Service.</div>
                 </div>
               </div>
             </div>
@@ -330,9 +330,9 @@ export default function PitchPage() {
           <div className="p-3 bg-white border border-slate-200 rounded-xl flex flex-col justify-between">
             <div>
               <span className="text-[9px] bg-brand-navy text-white px-2 py-0.5 rounded font-bold uppercase block w-fit mb-2">3. Logika Sistem</span>
-              <h5 className="font-bold text-slate-800 text-xs mb-1">AI Command & Insights</h5>
+              <h5 className="font-bold text-slate-800 text-xs mb-1">Kontrol & Analisis AI</h5>
               <p className="text-slate-500 leading-relaxed text-[11px]">
-                AI Command (Gemma 4) memproses input pengurus via teks/suara dan menyajikan insights kelayakan otomatis untuk keputusan pembagian logistik.
+                Sistem AI memproses perintah pengurus via teks/suara dan menyajikan analisis kelayakan otomatis untuk keputusan pembagian logistik.
               </p>
             </div>
             <div className="mt-4 pt-1.5 border-t text-[10px] text-slate-400 font-bold flex items-center gap-1">
@@ -358,7 +358,7 @@ export default function PitchPage() {
           <div className="p-3 bg-white border border-slate-200 rounded-xl flex flex-col justify-between">
             <div>
               <span className="text-[9px] bg-brand-navy text-white px-2 py-0.5 rounded font-bold uppercase block w-fit mb-2">5. Impact</span>
-              <h5 className="font-bold text-slate-800 text-xs mb-1">Offline Sync & Value</h5>
+              <h5 className="font-bold text-slate-800 text-xs mb-1">Sinkronisasi Offline & Manfaat</h5>
               <p className="text-slate-500 leading-relaxed text-[11px]">
                 Armada sinkronisasi otomatis memindahkan data lokal ke cloud saat internet aktif, menjamin pemenuhan kuota 100% tepat waktu.
               </p>
@@ -383,14 +383,14 @@ export default function PitchPage() {
               <div className="flex gap-2.5 p-3 bg-white rounded-xl border border-slate-200">
                 <Cpu className="h-5 w-5 text-brand-orange mt-0.5 shrink-0" />
                 <div>
-                  <h4 className="font-bold text-xs text-slate-955">AI Command & Insights (Gemma 4)</h4>
-                  <p className="text-[11px] text-slate-500">Menganalisis performa koperasi desa & mengeksekusi stok/POS kasir secara otomatis via suara/teks.</p>
+                  <h4 className="font-bold text-xs text-slate-955">Kontrol & Analisis AI</h4>
+                  <p className="text-[11px] text-slate-500">Menganalisis performa koperasi desa & mengeksekusi stok/kasir POS secara otomatis via suara/teks.</p>
                 </div>
               </div>
               <div className="flex gap-2.5 p-3 bg-white rounded-xl border border-slate-200">
                 <Award className="h-5 w-5 text-brand-red mt-0.5 shrink-0" />
                 <div>
-                  <h4 className="font-bold text-xs text-slate-955">ARUNA Score Card Engine</h4>
+                  <h4 className="font-bold text-xs text-slate-955">Mesin Penilaian Koperasi (Score Card)</h4>
                   <p className="text-[11px] text-slate-500">Standardisasi keaktifan anggota, kesehatan keuangan, dan stabilitas pasokan sebagai syarat kontrak industri.</p>
                 </div>
               </div>
@@ -455,12 +455,12 @@ export default function PitchPage() {
               <div>
                 <strong className="text-slate-850 block">1. Hambatan Literasi Digital Desa:</strong>
                 <p className="text-slate-500 leading-tight">Banyak pengurus koperasi desa kesulitan menggunakan aplikasi smartphone secara mandiri.</p>
-                <span className="text-[10px] text-brand-navy font-bold block mt-0.5">Mitigasi: Kemudahan input lewat AI Command bertenaga suara (Gemma 4), mendemokratisasi akses teknologi untuk pengurus koperasi.</span>
+                <span className="text-[10px] text-brand-navy font-bold block mt-0.5">Mitigasi: Kemudahan input lewat Kontrol AI bertenaga suara, mendemokratisasi akses teknologi untuk pengurus koperasi.</span>
               </div>
               <div>
                 <strong className="text-slate-850 block">2. Standardisasi Kualitas Hasil Panen:</strong>
                 <p className="text-slate-500 leading-tight">Koperasi Grade C/D sering kali memiliki standar kebersihan jagung/kakao yang berbeda.</p>
-                <span className="text-[10px] text-brand-red font-bold block mt-0.5">Mitigasi: Penilaian Scoring Engine memberikan insentif kenaikan prioritas alokasi jika kualitas ditingkatkan.</span>
+                <span className="text-[10px] text-brand-red font-bold block mt-0.5">Mitigasi: Penilaian Sistem Penilaian memberikan insentif kenaikan prioritas alokasi jika kualitas ditingkatkan.</span>
               </div>
             </div>
           </div>
@@ -469,7 +469,7 @@ export default function PitchPage() {
     },
     {
       id: 7,
-      title: "Growth - Pilot & Traction Canvas",
+      title: "Kanvas Pertumbuhan - Uji Pilot & Traksi",
       subtitle: "Rencana validasi bertahap di lapangan mulai dari proyek percontohan hingga pendanaan.",
       category: "8. EKSEKUSI AWAL",
       content: (
@@ -528,7 +528,7 @@ export default function PitchPage() {
             <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider">Rencana Kerja 4 Fase</h3>
             <div className="space-y-3">
               {[
-                { title: "Fase 1: MVP & Pemetaan Analitik (Q3 2026)", desc: "Menyelesaikan pemetaan komoditas, scoring engine, POS Kasir, AI Command/Insights (Gemma 4), & Offline-first Sync." },
+                { title: "Fase 1: MVP & Pemetaan Analitik (Q3 2026)", desc: "Menyelesaikan pemetaan komoditas, sistem penilaian, POS Kasir, Kontrol & Analisis AI, & Sinkronisasi Offline." },
                 { title: "Fase 2: Integrasi Supply Chain & Logistik (Q1 2027)", desc: "Menambahkan manajemen logistik terintegrasi, pelacakan armada gotong royong, dan escrow payment." },
                 { title: "Fase 3: Smart Warehouse & Kemitraan LPDB (Q3 2027)", desc: "Penyediaan hub gudang berpendingin (cold chain) di daerah sentra produksi serta pembiayaan mikro." },
                 { title: "Fase 4: Global Export Cooperatives (2028)", desc: "Menghubungkan agregasi komoditas koperasi pedesaan ke pasar ekspor internasional secara langsung." }
