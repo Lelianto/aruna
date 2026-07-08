@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase/config';
 import {
   collection, query, where, getDocs, doc, getDoc,
@@ -22,31 +23,9 @@ import {
 } from '@/types';
 
 const INVENTORY_CATEGORIES = ['Pangan', 'Perikanan', 'Peternakan', 'Perkebunan', 'Pupuk/Pakan'];
-const INVENTORY_UNITS = ['Kg', 'Ton', 'Liter', 'Butir', 'Rak', 'Karung', 'Bungkus', 'Ikat', 'Pcs'];
+import { COMMODITY_UNITS, normalizeUnit, normalizeProductName } from '@/lib/constants/units';
+const INVENTORY_UNITS = COMMODITY_UNITS;
 
-function normalizeProductName(name: string): string {
-  if (!name) return '';
-  return name
-    .trim()
-    .split(/\s+/)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-}
-
-function normalizeUnit(unit: string): string {
-  if (!unit) return 'Kg';
-  const normalized = unit.trim().toLowerCase();
-  if (normalized === 'kg' || normalized === 'kilo') return 'Kg';
-  if (normalized === 'ton') return 'Ton';
-  if (normalized === 'liter' || normalized === 'ltr') return 'Liter';
-  if (normalized === 'butir') return 'Butir';
-  if (normalized === 'rak') return 'Rak';
-  if (normalized === 'karung') return 'Karung';
-  if (normalized === 'bungkus' || normalized === 'bks') return 'Bungkus';
-  if (normalized === 'ikat') return 'Ikat';
-  if (normalized === 'pcs' || normalized === 'pc') return 'Pcs';
-  return unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
-}
 
 function generateSKU(name: string): string {
   const cleanName = name.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase() || 'PRD';
@@ -111,8 +90,17 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function MitraDashboardClient() {
-  const { userData, logout } = useAuth();
+  const { user, userData, loading: authLoading, logout } = useAuth();
+  const router = useRouter();
   const coopId = userData?.associatedId;
+
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user || !userData || (userData.role !== 'koperasi' && userData.role !== 'admin')) {
+        router.push('/');
+      }
+    }
+  }, [user, userData, authLoading, router]);
 
   // Sync Manager hook
   const { online, queueCount, syncing, statusText } = useSyncStatus();
@@ -325,11 +313,21 @@ export default function MitraDashboardClient() {
     { key: 'profil', label: 'Profil Koperasi', icon: Building2, group: 'profil' }
   ], [commodities, members, requests]);
 
-  if (!userData) return null;
+  if (authLoading || loading) {
+    return (
+      <div className="page-shell flex-1 flex items-center justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-brand-navy" />
+      </div>
+    );
+  }
+
+  if (!user || !userData || (userData.role !== 'koperasi' && userData.role !== 'admin')) {
+    return null;
+  }
 
   if (!coopId) {
     return (
-      <div className="page-shell flex-1 flex items-center justify-center py-20">
+      <div className="page-shell flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
         <div className="text-center max-w-sm">
           <Building2 className="h-14 w-14 text-slate-300 mx-auto mb-4" />
           <h2 className="text-lg font-black text-slate-800 mb-2">Akun Belum Terhubung</h2>
@@ -337,14 +335,6 @@ export default function MitraDashboardClient() {
             Akun Anda belum dihubungkan ke data koperasi di sistem. Hubungi Admin ARUNA untuk menautkan akun Anda.
           </p>
         </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="page-shell flex-1 flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-brand-navy" />
       </div>
     );
   }

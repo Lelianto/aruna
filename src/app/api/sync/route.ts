@@ -10,6 +10,7 @@ import {
   increment,
   deleteDoc
 } from 'firebase/firestore';
+import { normalizeProductName, normalizeUnit } from '@/lib/constants/units';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,29 +25,6 @@ export async function POST(request: NextRequest) {
     let realId = payload.id;
     let tempId: string | null = null;
 
-function normalizeProductName(name: string): string {
-  if (!name) return '';
-  return name
-    .trim()
-    .split(/\s+/)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
-}
-
-function normalizeUnit(unit: string): string {
-  if (!unit) return 'Kg';
-  const normalized = unit.trim().toLowerCase();
-  if (normalized === 'kg' || normalized === 'kilo') return 'Kg';
-  if (normalized === 'ton') return 'Ton';
-  if (normalized === 'liter' || normalized === 'ltr') return 'Liter';
-  if (normalized === 'butir') return 'Butir';
-  if (normalized === 'rak') return 'Rak';
-  if (normalized === 'karung') return 'Karung';
-  if (normalized === 'bungkus' || normalized === 'bks') return 'Bungkus';
-  if (normalized === 'ikat') return 'Ikat';
-  if (normalized === 'pcs' || normalized === 'pc') return 'Pcs';
-  return unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
-}
 
     switch (entity_type) {
       case 'product': {

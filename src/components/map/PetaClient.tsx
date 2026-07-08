@@ -9,6 +9,8 @@ import { Search, MapPin, Compass, Layers, ArrowLeft, Award, Lightbulb, TrendingU
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { CustomSelect } from '@/components/ui/CustomSelect';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface PetaClientProps {
   cooperatives: CooperativeWithCommodities[];
@@ -53,10 +55,32 @@ function ProgressRing({ value, size = 64, strokeWidth = 6, colorClass = 'stroke-
 }
 
 export default function PetaClient({ cooperatives, provinces, commodityNames }: PetaClientProps) {
+  const { user, userData, loading } = useAuth();
+  const router = useRouter();
+
   const [selectedProvince, setSelectedProvince] = useState<string>('all');
   const [selectedCommodity, setSelectedCommodity] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCoopId, setSelectedCoopId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi')) {
+        router.push('/');
+      }
+    }
+  }, [user, userData, loading, router]);
+
+  if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi')) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy mx-auto mb-4"></div>
+          <p className="text-xs text-slate-500 font-bold">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Gemini AI Insights state
   const [geminiInsights, setGeminiInsights] = useState<Record<string, { summary: string; analysis: string[]; recommendations: string[] }>>({});

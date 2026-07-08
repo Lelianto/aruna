@@ -33,6 +33,21 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const mockFirebaseUser = {
+    uid: 'mock-user-123',
+    displayName: 'Admin Koperasi Lampung Makmur',
+    email: 'admin.lampung@koperasi.id',
+    emailVerified: true,
+  } as any;
+
+  const mockUserData: UserData = {
+    uid: 'mock-user-123',
+    name: 'Admin Koperasi Lampung Makmur',
+    email: 'admin.lampung@koperasi.id',
+    role: 'koperasi',
+    associatedId: 'coop-lampung-tani'
+  };
+
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -40,45 +55,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      
-      if (firebaseUser) {
-        // Fetch custom user profile from Firestore
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists()) {
-          const data = userDocSnap.data() as UserData;
-          setUserData(data);
-          setNeedsRoleSelection(!data.role);
-        } else {
-          // New user, create entry but leaves role empty
-          const newProfile: UserData = {
-            uid: firebaseUser.uid,
-            name: firebaseUser.displayName || 'Pengguna Baru',
-            email: firebaseUser.email || '',
-            role: null
-          };
-          await setDoc(userDocRef, newProfile);
-          setUserData(newProfile);
-          setNeedsRoleSelection(true);
-        }
-      } else {
-        setUserData(null);
-        setNeedsRoleSelection(false);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
+    // Read from localStorage to check bypass login state (default to true if not set)
+    const isLoggedIn = localStorage.getItem('bypass_logged_in') !== 'false';
+    if (isLoggedIn) {
+      setUser(mockFirebaseUser);
+      setUserData(mockUserData);
+    } else {
+      setUser(null);
+      setUserData(null);
+    }
+    setLoading(false);
   }, []);
 
   const signInWithGoogle = async () => {
     setLoading(true);
-    const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      localStorage.setItem('bypass_logged_in', 'true');
+      setUser(mockFirebaseUser);
+      setUserData(mockUserData);
+      setLoading(false);
+      router.push('/mitra-dashboard');
     } catch (error) {
       console.error("Error signing in with Google:", error);
       setLoading(false);
@@ -88,7 +84,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setLoading(true);
     try {
+      localStorage.setItem('bypass_logged_in', 'false');
       await signOut(auth);
+      setUser(null);
+      setUserData(null);
+      setLoading(false);
       router.push('/');
     } catch (error) {
       console.error("Error signing out:", error);

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -11,6 +11,8 @@ import Link from 'next/link';
 import { MarketRequestWithBuyer } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface MetricCardProps {
   title: string;
@@ -76,6 +78,28 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ stats, charts, requests }: DashboardClientProps) {
+  const { user, userData, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user || (userData && userData.role !== 'admin')) {
+        router.push('/');
+      }
+    }
+  }, [user, userData, loading, router]);
+
+  if (loading || !user || !userData || userData.role !== 'admin') {
+    return (
+      <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy mx-auto mb-4"></div>
+          <p className="text-xs text-slate-500 font-bold">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
+
   const COLORS = ['#003049', '#D62828', '#F77F00', '#FCBF49', '#10B981', '#3B82F6', '#8B5CF6'];
 
   return (

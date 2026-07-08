@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { CooperativeWithCommodities } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Award, Search, Lightbulb, MapPin, Compass, Users, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface ScoringClientProps {
   cooperatives: CooperativeWithCommodities[];
@@ -51,6 +53,9 @@ function ProgressRing({ value, size = 120, strokeWidth = 10, colorClass = 'strok
 }
 
 export default function ScoringClient({ cooperatives, initialCoopId }: ScoringClientProps) {
+  const { user, userData, loading } = useAuth();
+  const router = useRouter();
+
   // Sort cooperatives by score descending for rankings
   const rankedCoops = useMemo(() => {
     return [...cooperatives].sort((a, b) => (b.score?.final_score || 0) - (a.score?.final_score || 0));
@@ -63,9 +68,27 @@ export default function ScoringClient({ cooperatives, initialCoopId }: ScoringCl
   
   const [searchQuery, setSearchQuery] = useState('');
 
+  useEffect(() => {
+    if (!loading) {
+      if (!user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi')) {
+        router.push('/');
+      }
+    }
+  }, [user, userData, loading, router]);
+
+  // Force selected ID to the cooperative's associated ID if user is koperasi
+  useEffect(() => {
+    if (userData?.role === 'koperasi' && userData.associatedId) {
+      setSelectedId(userData.associatedId);
+    }
+  }, [userData]);
+
   const selectedCoop = useMemo(() => {
+    if (userData?.role === 'koperasi') {
+      return cooperatives.find(c => c.id === userData.associatedId);
+    }
     return cooperatives.find(c => c.id === selectedId) || rankedCoops[0];
-  }, [cooperatives, selectedId, rankedCoops]);
+  }, [cooperatives, selectedId, rankedCoops, userData]);
 
   // Filter rankings list
   const filteredRankings = useMemo(() => {
@@ -74,6 +97,35 @@ export default function ScoringClient({ cooperatives, initialCoopId }: ScoringCl
       coop.province.toLowerCase().includes(searchQuery.toLowerCase())
     );
   }, [rankedCoops, searchQuery]);
+
+  if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi')) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy mx-auto mb-4"></div>
+          <p className="text-xs text-slate-500 font-bold">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle case where cooperative user has no associated cooperative data in list
+  if (userData?.role === 'koperasi' && !selectedCoop) {
+    return (
+      <div className="page-shell flex-1 py-8 bg-[#faf9f6]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
+              <Award className="h-8 w-8 text-brand-red" /> Sistem Penilaian ARUNA
+            </h1>
+          </div>
+          <Card className="border-slate-200/80 bg-white p-8 text-center">
+            <p className="text-sm font-bold text-slate-500">Akun Anda belum ditautkan ke data koperasi terdaftar. Silakan hubungi Admin ARUNA.</p>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   const score = selectedCoop?.score;
   const grade = score?.grade || 'D';
@@ -233,7 +285,8 @@ export default function ScoringClient({ cooperatives, initialCoopId }: ScoringCl
         </div>
 
         {/* National Rankings Table */}
-        <Card className="border-slate-200/80 bg-white">
+        {userData?.role === 'admin' && (
+          <Card className="border-slate-200/80 bg-white">
           <CardHeader className="pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <CardTitle className="text-base font-bold text-slate-900">
@@ -317,6 +370,7 @@ export default function ScoringClient({ cooperatives, initialCoopId }: ScoringCl
             </table>
           </CardContent>
         </Card>
+        )}
 
       </div>
     </div>

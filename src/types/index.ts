@@ -37,6 +37,7 @@ export interface Commodity {
   unit: string;
   harvest_period?: string;
   description?: string;
+  image_url?: string; // Product photo — stored in Firebase Storage
   created_at?: string;
 }
 

@@ -23,17 +23,26 @@ export default function Navbar() {
   ];
 
   const filteredNavItems = navItems.filter(item => {
+    // Tamu tanpa login / belum pilih peran
     if (!user || !userData?.role) {
-      return false;
+      return item.href === '/marketplace' || item.href === '/komoditas';
     }
+    // Buyer
     if (userData.role === 'buyer') {
-      return item.href === '/marketplace';
+      return item.href === '/marketplace' || item.href === '/komoditas';
     }
+    // Customer
     if (userData.role === 'customer') {
-      return item.href === '/marketplace';
+      return item.href === '/marketplace' || item.href === '/komoditas';
     }
+    // Koperasi
     if (userData.role === 'koperasi') {
-      return item.href === '/peta' || item.href === '/komoditas' || item.href === '/mitra-dashboard';
+      return (
+        item.href === '/peta' ||
+        item.href === '/komoditas' ||
+        item.href === '/marketplace' ||
+        item.href === '/mitra-dashboard'
+      );
     }
     // Admin has access to all
     return true;

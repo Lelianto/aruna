@@ -10,7 +10,7 @@ import { CustomSelect } from '@/components/ui/CustomSelect';
 import { 
   ShoppingBag, ArrowRight, Building2, MapPin, Compass, 
   Plus, X, Search, Filter, Loader2, AlertCircle, CheckCircle2,
-  Navigation, Truck, Clock, ShieldAlert, Award, CreditCard
+  Navigation, Truck, Clock, ShieldAlert, Award, CreditCard, LogIn
 } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/firebase/config';
@@ -39,7 +39,7 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 export default function MarketplaceClient({ initialRequests }: MarketplaceClientProps) {
-  const { user, userData } = useAuth();
+  const { user, userData, signInWithGoogle } = useAuth();
   
   // Tab control: 'gotong_royong' (Industrial requests) or 'customer' (Direct consumer search) or 'pesanan' (My orders)
   const [activeMarketTab, setActiveMarketTab] = useState<'gotong_royong' | 'customer' | 'pesanan'>('customer');
@@ -100,6 +100,9 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   const [coops, setCoops] = useState<any[]>([]);
   const [allCommodities, setAllCommodities] = useState<Commodity[]>([]);
   const [customerSearch, setCustomerSearch] = useState('');
+
+  // Reset to first page whenever search changes
+  useEffect(() => { setCurrentPage(0); }, [customerSearch]);
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({ lat: -6.2088, lng: 106.8456 }); // Default: Jakarta
   const [checkoutItem, setCheckoutItem] = useState<any | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState(1);
@@ -108,6 +111,11 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   // Shopping Cart States
   const [cart, setCart] = useState<any[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+
+  // Pagination
+  const PAGE_SIZE = 12;
+  const [currentPage, setCurrentPage] = useState(0);
 
   // Initialize cart from localStorage on mount
   useEffect(() => {
@@ -131,6 +139,10 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   }, [cart]);
 
   const addToCart = (product: any) => {
+    if (!user) {
+      setShowLoginPrompt(true);
+      return;
+    }
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id && item.name === product.name);
       if (existing) {
@@ -227,6 +239,56 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     }
   }, []);
 
+  // OSRM driving distances: coopId → { distanceKm, eta, source }
+  const [osrmDistances, setOsrmDistances] = useState<Map<string, { distanceKm: number; eta: string; source: 'osrm' | 'haversine' }>>(new Map());
+  const [osrmLoading, setOsrmLoading] = useState(false);
+
+  // Fetch driving distances from OSRM demo server whenever coops or user coords change
+  useEffect(() => {
+    if (coops.length === 0) return;
+    setOsrmLoading(true);
+
+    const fetchAll = async () => {
+      const results = new Map<string, { distanceKm: number; eta: string; source: 'osrm' | 'haversine' }>();
+
+      await Promise.allSettled(
+        coops.map(async (coop) => {
+          if (!coop.latitude || !coop.longitude) return;
+
+          // Haversine fallback for this coop
+          const hvDist = calculateDistance(coords.lat, coords.lng, coop.latitude, coop.longitude);
+          const hvEta = hvDist < 5 ? '30–45 Menit' : hvDist < 20 ? '1–2 Jam' : hvDist < 100 ? '1 Hari Kerja' : '2–3 Hari (Kargo)';
+
+          try {
+            // OSRM demo: lon,lat order
+            const url = `https://router.project-osrm.org/route/v1/driving/${coords.lng},${coords.lat};${coop.longitude},${coop.latitude}?overview=false`;
+            const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
+            if (!res.ok) throw new Error('OSRM error');
+            const data = await res.json();
+            if (data.code === 'Ok' && data.routes?.[0]) {
+              const distKm = Math.round(data.routes[0].distance / 100) / 10; // meters → km, 1 dec
+              const sec = data.routes[0].duration;
+              let eta = '';
+              if (sec < 3600) eta = `${Math.round(sec / 60)} Menit`;
+              else if (sec < 86400) eta = `${(sec / 3600).toFixed(1).replace('.0', '')} Jam`;
+              else eta = `${Math.ceil(sec / 86400)} Hari`;
+              results.set(coop.id, { distanceKm: distKm, eta, source: 'osrm' });
+            } else {
+              results.set(coop.id, { distanceKm: hvDist, eta: hvEta, source: 'haversine' });
+            }
+          } catch {
+            results.set(coop.id, { distanceKm: hvDist, eta: hvEta, source: 'haversine' });
+          }
+        })
+      );
+
+      setOsrmDistances(results);
+      setOsrmLoading(false);
+    };
+
+    fetchAll();
+  }, [coops, coords]);
+
   // Real-time listener for supply matches
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'supply_matches'), (snapshot) => {
@@ -268,45 +330,43 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
   // 2. Customer Search Hyperlocal matching & Proximity ranking
   const searchedProducts = useMemo(() => {
-    if (!customerSearch.trim()) return [];
-    
-    // Filter matching commodities
-    const matchingComs = allCommodities.filter(c => 
-      c.name.toLowerCase().includes(customerSearch.toLowerCase()) || 
-      c.category.toLowerCase().includes(customerSearch.toLowerCase())
-    );
+    const matchingComs = customerSearch.trim()
+      ? allCommodities.filter(c =>
+          c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+          c.category.toLowerCase().includes(customerSearch.toLowerCase())
+        )
+      : allCommodities.filter(c => c.available_stock > 0);
 
-    // Compute distance, delivery cost, and ETA for each penyedia coop
     return matchingComs.map(com => {
       const coop = coops.find(x => x.id === com.cooperative_id);
-      const distance = coop 
-        ? calculateDistance(coords.lat, coords.lng, coop.latitude, coop.longitude)
-        : 15.0; // mock default distance
-      
-      const pricePerKg = 12000; // Mock base price
-      const deliveryCost = Math.max(10000, Math.round(distance * 2500)); // Rp 2.5k / km, min 10k
-      
-      // ETA calculation
-      let eta = '';
-      if (distance < 5) eta = '30 - 45 Menit';
-      else if (distance < 20) eta = '1 - 2 Jam';
-      else if (distance < 100) eta = '1 Hari Kerja';
-      else eta = '2 - 3 Hari (Kargo)';
+
+      // Prefer OSRM driving distance; fall back to Haversine
+      const osrm = coop ? osrmDistances.get(coop.id) : undefined;
+      const distance = osrm?.distanceKm ??
+        (coop ? calculateDistance(coords.lat, coords.lng, coop.latitude, coop.longitude) : 15.0);
+      const distanceSource = osrm?.source ?? 'haversine';
+
+      const haversineEta = distance < 5 ? '30–45 Menit' : distance < 20 ? '1–2 Jam' : distance < 100 ? '1 Hari Kerja' : '2–3 Hari (Kargo)';
+      const eta = osrm?.eta ?? haversineEta;
+
+      const pricePerKg = com.price_per_unit || 12000;
+      const deliveryCost = Math.max(10000, Math.round(distance * 2500));
 
       return {
         ...com,
-        coopName: coop?.name || 'Koperasi Mitra Tani',
+        coopName: coop?.name || 'Koperasi Mitra',
         city: coop?.city || 'Garut',
         province: coop?.province || 'Jawa Barat',
         grade: coop?.score?.grade || 'B',
         coopPhone: coop?.phone || '082122345566',
         distance,
+        distanceSource,
         deliveryCost,
         eta,
         pricePerKg
       };
-    }).sort((a, b) => a.distance - b.distance); // Hyperlocal First (Closest distance first)
-  }, [allCommodities, coops, customerSearch, coords]);
+    }).sort((a, b) => a.distance - b.distance);
+  }, [allCommodities, coops, customerSearch, coords, osrmDistances]);
 
   const myOrdersWithCoops = useMemo(() => {
     const isUserAdmin = userData?.role === 'admin';
@@ -570,19 +630,19 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
             </p>
           </div>
           
-          {showToggle ? (
+          {user && (showToggle ? (
             <div className="flex bg-slate-100 p-0.5 rounded-lg text-xs font-bold shrink-0">
               <button 
                 onClick={() => setActiveMarketTab('gotong_royong')}
                 className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'gotong_royong' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
-                Industrial Gotong Royong
+                Gotong Royong Industri
               </button>
               <button 
                 onClick={() => setActiveMarketTab('customer')}
                 className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'customer' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
-                Customer Marketplace
+                Belanja Komoditas
               </button>
               <button 
                 onClick={() => setActiveMarketTab('pesanan')}
@@ -606,7 +666,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 Pesanan Saya
               </button>
             </div>
-          )}
+          ))}
         </div>
 
         {activeMarketTab === 'gotong_royong' && (
@@ -715,102 +775,185 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
              VIEW B: CUSTOMER-CENTRIC HYPERLOCAL MARKETPLACE
              ==================================================================== */
           <div className="space-y-6">
-            {/* National Search bar */}
-            <div className="max-w-2xl mx-auto space-y-4 text-center">
-              <h2 className="text-lg font-black text-slate-800">Cari Komoditas Desa di Seluruh Koperasi Indonesia</h2>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Ketik produk yang Anda cari (cth: 'Beras Organik', 'Cabai', 'Jagung')..."
-                    value={customerSearch}
-                    onChange={e => setCustomerSearch(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-2xl text-sm bg-white font-bold focus:outline-none focus:ring-1 focus:ring-brand-navy"
-                  />
-                </div>
+            {/* Search bar */}
+            <div className="flex gap-3 items-center">
+              <div className="relative flex-1 max-w-lg">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Cari produk, kategori... (cth: Beras, Jagung, Kopi)"
+                  value={customerSearch}
+                  onChange={e => setCustomerSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-brand-navy/20 focus:border-brand-navy"
+                />
               </div>
-              <p className="text-[10px] text-slate-400 font-extrabold uppercase flex items-center justify-center gap-1">
-                <Navigation className="h-3 w-3 text-brand-orange animate-pulse" /> Terpetakan ke Koordinat Anda: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
-              </p>
+              <span className="text-[10px] text-slate-400 font-semibold hidden sm:flex items-center gap-1 shrink-0">
+                <Navigation className="h-3 w-3 text-brand-orange animate-pulse" />
+                {coords.lat.toFixed(3)}, {coords.lng.toFixed(3)}
+              </span>
+              {searchedProducts.length > 0 && (
+                <span className="text-xs text-slate-500 font-semibold shrink-0 hidden md:block">
+                  {searchedProducts.length} produk
+                </span>
+              )}
             </div>
 
-            {/* Results Grid ranked by Proximity */}
-            {customerSearch.trim() && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                {searchedProducts.length === 0 ? (
-                  <div className="col-span-2 text-center py-12 text-slate-400 font-bold text-xs">
-                    Komoditas "{customerSearch}" tidak ditemukan di koperasi manapun.
-                  </div>
-                ) : (
-                  searchedProducts.map(prod => (
-                    <Card key={prod.id} className="border-slate-200/80 bg-white hover:-translate-y-0.5 transition-all duration-200 flex flex-col justify-between">
-                      <CardHeader className="pb-3 flex flex-row justify-between items-start gap-4">
-                        <div>
-                          <Badge className="bg-slate-100 text-slate-600 border border-slate-200 uppercase font-black text-[9px] mb-1.5">
+            {/* Product Grid — paginated, 4 cols desktop / 2 tablet / 1 mobile */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {searchedProducts.length === 0 ? (
+                <div className="col-span-4 text-center py-16 text-slate-400">
+                  <ShoppingBag className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm font-semibold">
+                    {customerSearch.trim()
+                      ? `Produk "${customerSearch}" tidak ditemukan`
+                      : 'Memuat produk dari seluruh koperasi...'}
+                  </p>
+                </div>
+              ) : (
+                searchedProducts
+                  .slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
+                  .map(prod => (
+                  <div
+                    key={prod.id}
+                    className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
+                  >
+                    {/* Product image area — shows real photo when available, emoji fallback */}
+                    <div className="bg-gradient-to-br from-slate-50 to-slate-100 h-36 flex flex-col items-center justify-center gap-1 relative overflow-hidden">
+                      {prod.image_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={prod.image_url}
+                          alt={prod.name}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <span className="text-4xl select-none">
+                            {prod.category === 'Pertanian' ? '🌾' :
+                             prod.category === 'Perkebunan' ? '🌿' :
+                             prod.category === 'Perikanan' ? '🐟' :
+                             prod.category === 'Peternakan' ? '🐄' :
+                             prod.category === 'Kehutanan' ? '🌳' : '📦'}
+                          </span>
+                          <Badge className="bg-white/80 text-slate-600 border border-slate-200 font-semibold text-[9px] uppercase px-2">
                             {prod.category}
                           </Badge>
-                          <CardTitle className="text-base font-black text-slate-900 mt-1">{prod.name}</CardTitle>
-                          <span className="text-[10px] text-slate-450 font-bold flex items-center gap-1 mt-1">
-                            <Building2 className="h-3.5 w-3.5 text-slate-300" /> {prod.coopName} ({prod.city})
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[9px] text-slate-400 block font-bold uppercase">Harga</span>
-                          <span className="text-sm font-black text-brand-orange tabular-nums">Rp {prod.pricePerKg.toLocaleString('id-ID')} / kg</span>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {/* Proximity metrics */}
-                        <div className="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 text-[10px]">
-                          <div className="space-y-0.5">
-                            <span className="text-slate-400 font-black block uppercase">Jarak</span>
-                            <span className="font-extrabold text-slate-700 flex items-center gap-0.5">
-                              <MapPin className="h-3 w-3 text-brand-red shrink-0" /> {prod.distance} Km
-                            </span>
-                          </div>
-                          <div className="space-y-0.5">
-                            <span className="text-slate-400 font-black block uppercase">Ongkos Kirim</span>
-                            <span className="font-extrabold text-slate-700 flex items-center gap-0.5 tabular-nums">
-                              <Truck className="h-3 w-3 text-slate-400 shrink-0" /> Rp {prod.deliveryCost.toLocaleString('id-ID')}
-                            </span>
-                          </div>
-                          <div className="space-y-0.5">
-                            <span className="text-slate-400 font-black block uppercase">ETA</span>
-                            <span className="font-extrabold text-slate-700 flex items-center gap-0.5">
-                              <Clock className="h-3 w-3 text-slate-400 shrink-0" /> {prod.eta}
-                            </span>
-                          </div>
-                        </div>
+                        </>
+                      )}
+                      {/* Distance chip */}
+                      <span className={`absolute top-2 right-2 backdrop-blur-sm border text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 z-10 ${
+                        osrmLoading
+                          ? 'bg-white/70 border-slate-200 text-slate-400 animate-pulse'
+                          : prod.distanceSource === 'osrm'
+                          ? 'bg-emerald-50/90 border-emerald-200 text-emerald-700'
+                          : 'bg-white/90 border-slate-200 text-slate-600'
+                      }`}>
+                        <MapPin className="h-2.5 w-2.5 text-brand-red" />
+                        {osrmLoading ? '...' : `${prod.distance} km`}
+                        {!osrmLoading && prod.distanceSource === 'osrm' && (
+                          <span className="text-[8px] text-emerald-600 font-black">via jalan</span>
+                        )}
+                      </span>
+                      {/* Grade badge */}
+                      <span className={`absolute top-2 left-2 text-[9px] font-black px-1.5 py-0.5 rounded-full text-white z-10 ${
+                        prod.grade === 'A' ? 'bg-emerald-500' : prod.grade === 'B' ? 'bg-blue-500' : 'bg-slate-400'
+                      }`}>
+                        Kelas {prod.grade}
+                      </span>
+                    </div>
 
-                        {/* Grade indicator */}
-                        <div className="flex justify-between items-center text-[10px] font-bold text-slate-500">
-                          <span>Grade Koperasi: 
-                            <span className={`ml-1 px-1.5 py-0.5 rounded text-white font-black uppercase ${
-                              prod.grade === 'A' ? 'bg-emerald-500' : 'bg-blue-500'
-                            }`}>
-                              {prod.grade}
-                            </span>
-                          </span>
-                          <span>Stok Tersedia: <strong className="text-slate-800">{prod.available_stock} {prod.unit}</strong></span>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="pt-0">
-                        <Button 
+                    {/* Card body */}
+                    <div className="p-3 flex flex-col flex-1 gap-2">
+                      {/* Name & coop */}
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-900 leading-tight line-clamp-1">{prod.name}</h3>
+                        <p className="text-[10px] text-slate-400 font-medium mt-0.5 flex items-center gap-1 line-clamp-1">
+                          <Building2 className="h-3 w-3 shrink-0" /> {prod.coopName}
+                        </p>
+                      </div>
+
+                      {/* Price */}
+                      <div>
+                        <span className="text-base font-black text-brand-navy tabular-nums">
+                          Rp {prod.pricePerKg.toLocaleString('id-ID')}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-semibold"> / {prod.unit}</span>
+                      </div>
+
+                      {/* Meta row */}
+                      <div className="flex justify-between items-center text-[10px] text-slate-500 font-medium">
+                        <span className="flex items-center gap-0.5">
+                          <Truck className="h-3 w-3" /> Rp {prod.deliveryCost.toLocaleString('id-ID')}
+                        </span>
+                        <span className="flex items-center gap-0.5">
+                          <Clock className="h-3 w-3" /> {prod.eta}
+                        </span>
+                      </div>
+
+                      {/* Stock */}
+                      <p className="text-[10px] text-slate-400 font-medium">
+                        Stok: <strong className="text-slate-700">{prod.available_stock} {prod.unit}</strong>
+                      </p>
+
+                      {/* CTA */}
+                      <div className="mt-auto flex justify-end">
+                        <button
                           onClick={() => addToCart(prod)}
-                          className="w-full bg-brand-navy hover:bg-brand-navy/90 text-white font-black text-xs py-2 rounded-xl cursor-pointer flex items-center justify-center gap-1.5"
+                          className="flex items-center gap-1 text-[11px] font-semibold text-brand-navy hover:text-white hover:bg-brand-navy border border-brand-navy/30 hover:border-brand-navy px-2.5 py-1 rounded-lg transition-all duration-150 cursor-pointer"
                         >
-                          <ShoppingBag className="h-4 w-4" />
-                          Tambah ke Keranjang
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))
-                )}
+                          <ShoppingBag className="h-3 w-3" />
+                          + Keranjang
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Pagination controls */}
+            {searchedProducts.length > PAGE_SIZE && (
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                  disabled={currentPage === 0}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                >
+                  ← Sebelumnya
+                </button>
+
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.ceil(searchedProducts.length / PAGE_SIZE) }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i)}
+                      className={`w-7 h-7 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
+                        i === currentPage
+                          ? 'bg-brand-navy text-white'
+                          : 'border border-slate-200 text-slate-500 hover:bg-slate-50'
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(searchedProducts.length / PAGE_SIZE) - 1, p + 1))}
+                  disabled={currentPage >= Math.ceil(searchedProducts.length / PAGE_SIZE) - 1}
+                  className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                >
+                  Berikutnya →
+                </button>
+
+                <span className="text-[10px] text-slate-400 font-medium ml-2">
+                  {currentPage * PAGE_SIZE + 1}–{Math.min((currentPage + 1) * PAGE_SIZE, searchedProducts.length)} dari {searchedProducts.length} produk
+                </span>
               </div>
             )}
           </div>
         )}
+
 
           {/* ====================================================================
              VIEW C: PESANAN SAYA (MY ORDERS & TRANSACTIONS)
@@ -1099,6 +1242,39 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
             </div>
           </div>
         )}
+
+      {/* ─── LOGIN PROMPT MODAL ──────────────────────────────────────────────── */}
+      {showLoginPrompt && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowLoginPrompt(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="h-16 w-16 bg-brand-red/10 rounded-full flex items-center justify-center mx-auto">
+              <ShoppingBag className="h-8 w-8 text-brand-red" />
+            </div>
+            <div className="space-y-1.5">
+              <h2 className="text-lg font-black text-slate-900">Masuk untuk Berbelanja</h2>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Buat akun atau masuk untuk menambahkan produk ke keranjang dan melakukan pemesanan ke koperasi.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Button
+                onClick={() => { signInWithGoogle(); setShowLoginPrompt(false); }}
+                className="w-full py-3 bg-brand-red hover:bg-brand-red/90 text-white font-black text-sm flex items-center justify-center gap-2 rounded-xl cursor-pointer"
+              >
+                <LogIn className="h-4 w-4" />
+                Masuk dengan Google
+              </Button>
+              <button
+                onClick={() => setShowLoginPrompt(false)}
+                className="w-full py-2 text-xs text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
+              >
+                Lanjut melihat produk
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ─── SHOPPING CART FLOATING BUBBLE AND DRAWER ────────────────────────── */}
       {/* Floating Bubble */}
