@@ -7,7 +7,8 @@ import {
   collection, 
   getDoc, 
   updateDoc, 
-  increment 
+  increment,
+  deleteDoc
 } from 'firebase/firestore';
 
 export async function POST(request: NextRequest) {
@@ -23,26 +24,57 @@ export async function POST(request: NextRequest) {
     let realId = payload.id;
     let tempId: string | null = null;
 
+function normalizeProductName(name: string): string {
+  if (!name) return '';
+  return name
+    .trim()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function normalizeUnit(unit: string): string {
+  if (!unit) return 'Kg';
+  const normalized = unit.trim().toLowerCase();
+  if (normalized === 'kg' || normalized === 'kilo') return 'Kg';
+  if (normalized === 'ton') return 'Ton';
+  if (normalized === 'liter' || normalized === 'ltr') return 'Liter';
+  if (normalized === 'butir') return 'Butir';
+  if (normalized === 'rak') return 'Rak';
+  if (normalized === 'karung') return 'Karung';
+  if (normalized === 'bungkus' || normalized === 'bks') return 'Bungkus';
+  if (normalized === 'ikat') return 'Ikat';
+  if (normalized === 'pcs' || normalized === 'pc') return 'Pcs';
+  return unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
+}
+
     switch (entity_type) {
       case 'product': {
-        const isNew = payload.id.startsWith('new-') || action === 'create';
-        const docRef = isNew 
-          ? doc(collection(db, 'commodities')) 
-          : doc(db, 'commodities', payload.id);
-        
-        realId = docRef.id;
-        if (isNew) tempId = payload.id;
+        if (action === 'delete') {
+          const docRef = doc(db, 'commodities', payload.id);
+          await deleteDoc(docRef);
+        } else {
+          const isNew = payload.id.startsWith('new-');
+          const docRef = isNew 
+            ? doc(collection(db, 'commodities')) 
+            : doc(db, 'commodities', payload.id);
+          
+          realId = docRef.id;
+          if (isNew) tempId = payload.id;
 
-        await setDoc(docRef, {
-          ...payload,
-          id: realId,
-          updated_at: new Date().toISOString()
-        });
+          await setDoc(docRef, {
+            ...payload,
+            name: normalizeProductName(payload.name),
+            unit: normalizeUnit(payload.unit),
+            id: realId,
+            updated_at: new Date().toISOString()
+          });
+        }
         break;
       }
 
       case 'member': {
-        const isNew = payload.id.startsWith('mem-') || action === 'create';
+        const isNew = payload.id.startsWith('mem-');
         const docRef = isNew 
           ? doc(collection(db, 'members')) 
           : doc(db, 'members', payload.id);
@@ -52,6 +84,7 @@ export async function POST(request: NextRequest) {
 
         await setDoc(docRef, {
           ...payload,
+          name: normalizeProductName(payload.name),
           id: realId,
           joined_at: payload.joined_at || new Date().toISOString()
         });
@@ -68,6 +101,7 @@ export async function POST(request: NextRequest) {
 
         // 2. Decrement available stock in commodities collection
         for (const item of payload.items) {
+          if (!item.commodity_id) continue;
           const commodityRef = doc(db, 'commodities', item.commodity_id);
           const snap = await getDoc(commodityRef);
           if (snap.exists()) {
@@ -90,6 +124,7 @@ export async function POST(request: NextRequest) {
 
         // 2. Increment available stock in commodities collection
         for (const item of payload.items) {
+          if (!item.commodity_id) continue;
           const commodityRef = doc(db, 'commodities', item.commodity_id);
           const snap = await getDoc(commodityRef);
           if (snap.exists()) {
@@ -97,16 +132,23 @@ export async function POST(request: NextRequest) {
             const newStock = currentStock + item.quantity;
             await updateDoc(commodityRef, { available_stock: newStock });
           } else {
-            // If commodity doesn't exist, create it
+            // If commodity doesn't exist, create it with normalized fields and a generated SKU
+            const skuName = item.commodity_name || 'PROD';
+            const cleanSkuName = skuName.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase();
+            const skuNum = Math.floor(100 + Math.random() * 900);
+            const sku = `SKU-${cleanSkuName}-${skuNum}`;
+
             await setDoc(commodityRef, {
               id: item.commodity_id,
               cooperative_id: payload.cooperative_id,
-              name: item.commodity_name,
+              name: normalizeProductName(item.commodity_name),
+              sku: sku,
               category: 'Pangan',
               available_stock: item.quantity,
               monthly_capacity: item.quantity * 2, // arbitrary default
-              unit: item.unit,
-              harvest_period: 'Pengadaan Masuk'
+              unit: normalizeUnit(item.unit),
+              harvest_period: 'Sepanjang Tahun',
+              created_at: new Date().toISOString()
             });
           }
         }

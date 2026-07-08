@@ -22,7 +22,39 @@ import {
 } from '@/types';
 
 const INVENTORY_CATEGORIES = ['Pangan', 'Perikanan', 'Peternakan', 'Perkebunan', 'Pupuk/Pakan'];
-const INVENTORY_UNITS = ['Kg', 'Ton', 'Liter', 'Butir', 'Rak', 'Karung'];
+const INVENTORY_UNITS = ['Kg', 'Ton', 'Liter', 'Butir', 'Rak', 'Karung', 'Bungkus', 'Ikat', 'Pcs'];
+
+function normalizeProductName(name: string): string {
+  if (!name) return '';
+  return name
+    .trim()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+}
+
+function normalizeUnit(unit: string): string {
+  if (!unit) return 'Kg';
+  const normalized = unit.trim().toLowerCase();
+  if (normalized === 'kg' || normalized === 'kilo') return 'Kg';
+  if (normalized === 'ton') return 'Ton';
+  if (normalized === 'liter' || normalized === 'ltr') return 'Liter';
+  if (normalized === 'butir') return 'Butir';
+  if (normalized === 'rak') return 'Rak';
+  if (normalized === 'karung') return 'Karung';
+  if (normalized === 'bungkus' || normalized === 'bks') return 'Bungkus';
+  if (normalized === 'ikat') return 'Ikat';
+  if (normalized === 'pcs' || normalized === 'pc') return 'Pcs';
+  return unit.charAt(0).toUpperCase() + unit.slice(1).toLowerCase();
+}
+
+function generateSKU(name: string): string {
+  const cleanName = name.replace(/[^a-zA-Z]/g, '').substring(0, 3).toUpperCase() || 'PRD';
+  const randNum = Math.floor(100 + Math.random() * 900);
+  return `SKU-${cleanName}-${randNum}`;
+}
+
+
 import { 
   Building2, PackagePlus, ShoppingCart, Pencil, Trash2, 
   Plus, Save, X, CheckCircle2, AlertCircle, Loader2,
@@ -146,8 +178,11 @@ export default function MitraDashboardClient() {
         
         // Sync local commodities cache
         if (localDb) {
+          // Keep ONLY local unsynced commodities whose IDs start with 'new-prod-'
+          const localUnsynced = (await localDb.commodities.toArray()).filter((c: any) => c.id.startsWith('new-prod-'));
           await localDb.commodities.clear();
-          await localDb.commodities.bulkPut(comList);
+          await localDb.commodities.bulkPut(localUnsynced);
+          comList = [...comList, ...localUnsynced];
         }
       } else {
         if (localDb) {
@@ -156,22 +191,55 @@ export default function MitraDashboardClient() {
       }
       setCommodities(comList);
 
-      // Pre-seed local storage tables
-      if (localDb) {
-        await seedLocalDataIfEmpty(coopId, comList);
-        
-        // Load local members
-        const localMembers = await localDb.members.toArray();
-        setMembers(localMembers);
+      // Fetch other collections based on online/offline state
+      let memList: Member[] = [];
+      let salesList: POSTransaction[] = [];
+      let purchasesList: PurchaseTransaction[] = [];
 
-        // Load sales history
-        const localSales = await localDb.transactions.toArray();
-        setSalesHistory(localSales.sort((a: POSTransaction, b: POSTransaction) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      if (online) {
+        // Fetch members from Firestore
+        const memQ = query(collection(db, 'members'), where('cooperative_id', '==', coopId));
+        const memSnap = await getDocs(memQ);
+        memSnap.forEach(d => memList.push({ id: d.id, ...d.data() } as Member));
 
-        // Load purchase history
-        const localPurchases = await localDb.purchases.toArray();
-        setPurchaseHistory(localPurchases.sort((a: PurchaseTransaction, b: PurchaseTransaction) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+        // Fetch sales from Firestore
+        const salesQ = query(collection(db, 'sales'), where('cooperative_id', '==', coopId));
+        const salesSnap = await getDocs(salesQ);
+        salesSnap.forEach(d => salesList.push({ id: d.id, ...d.data() } as POSTransaction));
+
+        // Fetch purchases from Firestore
+        const purchasesQ = query(collection(db, 'purchases'), where('cooperative_id', '==', coopId));
+        const purchasesSnap = await getDocs(purchasesQ);
+        purchasesSnap.forEach(d => purchasesList.push({ id: d.id, ...d.data() } as PurchaseTransaction));
+
+        if (localDb) {
+          // Keep only local unsynced items
+          const localUnsyncedMembers = (await localDb.members.toArray()).filter((m: any) => m.id.startsWith('mem-'));
+          await localDb.members.clear();
+          await localDb.members.bulkPut(localUnsyncedMembers);
+          memList = [...memList, ...localUnsyncedMembers];
+
+          const localUnsyncedSales = (await localDb.transactions.toArray()).filter((t: any) => t.id.startsWith('sale-'));
+          await localDb.transactions.clear();
+          await localDb.transactions.bulkPut(localUnsyncedSales);
+          salesList = [...salesList, ...localUnsyncedSales];
+
+          const localUnsyncedPurchases = (await localDb.purchases.toArray()).filter((p: any) => p.id.startsWith('purchase-'));
+          await localDb.purchases.clear();
+          await localDb.purchases.bulkPut(localUnsyncedPurchases);
+          purchasesList = [...purchasesList, ...localUnsyncedPurchases];
+        }
+      } else {
+        if (localDb) {
+          memList = await localDb.members.toArray();
+          salesList = await localDb.transactions.toArray();
+          purchasesList = await localDb.purchases.toArray();
+        }
       }
+
+      setMembers(memList);
+      setSalesHistory(salesList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      setPurchaseHistory(purchasesList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
 
       // 3. Load requests & supply matches (Connector data - online only fallback)
       if (online) {
@@ -231,6 +299,15 @@ export default function MitraDashboardClient() {
     fetchData();
   }, [fetchData]);
 
+  // Re-fetch data when sync finishes to ensure UI has the latest synced IDs/states
+  const prevSyncingRef = useRef(syncing);
+  useEffect(() => {
+    if (prevSyncingRef.current && !syncing && queueCount === 0) {
+      fetchData();
+    }
+    prevSyncingRef.current = syncing;
+  }, [syncing, queueCount, fetchData]);
+
   // Sidebar Menu Items Definition
   const menuItems = useMemo((): MenuItem[] => [
     // Operasional
@@ -238,7 +315,7 @@ export default function MitraDashboardClient() {
     { key: 'stok', label: 'Stok & Opname', icon: Warehouse, group: 'operasional', badge: commodities.length },
     { key: 'pembelian', label: 'Pembelian (Stok Masuk)', icon: ArrowDownToLine, group: 'operasional' },
     { key: 'penjualan', label: 'Riwayat Transaksi', icon: History, group: 'operasional' },
-    { key: 'anggota', label: 'Anggota Tani', icon: Users, group: 'operasional', badge: members.length },
+    { key: 'anggota', label: 'Anggota Koperasi', icon: Users, group: 'operasional', badge: members.length },
     { key: 'laporan', label: 'Laporan Keuangan', icon: BarChart3, group: 'operasional' },
     // Jejaring
     { key: 'pesanan', label: 'Permintaan Pasar', icon: Tag, group: 'jejaring', badge: requests.filter(r => r.status === 'Menunggu Pemenuhan').length },
@@ -427,7 +504,7 @@ export default function MitraDashboardClient() {
                   {activeMenu && <activeMenu.icon className="h-4.5 w-4.5 text-brand-navy" />}
                   {activeMenu?.label}
                 </h2>
-                {coop && (
+                {coop && activeTab !== 'anggota' && (
                   <p className="text-[10px] text-slate-450 font-bold mt-2 leading-none">
                     {coop.name} &bull; {coop.city}, {coop.province} &bull; SimkopDes: <span className="font-extrabold text-slate-700">{coop.simkopdes_id || '-'}</span>
                   </p>
@@ -646,12 +723,20 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
 
   const handleSendText = async () => {
     if (!queryText.trim()) return;
+
+    // Stop voice recording if active when sending text
+    if (assistantRef.current) {
+      assistantRef.current.stop();
+    }
+    setIsListening(false);
+
     setLoading(true);
-    setAssistantResponse(null);
+    const prevContext = assistantResponse?.action === 'need_clarification' ? assistantResponse : null;
 
     try {
-      const response = await executeAICommand(queryText.trim());
+      const response = await executeAICommand(queryText.trim(), prevContext);
       setAssistantResponse(response);
+      setQueryText('');
     } catch (e) {
       showToast('Gagal memproses analisis perintah AI', 'error');
     } finally {
@@ -666,77 +751,275 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
     try {
       switch (action) {
         case 'create_sale': {
+          const resolvedItems = [];
+          for (const item of payload.items) {
+            let commodityId = item.commodity_id;
+            if (!commodityId) {
+              const matched = commodities.find(c => c.name.toLowerCase() === item.commodity_name.toLowerCase());
+              commodityId = matched?.id;
+            }
+            if (!commodityId) {
+              commodityId = isOnline() ? doc(collection(db, 'commodities')).id : `new-prod-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
+            }
+
+            resolvedItems.push({
+              ...item,
+              commodity_id: commodityId,
+              price_per_kg: item.price_per_kg || 12000
+            });
+          }
+
           const saleTx: POSTransaction = {
             id: `sale-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`,
             cooperative_id: coopId,
             member_id: payload.memberId || undefined,
-            items: payload.items,
-            total_amount: payload.items.reduce((sum: number, i: any) => sum + (i.quantity * i.price_per_kg), 0),
+            items: resolvedItems,
+            total_amount: resolvedItems.reduce((sum: number, i: any) => sum + (i.quantity * i.price_per_kg), 0),
             payment_method: payload.paymentMethod || 'Tunai',
             created_at: new Date().toISOString(),
             status: 'pending',
             version: 1
           };
 
-          await localDb.transactions.add(saleTx);
-          for (const item of payload.items) {
-            const current = await localDb.commodities.get(item.commodity_id);
-            if (current) {
-              await localDb.commodities.update(item.commodity_id, {
-                available_stock: Math.max(0, current.available_stock - item.quantity)
-              });
+          if (isOnline()) {
+            await fetch('/api/sync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ entity_type: 'sale', action: 'create', payload: saleTx })
+            });
+          } else {
+            if (localDb) {
+              await localDb.transactions.add(saleTx);
+              for (const item of resolvedItems) {
+                const current = await localDb.commodities.get(item.commodity_id);
+                if (current) {
+                  await localDb.commodities.update(item.commodity_id, {
+                    available_stock: Math.max(0, current.available_stock - item.quantity)
+                  });
+                }
+              }
             }
+            await queueForSync('sale', 'create', saleTx);
           }
-          await queueForSync('sale', 'create', saleTx);
           break;
         }
 
         case 'create_purchase': {
+          const itemsWithIds = [];
+          const newProductsOnline = [];
+          for (const item of payload.items) {
+            const normalizedName = normalizeProductName(item.commodity_name);
+            const matched = commodities.find(c => c.name.toLowerCase() === normalizedName.toLowerCase());
+            let commodity_id = matched?.id;
+
+            if (!matched) {
+              if (isOnline()) {
+                commodity_id = doc(collection(db, 'commodities')).id;
+                const newProduct = {
+                  id: commodity_id,
+                  cooperative_id: coopId,
+                  name: normalizedName,
+                  sku: generateSKU(normalizedName),
+                  category: 'Pangan',
+                  monthly_capacity: item.quantity * 2,
+                  available_stock: item.quantity,
+                  unit: normalizeUnit(item.unit || 'Kg'),
+                  harvest_period: 'Sepanjang Tahun',
+                  created_at: new Date().toISOString()
+                };
+                newProductsOnline.push(newProduct);
+              } else {
+                commodity_id = `new-prod-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
+                const newProduct = {
+                  id: commodity_id,
+                  cooperative_id: coopId,
+                  name: normalizedName,
+                  sku: generateSKU(normalizedName),
+                  category: 'Pangan',
+                  monthly_capacity: item.quantity * 2,
+                  available_stock: item.quantity,
+                  unit: normalizeUnit(item.unit || 'Kg'),
+                  harvest_period: 'Sepanjang Tahun',
+                  created_at: new Date().toISOString()
+                };
+                if (localDb) {
+                  await localDb.commodities.add(newProduct);
+                }
+                await queueForSync('product', 'create', newProduct);
+              }
+            } else {
+              if (!isOnline() && localDb) {
+                await localDb.commodities.update(matched.id, {
+                  available_stock: matched.available_stock + item.quantity
+                });
+              }
+            }
+
+            itemsWithIds.push({
+              ...item,
+              commodity_id,
+              commodity_name: normalizedName,
+              unit: normalizeUnit(item.unit || 'Kg'),
+              price_per_kg: item.price_per_kg || 10000
+            });
+          }
+
           const purchaseTx: PurchaseTransaction = {
             id: `purchase-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`,
             cooperative_id: coopId,
             supplier_name: payload.supplierName,
-            items: payload.items,
-            total_amount: payload.items.reduce((sum: number, i: any) => sum + (i.quantity * i.price_per_kg), 0),
+            items: itemsWithIds,
+            total_amount: itemsWithIds.reduce((sum: number, i: any) => sum + (i.quantity * i.price_per_kg), 0),
             created_at: new Date().toISOString(),
             status: 'pending',
             version: 1
           };
 
-          await localDb.purchases.add(purchaseTx);
-          for (const item of payload.items) {
-            const matched = commodities.find(c => c.name.toLowerCase() === item.commodity_name.toLowerCase());
-            if (matched) {
-              await localDb.commodities.update(matched.id, {
-                available_stock: matched.available_stock + item.quantity
+          if (isOnline()) {
+            for (const prod of newProductsOnline) {
+              await fetch('/api/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entity_type: 'product', action: 'create', payload: prod })
               });
             }
+            await fetch('/api/sync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ entity_type: 'purchase', action: 'create', payload: purchaseTx })
+            });
+          } else {
+            if (localDb) {
+              await localDb.purchases.add(purchaseTx);
+            }
+            await queueForSync('purchase', 'create', purchaseTx);
           }
-          await queueForSync('purchase', 'create', purchaseTx);
           break;
         }
 
         case 'update_stock': {
-          const matched = commodities.find(c => c.name.toLowerCase() === payload.commodity_name.toLowerCase());
+          const normalizedName = normalizeProductName(payload.commodity_name);
+          const matched = commodities.find(c => c.name.toLowerCase() === normalizedName.toLowerCase());
           if (matched) {
             let nextStock = matched.available_stock;
             if (payload.operation === 'add') nextStock += payload.quantity;
             if (payload.operation === 'reduce') nextStock = Math.max(0, matched.available_stock - payload.quantity);
             if (payload.operation === 'set') nextStock = payload.quantity;
 
-            await localDb.commodities.update(matched.id, { available_stock: nextStock });
-            await queueForSync('stock', 'update', {
-              id: matched.id,
-              available_stock: nextStock
-            });
+            if (isOnline()) {
+              await fetch('/api/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  entity_type: 'stock',
+                  action: 'update',
+                  payload: { id: matched.id, available_stock: nextStock }
+                })
+              });
+            } else {
+              if (localDb) {
+                await localDb.commodities.update(matched.id, { available_stock: nextStock });
+              }
+              await queueForSync('stock', 'update', {
+                id: matched.id,
+                available_stock: nextStock
+              });
+            }
+          } else if (payload.operation === 'add' || payload.operation === 'set') {
+            if (isOnline()) {
+              const commodity_id = doc(collection(db, 'commodities')).id;
+              const newProduct = {
+                id: commodity_id,
+                cooperative_id: coopId,
+                name: normalizedName,
+                sku: generateSKU(normalizedName),
+                category: 'Pangan',
+                monthly_capacity: payload.quantity * 2,
+                available_stock: payload.quantity,
+                unit: normalizeUnit(payload.unit || 'Kg'),
+                harvest_period: 'Sepanjang Tahun',
+                created_at: new Date().toISOString()
+              };
+              await fetch('/api/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entity_type: 'product', action: 'create', payload: newProduct })
+              });
+            } else {
+              const commodity_id = `new-prod-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`;
+              const newProduct = {
+                id: commodity_id,
+                cooperative_id: coopId,
+                name: normalizedName,
+                sku: generateSKU(normalizedName),
+                category: 'Pangan',
+                monthly_capacity: payload.quantity * 2,
+                available_stock: payload.quantity,
+                unit: normalizeUnit(payload.unit || 'Kg'),
+                harvest_period: 'Sepanjang Tahun',
+                created_at: new Date().toISOString()
+              };
+              if (localDb) {
+                await localDb.commodities.add(newProduct);
+              }
+              await queueForSync('product', 'create', newProduct);
+            }
+          }
+          break;
+        }
+
+        case 'edit_product': {
+          const matched = commodities.find(c => c.id === payload.commodity_id || c.name.toLowerCase() === payload.commodity_name.toLowerCase());
+          if (matched) {
+            const updatedProduct = {
+              ...matched,
+              ...payload.updates,
+              name: payload.updates.name ? normalizeProductName(payload.updates.name) : matched.name,
+              unit: payload.updates.unit ? normalizeUnit(payload.updates.unit) : matched.unit,
+              updated_at: new Date().toISOString()
+            };
+
+            if (isOnline()) {
+              await fetch('/api/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entity_type: 'product', action: 'update', payload: updatedProduct })
+              });
+            } else {
+              if (localDb) {
+                await localDb.commodities.put(updatedProduct);
+              }
+              await queueForSync('product', 'update', updatedProduct);
+            }
+          }
+          break;
+        }
+
+        case 'delete_product': {
+          const matched = commodities.find(c => c.id === payload.commodity_id || c.name.toLowerCase() === payload.commodity_name.toLowerCase());
+          if (matched) {
+            if (isOnline()) {
+              await fetch('/api/sync', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ entity_type: 'product', action: 'delete', payload: { id: matched.id } })
+              });
+            } else {
+              if (localDb) {
+                await localDb.commodities.delete(matched.id);
+              }
+              await queueForSync('product', 'delete', { id: matched.id });
+            }
           }
           break;
         }
       }
 
-      triggerSync();
+      if (!isOnline()) {
+        triggerSync();
+      }
 
-      showToast('Aksi AI berhasil dieksekusi secara lokal!');
+      showToast(isOnline() ? 'Aksi AI berhasil dieksekusi!' : 'Aksi AI berhasil dieksekusi secara lokal!');
       setAssistantResponse(null);
       setQueryText('');
       onActionTriggered();
@@ -780,7 +1063,9 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
         {assistantResponse && (
           <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-left space-y-3 animate-fade-in-up mt-4">
             <div>
-              <span className="text-[9px] font-black text-brand-orange uppercase tracking-wider block">Konfirmasi Perintah AI</span>
+              <span className="text-[9px] font-black text-brand-orange uppercase tracking-wider block">
+                {assistantResponse.action === 'need_clarification' ? 'Klarifikasi Perintah' : 'Konfirmasi Perintah AI'}
+              </span>
               <p className="text-slate-200 mt-1 leading-relaxed">
                 {assistantResponse.confirmation_message}
               </p>
@@ -794,13 +1079,15 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
                 >
                   Batal
                 </Button>
-                <Button 
-                  size="sm"
-                  onClick={handleConfirmAction}
-                  className="bg-brand-orange hover:bg-brand-orange/90 text-white font-black text-xs h-8 px-3 rounded-lg cursor-pointer flex items-center gap-1"
-                >
-                  <Check className="h-3.5 w-3.5" /> Konfirmasi
-                </Button>
+                {assistantResponse.action !== 'need_clarification' && (
+                  <Button 
+                    size="sm"
+                    onClick={handleConfirmAction}
+                    className="bg-brand-orange hover:bg-brand-orange/90 text-white font-black text-xs h-8 px-3 rounded-lg cursor-pointer flex items-center gap-1"
+                  >
+                    <Check className="h-3.5 w-3.5" /> Konfirmasi
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="flex justify-end pt-1">
@@ -883,7 +1170,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
         }
         return prev.map(item => item.commodity.id === commodity.id ? { ...item, qty: item.qty + 1 } : item);
       }
-      return [...prev, { commodity, qty: 1, price: 12000 }];
+      return [...prev, { commodity, qty: 1, price: commodity.price_per_unit || 12000 }];
     });
   };
 
@@ -925,22 +1212,29 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
         version: 1
       };
 
-      if (localDb) {
-        await localDb.transactions.add(newTransaction);
-        for (const item of cart) {
-          const current = await localDb.commodities.get(item.commodity.id);
-          if (current) {
-            await localDb.commodities.update(item.commodity.id, {
-              available_stock: Math.max(0, current.available_stock - item.qty)
-            });
+      if (isOnline()) {
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: 'sale', action: 'create', payload: newTransaction })
+        });
+        showToast('Transaksi kasir berhasil dicatat!');
+      } else {
+        if (localDb) {
+          await localDb.transactions.add(newTransaction);
+          for (const item of cart) {
+            const current = await localDb.commodities.get(item.commodity.id);
+            if (current) {
+              await localDb.commodities.update(item.commodity.id, {
+                available_stock: Math.max(0, current.available_stock - item.qty)
+              });
+            }
           }
         }
+        await queueForSync('sale', 'create', newTransaction);
+        triggerSync();
+        showToast('Transaksi kasir berhasil dicatat lokal!');
       }
-
-      await queueForSync('sale', 'create', newTransaction);
-      triggerSync();
-
-      showToast('Transaksi kasir berhasil dicatat lokal!');
       setCart([]);
       setSelectedMemberId('');
       setIsMobileCartOpen(false);
@@ -1061,7 +1355,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
                     <div className="space-y-0.5">
                       <h4 className="text-xs font-black text-slate-800">{c.name}</h4>
                       <span className="text-[9px] text-slate-400 font-extrabold uppercase block">{c.category}</span>
-                      <span className="text-[10px] font-black text-brand-orange pt-1.5 block">Rp 12.000 / {c.unit}</span>
+                      <span className="text-[10px] font-black text-brand-orange pt-1.5 block">Rp {(c.price_per_unit || 12000).toLocaleString('id-ID')} / {c.unit}</span>
                     </div>
                     <div className="text-right">
                       <span className="text-[8px] text-slate-450 font-black uppercase tracking-wider block">Stok</span>
@@ -1168,35 +1462,175 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
 
   const activeCommodity = commodities.find(c => c.id === selectedCommId);
 
-  const handleAddProduct = async () => {
-    if (!form.name.trim()) return showToast('Nama komoditas wajib diisi', 'error');
+  // Edit commodity form state
+  const [editingComm, setEditingComm] = useState<Commodity | null>(null);
+  const [deletingComm, setDeletingComm] = useState<Commodity | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    sku: '',
+    category: 'Pangan',
+    monthly_capacity: 0,
+    available_stock: 0,
+    minimum_stock: 0,
+    price_per_unit: 0,
+    unit: 'Kg',
+    harvest_period: '',
+    description: ''
+  });
+
+  const startEdit = (c: Commodity) => {
+    setEditingComm(c);
+    setEditForm({
+      name: c.name,
+      sku: c.sku,
+      category: c.category,
+      monthly_capacity: c.monthly_capacity,
+      available_stock: c.available_stock,
+      minimum_stock: c.minimum_stock || 0,
+      price_per_unit: c.price_per_unit || 0,
+      unit: c.unit,
+      harvest_period: c.harvest_period || '',
+      description: c.description || ''
+    });
+  };
+
+  const handleEditProduct = async () => {
+    if (!editingComm) return;
+    if (!editForm.name.trim()) return showToast('Nama komoditas wajib diisi', 'error');
+    if (editForm.monthly_capacity <= 0) return showToast('Kapasitas bulanan harus lebih besar dari 0', 'error');
+    if (editForm.available_stock < 0) return showToast('Stok tersedia tidak boleh kurang dari 0', 'error');
     setSaving(true);
     try {
-      const generatedSku = form.sku.trim() || `SKU-${form.name.substring(0, 3).toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`;
-      const newProduct: Commodity = {
-        id: `new-prod-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`,
-        cooperative_id: coopId,
-        name: form.name.trim(),
-        sku: generatedSku,
-        category: form.category,
-        monthly_capacity: form.monthly_capacity,
-        available_stock: form.available_stock,
-        minimum_stock: form.minimum_stock || undefined,
-        price_per_unit: form.price_per_unit || undefined,
-        unit: form.unit,
-        harvest_period: form.harvest_period || 'Sepanjang Tahun',
-        description: form.description.trim() || undefined,
-        created_at: new Date().toISOString()
+      const normalizedName = normalizeProductName(editForm.name);
+      const updatedProduct = {
+        ...editingComm,
+        name: normalizedName,
+        sku: editForm.sku.trim() || generateSKU(normalizedName),
+        category: editForm.category,
+        monthly_capacity: editForm.monthly_capacity,
+        available_stock: editForm.available_stock,
+        minimum_stock: editForm.minimum_stock || undefined,
+        price_per_unit: editForm.price_per_unit || undefined,
+        unit: normalizeUnit(editForm.unit),
+        harvest_period: editForm.harvest_period || 'Sepanjang Tahun',
+        description: editForm.description.trim() || undefined
       };
 
-      if (localDb) {
-        await localDb.commodities.add(newProduct);
+      if (isOnline()) {
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: 'product', action: 'update', payload: updatedProduct })
+        });
+        showToast('Komoditas berhasil diperbarui!');
+      } else {
+        if (localDb) {
+          await localDb.commodities.put(updatedProduct);
+        }
+        await queueForSync('product', 'update', updatedProduct);
+        triggerSync();
+        showToast('Komoditas diperbarui secara lokal!');
       }
 
-      await queueForSync('product', 'create', newProduct);
-      triggerSync();
+      setEditingComm(null);
+      onRefresh();
+    } catch (e) {
+      showToast('Gagal memperbarui produk', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-      showToast('Komoditas baru ditambahkan lokal!');
+  const confirmDeleteProduct = async () => {
+    if (!deletingComm) return;
+    setSaving(true);
+    try {
+      if (isOnline()) {
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: 'product', action: 'delete', payload: { id: deletingComm.id } })
+        });
+        showToast('Komoditas berhasil dihapus!');
+      } else {
+        if (localDb) {
+          await localDb.commodities.delete(deletingComm.id);
+        }
+        await queueForSync('product', 'delete', { id: deletingComm.id });
+        triggerSync();
+        showToast('Komoditas dihapus secara lokal!');
+      }
+      setDeletingComm(null);
+      onRefresh();
+    } catch (e) {
+      showToast('Gagal menghapus produk', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteProduct = (id: string, name: string) => {
+    const commodity = commodities.find(c => c.id === id);
+    if (commodity) {
+      setDeletingComm(commodity);
+    }
+  };
+
+  const handleAddProduct = async () => {
+    if (!form.name.trim()) return showToast('Nama komoditas wajib diisi', 'error');
+    if (form.monthly_capacity <= 0) return showToast('Kapasitas bulanan harus lebih besar dari 0', 'error');
+    if (form.available_stock < 0) return showToast('Stok awal tidak boleh kurang dari 0', 'error');
+    setSaving(true);
+    try {
+      const normalizedName = normalizeProductName(form.name);
+      const generatedSku = form.sku.trim() || generateSKU(normalizedName);
+      if (isOnline()) {
+        const commodity_id = doc(collection(db, 'commodities')).id;
+        const newProduct = {
+          id: commodity_id,
+          cooperative_id: coopId,
+          name: normalizedName,
+          sku: generatedSku,
+          category: form.category,
+          monthly_capacity: form.monthly_capacity,
+          available_stock: form.available_stock,
+          minimum_stock: form.minimum_stock || undefined,
+          price_per_unit: form.price_per_unit || undefined,
+          unit: normalizeUnit(form.unit),
+          harvest_period: form.harvest_period || 'Sepanjang Tahun',
+          description: form.description.trim() || undefined,
+          created_at: new Date().toISOString()
+        };
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: 'product', action: 'create', payload: newProduct })
+        });
+        showToast('Komoditas baru berhasil ditambahkan!');
+      } else {
+        const newProduct: Commodity = {
+          id: `new-prod-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`,
+          cooperative_id: coopId,
+          name: normalizedName,
+          sku: generatedSku,
+          category: form.category,
+          monthly_capacity: form.monthly_capacity,
+          available_stock: form.available_stock,
+          minimum_stock: form.minimum_stock || undefined,
+          price_per_unit: form.price_per_unit || undefined,
+          unit: normalizeUnit(form.unit),
+          harvest_period: form.harvest_period || 'Sepanjang Tahun',
+          description: form.description.trim() || undefined,
+          created_at: new Date().toISOString()
+        };
+        if (localDb) {
+          await localDb.commodities.add(newProduct);
+        }
+        await queueForSync('product', 'create', newProduct);
+        triggerSync();
+        showToast('Komoditas baru ditambahkan lokal!');
+      }
+
       setForm({ 
         name: '', 
         sku: '',
@@ -1241,15 +1675,23 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
         status: 'pending'
       };
 
-      if (localDb) {
-        await localDb.stock_opnames.add(opnameRecord);
-        await localDb.commodities.update(selectedCommId, { available_stock: actualStock });
+      if (isOnline()) {
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: 'stock_opname', action: 'create', payload: opnameRecord })
+        });
+        showToast(`Stock Opname berhasil dicatat! Selisih ${difference > 0 ? '+' : ''}${difference} ${activeCommodity.unit} disesuaikan.`);
+      } else {
+        if (localDb) {
+          await localDb.stock_opnames.add(opnameRecord);
+          await localDb.commodities.update(selectedCommId, { available_stock: actualStock });
+        }
+        await queueForSync('stock_opname', 'create', opnameRecord);
+        triggerSync();
+        showToast(`Stock Opname berhasil dicatat! Selisih ${difference > 0 ? '+' : ''}${difference} ${activeCommodity.unit} disesuaikan. (lokal)`);
       }
 
-      await queueForSync('stock_opname', 'create', opnameRecord);
-      triggerSync();
-
-      showToast(`Stock Opname berhasil dicatat! Selisih ${difference > 0 ? '+' : ''}${difference} ${activeCommodity.unit} disesuaikan.`);
       setSelectedCommId('');
       setActualStock(0);
       setOpnameReason('');
@@ -1289,11 +1731,13 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
       {showForm && (
         <Card className="border-slate-200 bg-white">
           <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-            <CardTitle className="text-sm font-black text-brand-navy">Tambah Produk Baru ke Gudang</CardTitle>
+            <CardTitle className="text-sm font-black text-brand-navy">Tambah Produk Baru ke Koperasi</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-normal text-slate-700">
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Nama Komoditas:</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Nama Komoditas <span className="text-red-500">*</span>:
+              </label>
               <input 
                 type="text" 
                 placeholder="cth: Jagung Hibrida Pioneer"
@@ -1303,7 +1747,9 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">SKU (Stock Keeping Unit):</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                SKU (Stock Keeping Unit) <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
+              </label>
               <input 
                 type="text" 
                 placeholder="cth: BRS-PMR-001 (Kosongkan untuk auto-generate)"
@@ -1313,19 +1759,29 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               />
             </div>
             <CustomSelect
-              label="Kategori:"
+              label={
+                <>
+                  Kategori <span className="text-red-500">*</span>:
+                </>
+              }
               options={INVENTORY_CATEGORIES.map(cat => ({ value: cat, label: cat }))}
               value={form.category}
               onChange={val => setForm({...form, category: val})}
             />
             <CustomSelect
-              label="Satuan Ukur:"
+              label={
+                <>
+                  Satuan Ukur <span className="text-red-500">*</span>:
+                </>
+              }
               options={INVENTORY_UNITS.map(un => ({ value: un, label: un }))}
               value={form.unit}
               onChange={val => setForm({...form, unit: val})}
             />
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Kapasitas Bulanan ({form.unit}):</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Kapasitas Bulanan ({form.unit}) <span className="text-red-500">*</span>:
+              </label>
               <input 
                 type="number" 
                 value={form.monthly_capacity}
@@ -1334,7 +1790,9 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Stok Awal ({form.unit}):</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Stok Awal ({form.unit}) <span className="text-red-500">*</span>:
+              </label>
               <input 
                 type="number" 
                 value={form.available_stock}
@@ -1343,7 +1801,9 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Harga Satuan Standar (Rp):</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Harga Satuan Standar (Rp) <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
+              </label>
               <input 
                 type="number" 
                 placeholder="cth: 12000"
@@ -1353,7 +1813,9 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Ambang Batas Stok Minimum (Alert):</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Ambang Batas Stok Minimum <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
+              </label>
               <input 
                 type="number" 
                 placeholder="cth: 5"
@@ -1363,7 +1825,9 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Musim Panen / Keterangan:</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Musim Panen / Keterangan <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
+              </label>
               <input 
                 type="text" 
                 placeholder="cth: April - Juni"
@@ -1373,7 +1837,9 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               />
             </div>
             <div className="sm:col-span-2 space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Deskripsi / Spesifikasi Produk:</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Deskripsi / Spesifikasi Produk <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
+              </label>
               <input 
                 type="text" 
                 placeholder="cth: Beras organik lokal premium, kadar air < 14%"
@@ -1400,11 +1866,15 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
         <Card className="border-slate-200 bg-white">
           <CardHeader className="pb-3 border-b border-slate-100 mb-4">
             <CardTitle className="text-sm font-black text-brand-orange">Stock Opname / Rekonsiliasi Audit</CardTitle>
-            <CardDescription className="text-xs">Sesuaikan data stok sistem dengan perhitungan fisik di gudang</CardDescription>
+            <CardDescription className="text-xs">Sesuaikan data stok sistem dengan perhitungan fisik di koperasi</CardDescription>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-semibold text-slate-700">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-normal text-slate-700">
             <CustomSelect
-              label="Pilih Komoditas:"
+              label={
+                <>
+                  Pilih Komoditas <span className="text-red-500">*</span>:
+                </>
+              }
               options={[
                 { value: '', label: '-- Pilih --' },
                 ...commodities.map(c => ({ value: c.id, label: `${c.name} (Sistem: ${c.available_stock} ${c.unit})` }))
@@ -1418,7 +1888,9 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
             />
 
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Jumlah Fisik Aktual:</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Jumlah Fisik Aktual <span className="text-red-500">*</span>:
+              </label>
               <input 
                 type="number" 
                 value={actualStock}
@@ -1429,7 +1901,9 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
             </div>
 
             <div className="sm:col-span-2 space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Alasan Penyesuaian (Audit Log):</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Alasan Penyesuaian (Audit Log) <span className="text-red-500">*</span>:
+              </label>
               <input 
                 type="text" 
                 placeholder="cth: Penyusutan berat beras karena kadar air menyusut"
@@ -1504,9 +1978,25 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
 
                   <div className="pt-2 border-t border-slate-200/50 flex items-center justify-between text-[10px] font-extrabold text-slate-500 shrink-0">
                     <span>Panen: {c.harvest_period}</span>
-                    <span className="text-brand-orange font-black flex items-center gap-0.5">
-                      <Database className="h-3 w-3" /> Lokal
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => startEdit(c)}
+                        className="text-slate-450 hover:text-brand-navy transition-colors p-0.5 rounded cursor-pointer"
+                        title="Edit Detail Produk"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteProduct(c.id, c.name)}
+                        className="text-slate-450 hover:text-brand-red transition-colors p-0.5 rounded cursor-pointer"
+                        title="Hapus Produk"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="text-brand-orange font-black flex items-center gap-0.5 ml-1">
+                        <Database className="h-3 w-3" /> Lokal
+                      </span>
+                    </div>
                   </div>
                 </div>
               );
@@ -1514,6 +2004,201 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal Edit Produk */}
+      {editingComm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs" 
+            onClick={() => setEditingComm(null)}
+          />
+          <div className="relative bg-white rounded-2xl p-6 shadow-2xl space-y-4 max-w-lg w-full z-50 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                <Pencil className="h-4.5 w-4.5 text-brand-navy" /> Edit Komoditas: {editingComm.name}
+              </h3>
+              <button 
+                onClick={() => setEditingComm(null)}
+                className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                  Nama Komoditas <span className="text-red-500">*</span>:
+                </label>
+                <input 
+                  type="text" 
+                  value={editForm.name}
+                  onChange={e => setEditForm({...editForm, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                  SKU / Kode Unik:
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="Opsional (Otomatis jika kosong)"
+                  value={editForm.sku}
+                  onChange={e => setEditForm({...editForm, sku: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                />
+              </div>
+
+              <CustomSelect
+                label="Kategori Produk *:"
+                options={INVENTORY_CATEGORIES.map(cat => ({ value: cat, label: cat }))}
+                value={editForm.category}
+                onChange={val => setEditForm({...editForm, category: val})}
+              />
+
+              <CustomSelect
+                label="Satuan Ukur *:"
+                options={INVENTORY_UNITS.map(un => ({ value: un, label: un }))}
+                value={editForm.unit}
+                onChange={val => setEditForm({...editForm, unit: val})}
+              />
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                  Kapasitas Bulanan ({editForm.unit}) *:
+                </label>
+                <input 
+                  type="number" 
+                  value={editForm.monthly_capacity}
+                  onChange={e => setEditForm({...editForm, monthly_capacity: parseInt(e.target.value) || 0})}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                  Stok Tersedia ({editForm.unit}) *:
+                </label>
+                <input 
+                  type="number" 
+                  value={editForm.available_stock}
+                  onChange={e => setEditForm({...editForm, available_stock: parseInt(e.target.value) || 0})}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                  Harga Satuan Standar (Rp) (opsional):
+                </label>
+                <input 
+                  type="number" 
+                  placeholder="cth: 12000"
+                  value={editForm.price_per_unit || ''}
+                  onChange={e => setEditForm({...editForm, price_per_unit: parseInt(e.target.value) || 0})}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                  Batas Stok Minimum (opsional):
+                </label>
+                <input 
+                  type="number" 
+                  placeholder="cth: 5"
+                  value={editForm.minimum_stock || ''}
+                  onChange={e => setEditForm({...editForm, minimum_stock: parseInt(e.target.value) || 0})}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                  Musim Panen / Keterangan (opsional):
+                </label>
+                <input 
+                  type="text" 
+                  placeholder="cth: April - Juni"
+                  value={editForm.harvest_period}
+                  onChange={e => setEditForm({...editForm, harvest_period: e.target.value})}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                />
+              </div>
+
+              <div className="sm:col-span-2 space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                  Deskripsi Singkat (opsional):
+                </label>
+                <textarea 
+                  value={editForm.description}
+                  onChange={e => setEditForm({...editForm, description: e.target.value})}
+                  rows={2}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none resize-none focus:ring-1 focus:ring-brand-navy"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end gap-3">
+              <Button 
+                onClick={() => setEditingComm(null)}
+                variant="outline"
+                className="text-xs px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-bold"
+              >
+                Batal
+              </Button>
+              <Button 
+                onClick={handleEditProduct}
+                disabled={saving}
+                className="bg-brand-navy hover:bg-brand-navy/90 text-white text-xs px-5 py-2 rounded-xl shadow-md font-bold"
+              >
+                {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Hapus Produk */}
+      {deletingComm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-fade-in" 
+            onClick={() => setDeletingComm(null)}
+          />
+          <div className="relative bg-white rounded-2xl p-6 shadow-2xl space-y-4 max-w-sm w-full z-50 border border-slate-200 animate-scale-up">
+            <div className="flex items-center gap-2 text-brand-red">
+              <ShieldAlert className="h-5 w-5 shrink-0" />
+              <h3 className="text-sm font-black text-slate-900">
+                Konfirmasi Hapus Produk
+              </h3>
+            </div>
+            
+            <p className="text-xs text-slate-500 font-semibold leading-relaxed">
+              Apakah Anda yakin ingin menghapus komoditas <span className="font-extrabold text-slate-800">"{deletingComm.name}"</span>? Tindakan ini tidak dapat dibatalkan.
+            </p>
+
+            <div className="pt-3 border-t border-slate-100 flex justify-end gap-2.5">
+              <Button 
+                onClick={() => setDeletingComm(null)}
+                variant="outline"
+                className="text-xs px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-bold cursor-pointer hover:bg-slate-50"
+              >
+                Batal
+              </Button>
+              <Button 
+                onClick={confirmDeleteProduct}
+                disabled={saving}
+                className="bg-brand-red hover:bg-brand-red/90 text-white text-xs px-5 py-2 rounded-xl shadow-md font-bold cursor-pointer"
+              >
+                {saving ? 'Menghapus...' : 'Hapus Sekarang'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
@@ -1557,17 +2242,24 @@ function PurchaseModule({ coopId, commodities, onRefresh, showToast }: {
         version: 1
       };
 
-      if (localDb) {
-        await localDb.purchases.add(newPurchase);
-        await localDb.commodities.update(selectedCommId, {
-          available_stock: activeCommodity.available_stock + purchaseQty
+      if (isOnline()) {
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: 'purchase', action: 'create', payload: newPurchase })
         });
+        showToast(`Pencatatan pembelian ${purchaseQty} ${activeCommodity.unit} dari ${supplierName} berhasil!`);
+      } else {
+        if (localDb) {
+          await localDb.purchases.add(newPurchase);
+          await localDb.commodities.update(selectedCommId, {
+            available_stock: activeCommodity.available_stock + purchaseQty
+          });
+        }
+        await queueForSync('purchase', 'create', newPurchase);
+        triggerSync();
+        showToast(`Pencatatan pembelian ${purchaseQty} ${activeCommodity.unit} dari ${supplierName} berhasil! (lokal/offline)`);
       }
-
-      await queueForSync('purchase', 'create', newPurchase);
-      triggerSync();
-
-      showToast(`Pencatatan pembelian ${purchaseQty} ${activeCommodity.unit} dari ${supplierName} berhasil!`);
       setSelectedCommId('');
       setPurchaseQty(0);
       setSupplierName('');
@@ -1585,9 +2277,13 @@ function PurchaseModule({ coopId, commodities, onRefresh, showToast }: {
         <CardTitle className="text-sm font-black text-slate-900">Catat Pembelian Stok Masuk dari Petani / Supplier</CardTitle>
         <CardDescription className="text-xs">Sistem akan secara otomatis mendebit pengadaan dan meningkatkan volume ketersediaan stok produk.</CardDescription>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold text-slate-700">
+      <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-normal text-slate-700">
         <CustomSelect
-          label="Pilih Produk:"
+          label={
+            <>
+              Pilih Produk <span className="text-red-500">*</span>:
+            </>
+          }
           options={[
             { value: '', label: '-- Pilih --' },
             ...commodities.map(c => ({ value: c.id, label: `${c.name} (Stok: ${c.available_stock} ${c.unit})` }))
@@ -1597,7 +2293,9 @@ function PurchaseModule({ coopId, commodities, onRefresh, showToast }: {
         />
 
         <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 block uppercase">Kuantitas Masuk:</label>
+          <label className="text-[10px] font-semibold text-slate-400 block">
+            Kuantitas Masuk <span className="text-red-500">*</span>:
+          </label>
           <input 
             type="number" 
             min={0}
@@ -1609,7 +2307,9 @@ function PurchaseModule({ coopId, commodities, onRefresh, showToast }: {
         </div>
 
         <div className="space-y-1">
-          <label className="text-[10px] font-black text-slate-400 block uppercase">Nama Petani / Supplier:</label>
+          <label className="text-[10px] font-semibold text-slate-400 block">
+            Nama Petani / Supplier <span className="text-red-500">*</span>:
+          </label>
           <input 
             type="text" 
             placeholder="cth: Kelompok Tani Budi"
@@ -1735,7 +2435,7 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
   const [form, setForm] = useState({ name: '', phone: '', address: '' });
 
   const handleAddMember = async () => {
-    if (!form.name.trim() || !form.phone.trim()) return showToast('Nama dan telepon anggota wajib diisi', 'error');
+    if (!form.name.trim() || !form.phone.trim() || !form.address.trim()) return showToast('Nama, telepon, dan alamat anggota wajib diisi', 'error');
     
     setSaving(true);
     try {
@@ -1748,14 +2448,26 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
         joined_at: new Date().toISOString()
       };
 
-      if (localDb) {
-        await localDb.members.add(newMember);
+      if (isOnline()) {
+        const docRef = doc(collection(db, 'members'));
+        const onlineMember = {
+          ...newMember,
+          id: docRef.id
+        };
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: 'member', action: 'create', payload: onlineMember })
+        });
+        showToast(`Anggota baru ${form.name} berhasil ditambahkan!`);
+      } else {
+        if (localDb) {
+          await localDb.members.add(newMember);
+        }
+        await queueForSync('member', 'create', newMember);
+        triggerSync();
+        showToast(`Anggota baru ${form.name} berhasil ditambahkan lokal!`);
       }
-
-      await queueForSync('member', 'create', newMember);
-      triggerSync();
-
-      showToast(`Anggota baru ${form.name} berhasil ditambahkan!`);
       setForm({ name: '', phone: '', address: '' });
       setShowAdd(false);
       onRefresh();
@@ -1787,9 +2499,11 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
           <CardHeader className="pb-3 border-b border-slate-100 mb-4">
             <CardTitle className="text-sm font-black text-brand-navy">Pendaftaran Anggota Koperasi Baru</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-semibold text-slate-700">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-normal text-slate-700">
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Nama Lengkap Anggota Tani:</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Nama Lengkap Anggota Tani <span className="text-red-500">*</span>:
+              </label>
               <input 
                 type="text" 
                 placeholder="cth: Pak Subarjo"
@@ -1799,7 +2513,9 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">No. Telepon / WA:</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                No. Telepon / WA <span className="text-red-500">*</span>:
+              </label>
               <input 
                 type="text" 
                 placeholder="cth: 08123456789"
@@ -1809,7 +2525,9 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black text-slate-400 block uppercase">Alamat Rumah:</label>
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Alamat Rumah <span className="text-red-500">*</span>:
+              </label>
               <input 
                 type="text" 
                 placeholder="cth: RT 03 Dusun Tani Makmur"
@@ -2150,7 +2868,7 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
                     size="sm"
                     onClick={() => handleJoinProcurement(p.id)}
                     disabled={p.current_quantity >= p.target_quantity}
-                    className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold text-[10px] h-7.5 px-3 rounded-lg cursor-pointer"
+                    className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold text-[10px] h-7.5 px-3 rounded-lg cursor-pointer font-sans"
                   >
                     Ikut Pengadaan (+10)
                   </Button>
@@ -2182,6 +2900,13 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
     address: coop.address || '',
   });
 
+  const [editingKyc, setEditingKyc] = useState(false);
+  const [kycSaving, setKycSaving] = useState(false);
+  const [kycForm, setKycForm] = useState({
+    nib: coop.nib || '',
+    sk_number: coop.sk_number || '',
+  });
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -2196,18 +2921,37 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
     }
   };
 
+  const handleSaveKyc = async () => {
+    setKycSaving(true);
+    try {
+      await updateDoc(doc(db, 'cooperatives', coopId), {
+        nib: kycForm.nib,
+        nib_status: kycForm.nib ? 'pending' : 'unsubmitted',
+        sk_number: kycForm.sk_number,
+        sk_status: kycForm.sk_number ? 'pending' : 'unsubmitted',
+      });
+      showToast('Dokumen legalitas berhasil dikirim untuk verifikasi.');
+      setEditingKyc(false);
+      onSave();
+    } catch {
+      showToast('Gagal memperbarui dokumen legalitas.', 'error');
+    } finally {
+      setKycSaving(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs font-semibold text-slate-700">
       
       {/* Primary profile parameters */}
       <Card className="md:col-span-2 border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between mb-4">
-          <CardTitle className="text-sm font-black text-slate-900">Informasi Dasar Koperasi</CardTitle>
+          <CardTitle className="text-sm font-black text-slate-900 font-sans">Informasi Dasar Koperasi</CardTitle>
           <Button 
             size="sm" 
             variant="outline" 
             onClick={() => setEditing(!editing)}
-            className="text-xs h-8 cursor-pointer rounded-xl"
+            className="text-xs h-8 cursor-pointer rounded-xl font-sans"
           >
             {editing ? 'Batal' : 'Edit Profil'}
           </Button>
@@ -2229,7 +2973,7 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
                   type="text" 
                   value={form.head} 
                   onChange={e => setForm({...form, head: e.target.value})}
-                  className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800"
+                  className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800 font-sans"
                 />
               ) : (
                 <span className="text-xs font-semibold text-slate-700">{coop.head || '-'}</span>
@@ -2242,20 +2986,20 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
                   type="text" 
                   value={form.phone} 
                   onChange={e => setForm({...form, phone: e.target.value})}
-                  className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800"
+                  className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800 font-sans"
                 />
               ) : (
                 <span className="text-xs font-semibold text-slate-700">{coop.phone || '-'}</span>
               )}
             </div>
             <div className="col-span-2">
-              <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Alamat Gudang Utama</span>
+              <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Alamat Koperasi Utama</span>
               {editing ? (
                 <input 
                   type="text" 
                   value={form.address} 
                   onChange={e => setForm({...form, address: e.target.value})}
-                  className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800"
+                  className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800 font-sans"
                 />
               ) : (
                 <span className="text-xs text-slate-700 leading-normal">{coop.address || '-'}</span>
@@ -2268,7 +3012,7 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
               <Button 
                 onClick={handleSave} 
                 disabled={saving}
-                className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer h-10"
+                className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer h-10 font-sans"
               >
                 {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
               </Button>
@@ -2279,41 +3023,121 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
 
       {/* Compliance / KYC verification card */}
       <Card className="border-slate-200 bg-white">
-        <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-          <CardTitle className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+        <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between mb-4">
+          <CardTitle className="text-sm font-black text-slate-900 flex items-center gap-1.5 font-sans">
             <FileCheck className="h-4.5 w-4.5 text-brand-orange" /> Legalitas & Kepatuhan
           </CardTitle>
+          {!editingKyc && (coop.nib_status !== 'verified' || coop.sk_status !== 'verified') && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => {
+                setKycForm({
+                  nib: coop.nib || '',
+                  sk_number: coop.sk_number || '',
+                });
+                setEditingKyc(true);
+              }}
+              className="text-xs h-8 cursor-pointer rounded-xl font-sans"
+            >
+              Update Dokumen
+            </Button>
+          )}
+          {editingKyc && (
+            <Button 
+              size="sm" 
+              variant="outline" 
+              onClick={() => setEditingKyc(false)}
+              className="text-xs h-8 cursor-pointer rounded-xl font-sans"
+            >
+              Batal
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2 text-xs">
-            <div className="flex justify-between items-center">
-              <span className="font-extrabold text-slate-700">Nomor NIB:</span>
-              <span className="font-bold text-slate-500">{coop.nib || 'Belum Terdaftar'}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-extrabold text-slate-700">Status KYC NIB:</span>
-              <span className={`px-2 py-0.5 rounded font-black uppercase text-[9px] ${
-                coop.nib_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-              }`}>
-                {coop.nib_status || 'unsubmitted'}
-              </span>
-            </div>
-          </div>
+          {editingKyc ? (
+            <div className="space-y-4 font-sans">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 block uppercase">Nomor NIB Koperasi</label>
+                <input 
+                  type="text" 
+                  value={kycForm.nib} 
+                  onChange={e => setKycForm({...kycForm, nib: e.target.value})}
+                  placeholder="Masukkan 13 digit nomor NIB..."
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800 font-semibold"
+                />
+              </div>
 
-          <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2 text-xs">
-            <div className="flex justify-between items-center">
-              <span className="font-extrabold text-slate-700">Nomor SK:</span>
-              <span className="font-bold text-slate-500">{coop.sk_number || 'Belum Terdaftar'}</span>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 block uppercase">Nomor SK Kementerian</label>
+                <input 
+                  type="text" 
+                  value={kycForm.sk_number} 
+                  onChange={e => setKycForm({...kycForm, sk_number: e.target.value})}
+                  placeholder="Masukkan nomor SK Koperasi..."
+                  className="w-full p-2.5 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800 font-semibold"
+                />
+              </div>
+
+              <div className="bg-brand-red/5 border border-brand-red/15 text-slate-600 p-3 rounded-lg text-[10px] leading-relaxed">
+                <strong className="text-brand-red font-black">Informasi:</strong> Setelah disimpan, berkas legalitas Anda akan memasuki status <span className="font-extrabold text-amber-600">Pending Review</span> dan akan diverifikasi oleh Admin ARUNA.
+              </div>
+
+              <Button 
+                onClick={handleSaveKyc} 
+                disabled={kycSaving || (!kycForm.nib && !kycForm.sk_number)}
+                className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-bold text-xs py-2.5 rounded-xl cursor-pointer"
+              >
+                {kycSaving ? 'Mengirim Data...' : 'Kirim Berkas Verifikasi'}
+              </Button>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="font-extrabold text-slate-700">Status KYC SK:</span>
-              <span className={`px-2 py-0.5 rounded font-black uppercase text-[9px] ${
-                coop.sk_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-              }`}>
-                {coop.sk_status || 'unsubmitted'}
-              </span>
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="font-extrabold text-slate-700">Nomor NIB:</span>
+                  <span className="font-bold text-slate-500">{coop.nib || 'Belum Terdaftar'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-extrabold text-slate-700">Status KYC NIB:</span>
+                  <span className={`px-2 py-0.5 rounded font-black uppercase text-[9px] ${
+                    coop.nib_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                    coop.nib_status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
+                    'bg-slate-100 text-slate-500 border border-slate-200'
+                  }`}>
+                    {coop.nib_status || 'unsubmitted'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="font-extrabold text-slate-700">Nomor SK:</span>
+                  <span className="font-bold text-slate-500">{coop.sk_number || 'Belum Terdaftar'}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-extrabold text-slate-700">Status KYC SK:</span>
+                  <span className={`px-2 py-0.5 rounded font-black uppercase text-[9px] ${
+                    coop.sk_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                    coop.sk_status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
+                    'bg-slate-100 text-slate-500 border border-slate-200'
+                  }`}>
+                    {coop.sk_status || 'unsubmitted'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Status info bar */}
+              {(coop.nib_status === 'pending' || coop.sk_status === 'pending') && (
+                <div className="bg-amber-50 border border-amber-250/20 text-amber-950 p-3 rounded-xl text-[10px] leading-relaxed flex items-start gap-2">
+                  <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping mt-1 shrink-0"></span>
+                  <p>
+                    <strong className="font-black">Verifikasi Diproses:</strong> Admin ARUNA sedang meninjau berkas NIB/SK Anda. Mohon tunggu proses ini selesai.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
 

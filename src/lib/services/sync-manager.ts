@@ -153,40 +153,27 @@ async function updateLocalStoreAfterSync(
   try {
     switch (entityType) {
       case 'product':
-        // Update the commodity ID if server generated a new one
-        if (payload.id !== realId) {
-          const item = await localDb.commodities.get(payload.id);
-          if (item) {
-            await localDb.commodities.delete(payload.id);
-            await localDb.commodities.put({ ...item, id: realId });
-          }
-        }
+        await localDb.commodities.delete(payload.id);
         break;
 
       case 'member':
-        if (payload.id !== realId) {
-          const item = await localDb.members.get(payload.id);
-          if (item) {
-            await localDb.members.delete(payload.id);
-            await localDb.members.put({ ...item, id: realId });
-          }
-        }
+        await localDb.members.delete(payload.id);
         break;
 
       case 'sale':
-        await localDb.transactions.update(payload.id, { status: 'synced' });
+        await localDb.transactions.delete(payload.id);
         break;
 
       case 'purchase':
-        await localDb.purchases.update(payload.id, { status: 'synced' });
+        await localDb.purchases.delete(payload.id);
         break;
 
       case 'stock_opname':
-        await localDb.stock_opnames.update(payload.id, { status: 'synced' });
+        await localDb.stock_opnames.delete(payload.id);
         break;
       
       case 'stock':
-        // Raw stock update, local is already updated optimistically
+        // Stock update is a raw update, no local queue-only record exists
         break;
     }
   } catch (err) {

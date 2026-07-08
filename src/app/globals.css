@@ -2,7 +2,7 @@
    ARUNA — Command Center Design System
    ============================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
 @import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
 
@@ -54,7 +54,7 @@
   --color-accent:        var(--brand-orange);
   --color-accent-hover:  #d96e00;
 
-  --font-sans:    'Poppins', sans-serif;
+  --font-sans:    'Inter', sans-serif;
   --font-display: 'Poppins', sans-serif;
 }
 
@@ -72,15 +72,16 @@ body {
     linear-gradient(180deg, #f7f3e8 0%, #faf9f6 280px),
     var(--bg-base);
   color: var(--text-primary);
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   overflow-x: hidden;
   min-height: 100dvh;
 }
 
 /* ── Typography ── */
-h1, h2, h3 {
+h1, h2, h3, h4 {
   font-family: 'Poppins', sans-serif;
   letter-spacing: -0.01em;
+  font-weight: 600 !important; /* Force all headers to Semibold (600) to avoid excessive thickness */
 }
 
 ::selection {
@@ -202,7 +203,7 @@ h1, h2, h3 {
   width: 100% !important;
   height: 100% !important;
   min-height: 400px;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', sans-serif;
   border-radius: 0;
   background: #dce3ec;
   z-index: 1;

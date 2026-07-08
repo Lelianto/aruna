@@ -292,6 +292,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         city: coop?.city || 'Garut',
         province: coop?.province || 'Jawa Barat',
         grade: coop?.score?.grade || 'B',
+        coopPhone: coop?.phone || '082122345566',
         distance,
         deliveryCost,
         eta,
@@ -313,7 +314,8 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
       return {
         ...req,
         coopName: coop ? coop.name : 'Platform System',
-        coopCity: coop ? coop.city : 'N/A'
+        coopCity: coop ? coop.city : 'N/A',
+        coopPhone: coop ? coop.phone : '082122345566'
       };
     });
   }, [requests, supplyMatches, coops, userData]);
@@ -369,6 +371,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     items: any[];
     totalAmount: number;
     isCart: boolean;
+    isReadOnly?: boolean;
   } | null>(null);
 
   const [verifyingPayment, setVerifyingPayment] = useState(false);
@@ -404,7 +407,10 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     setCustomAddress('');
     const totalAmount = cart.reduce((sum, item) => sum + (item.pricePerKg * item.quantity), 0) + cart.reduce((sum, item) => sum + item.deliveryCost, 0);
     setActivePayment({
-      items: [...cart],
+      items: cart.map(item => ({
+        ...item,
+        cooperative_id: item.cooperative_id || item.cooperativeId || (coops.length > 0 ? coops[0].id : 'coop-jabar-garut')
+      })),
       totalAmount,
       isCart: true
     });
@@ -424,8 +430,16 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
       const defaultAddress = currentBuyer?.address || currentBuyer?.city || 'Alamat profil';
       const resolvedAddress = useCustomAddress ? customAddress : defaultAddress;
       
+      const now = new Date();
+      const dateStr = now.toISOString().slice(2, 10).replace(/-/g, ''); // 260707
+      const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase(); // A3F9
+      const baseInvoice = `ARN-${dateStr}-${randomHex}`;
+
       // Process each item in the payment
+      let index = 0;
       for (const item of activePayment.items) {
+        const invoiceNum = activePayment.items.length > 1 ? `${baseInvoice}-${index + 1}` : baseInvoice;
+
         // 1. Create pending market request (we DO NOT decrement stock yet to prevent miscom!)
         const reqCol = collection(db, 'market_requests');
         const newReqDoc = await addDoc(reqCol, {
@@ -435,17 +449,22 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
           unit: 'Kg',
           status: 'Menunggu Pembayaran',
           shipping_address: resolvedAddress,
-          created_at: new Date().toISOString()
+          created_at: now.toISOString(),
+          invoice_number: invoiceNum
         });
 
         // 2. Create supply matching record
         const matchCol = collection(db, 'supply_matches');
         await addDoc(matchCol, {
           request_id: newReqDoc.id,
-          cooperative_id: item.cooperative_id,
+          cooperative_id: item.cooperative_id || item.cooperativeId || (coops.length > 0 ? coops[0].id : 'coop-jabar-garut'),
           allocated_quantity: item.quantity,
-          matched_at: new Date().toISOString()
+          matched_at: now.toISOString()
         });
+
+        // Save it back to the item for current session reference
+        item.invoice_number = invoiceNum;
+        index++;
       }
 
       // Refresh local UI data
@@ -731,7 +750,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                         </div>
                         <div className="text-right">
                           <span className="text-[9px] text-slate-400 block font-bold uppercase">Harga</span>
-                          <span className="text-sm font-black text-brand-orange">Rp {prod.pricePerKg.toLocaleString('id-ID')} / kg</span>
+                          <span className="text-sm font-black text-brand-orange tabular-nums">Rp {prod.pricePerKg.toLocaleString('id-ID')} / kg</span>
                         </div>
                       </CardHeader>
                       <CardContent className="space-y-4">
@@ -745,7 +764,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                           </div>
                           <div className="space-y-0.5">
                             <span className="text-slate-400 font-black block uppercase">Ongkos Kirim</span>
-                            <span className="font-extrabold text-slate-700 flex items-center gap-0.5">
+                            <span className="font-extrabold text-slate-700 flex items-center gap-0.5 tabular-nums">
                               <Truck className="h-3 w-3 text-slate-400 shrink-0" /> Rp {prod.deliveryCost.toLocaleString('id-ID')}
                             </span>
                           </div>
@@ -825,8 +844,11 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                           <h3 className="text-base font-black text-slate-900 pt-1.5 font-sans">
                             {order.commodity_name}
                           </h3>
-                          <span className="text-[9px] text-slate-400 block font-semibold">
+                          <span className="text-[9px] text-slate-400 block font-semibold font-sans">
                             Tanggal: {order.created_at ? new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                          </span>
+                          <span className="text-[9px] text-slate-450 block font-bold font-sans">
+                            Invoice: <span className="font-extrabold text-slate-700">{order.invoice_number || order.id.slice(0, 8).toUpperCase()}</span>
                           </span>
                         </div>
                         <div className="text-right">
@@ -856,7 +878,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                         {order.status === 'Menunggu Pembayaran' && userData?.role === 'admin' && (
                           <Button 
                             onClick={() => handleAdminApprovePayment(order)}
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl"
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
                           >
                             <CheckCircle2 className="h-4.5 w-4.5" /> Verifikasi Pembayaran
                           </Button>
@@ -874,18 +896,21 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                                   id: order.id,
                                   name: order.commodity_name,
                                   coopName: order.coopName,
+                                  coopPhone: order.coopPhone,
                                   quantity: order.quantity,
                                   pricePerKg: mockCommodityPrice,
                                   unit: order.unit,
-                                  deliveryCost: deliveryCost
+                                  deliveryCost: deliveryCost,
+                                  invoice_number: order.invoice_number || order.id.slice(0, 8).toUpperCase()
                                 }],
                                 totalAmount,
-                                isCart: false
+                                isCart: false,
+                                isReadOnly: true
                               });
                             }}
-                            className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl"
+                            className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
                           >
-                            <CreditCard className="h-4 w-4" /> Lihat VA & Bayar
+                            <CreditCard className="h-4 w-4" /> Lihat Detail VA
                           </Button>
                         )}
                       </CardContent>
@@ -1160,19 +1185,19 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                   <div className="space-y-1.5 text-slate-500">
                     <div className="flex justify-between">
                       <span>Subtotal Produk:</span>
-                      <span className="font-extrabold text-slate-800">
+                      <span className="font-extrabold text-slate-800 tabular-nums">
                         Rp {cart.reduce((sum, item) => sum + (item.pricePerKg * item.quantity), 0).toLocaleString('id-ID')}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Total Ongkos Kirim:</span>
-                      <span className="font-extrabold text-slate-800">
+                      <span className="font-extrabold text-slate-800 tabular-nums">
                         Rp {cart.reduce((sum, item) => sum + item.deliveryCost, 0).toLocaleString('id-ID')}
                       </span>
                     </div>
                     <div className="flex justify-between border-t border-slate-200 pt-2 text-sm">
                       <span className="font-black text-slate-800">Total Pembayaran:</span>
-                      <span className="font-black text-brand-orange text-base">
+                      <span className="font-black text-brand-orange text-base tabular-nums">
                         Rp {(
                           cart.reduce((sum, item) => sum + (item.pricePerKg * item.quantity), 0) +
                           cart.reduce((sum, item) => sum + item.deliveryCost, 0)
@@ -1195,111 +1220,173 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
       )}
 
       {/* ─── MODAL 3: PAYMENT ESCROW VERIFICATION ────────────────────────── */}
-      {activePayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans animate-fade-in">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-5">
-            
-            {!paymentSuccess ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-base font-black text-slate-900 flex items-center gap-1.5">
-                    <CreditCard className="h-5 w-5 text-brand-red animate-pulse" />
-                    Instruksi Pembayaran Escrow
-                  </h3>
-                  {!verifyingPayment && (
-                    <button onClick={() => setActivePayment(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                      <X className="h-5 w-5" />
-                    </button>
+      {activePayment && (() => {
+        const buildWhatsAppLink = () => {
+          const items = activePayment.items || [];
+          if (items.length === 0) return '#';
+          const item = items[0];
+          const phone = item.coopPhone || '082122345566';
+          const cleanPhone = phone.startsWith('0') ? '62' + phone.slice(1) : phone;
+          
+          let itemsText = '';
+          items.forEach((it, idx) => {
+            const refCode = it.invoice_number || it.id?.slice(0, 8).toUpperCase() || 'ARN-DEFAULT';
+            itemsText += `\n${idx + 1}. [Ref: ${refCode}] ${it.name} - ${it.quantity} Kg (Koperasi: ${it.coopName || 'KDMP'})`;
+          });
+          
+          const text = `Halo Pengurus Koperasi, saya adalah pembeli di platform ARUNA. Saya ingin mengirimkan bukti transfer pembayaran untuk pesanan berikut:${itemsText}
+
+- Total Transfer: Rp ${activePayment.totalAmount.toLocaleString('id-ID')}
+
+Mohon verifikasi pembayaran saya agar pesanan dapat segera diproses. Terima kasih!`;
+          return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+        };
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans animate-fade-in">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-5">
+              
+              {!paymentSuccess ? (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-base font-black text-slate-900 flex items-center gap-1.5">
+                      <CreditCard className="h-5 w-5 text-brand-red animate-pulse" />
+                      Instruksi Pembayaran Manual
+                    </h3>
+                    {!verifyingPayment && (
+                      <button onClick={() => setActivePayment(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+                        <X className="h-5 w-5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs font-semibold space-y-3">
+                    <div className="flex justify-between border-b border-slate-200/50 pb-2">
+                      <span className="text-slate-400 uppercase text-[9px] font-black">Bank Tujuan</span>
+                      <span className="text-slate-800 font-extrabold">Bank Mandiri (KDMP)</span>
+                    </div>
+                    <div className="flex justify-between items-center border-b border-slate-200/50 pb-2">
+                      <span className="text-slate-400 uppercase text-[9px] font-black">Nomor Rekening</span>
+                      <span className="text-slate-800 font-black text-sm tracking-wider">155-00-1092-8831</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200/50 pb-2">
+                      <span className="text-slate-400 uppercase text-[9px] font-black">Nama Rekening</span>
+                      <span className="text-slate-800 font-extrabold">{activePayment.items[0]?.coopName || 'Koperasi Desa Merah Putih (KDMP)'}</span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200/50 pb-2">
+                      <span className="text-slate-400 uppercase text-[9px] font-black">Nomor Referensi (Invoice)</span>
+                      <span className="text-slate-800 font-extrabold tracking-wider">{activePayment.items[0]?.invoice_number || 'ARN-PENDING'}</span>
+                    </div>
+                    <div className="flex justify-between pt-1">
+                      <span className="text-slate-400 uppercase text-[9px] font-black self-center">Total Nominal Transfer</span>
+                      <span className="text-base font-black text-brand-orange tabular-nums">
+                        Rp {activePayment.totalAmount.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* WhatsApp Proof of Payment Box */}
+                  <div className="bg-emerald-50/80 border border-emerald-200/40 text-emerald-950 p-3.5 rounded-xl text-[11px] leading-relaxed space-y-3">
+                    <div className="flex items-start gap-2">
+                      <span className="text-sm shrink-0">💬</span>
+                      <div>
+                        <strong className="text-emerald-900 font-extrabold block">Wajib Kirim Bukti Transfer ke WA Koperasi:</strong>
+                        Harap kirimkan foto/screenshot bukti transfer bank langsung ke WhatsApp Koperasi Penyedia setelah melakukan transfer. Admin koperasi akan memverifikasi mutasi rekening Anda berdasarkan bukti tersebut.
+                      </div>
+                    </div>
+                    
+                    <a 
+                      href={buildWhatsAppLink()} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#22c35e] text-white font-black text-xs py-2.5 rounded-xl cursor-pointer w-full text-center transition-colors shadow-2xs"
+                    >
+                      <svg className="h-4.5 w-4.5 fill-current" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.5-5.739-1.453L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.37 9.864-9.799.002-2.63-1.023-5.101-2.885-6.968C16.59 1.97 14.122.95 11.5 1.05h-.009c-5.437 0-9.862 4.371-9.866 9.8.001 1.637.452 3.238 1.309 4.646L1.87 21.03l5.65-1.478c-1.228-.679-2.035-1.92-2.035-3.327z"/>
+                      </svg>
+                      Kirim Bukti Pembayaran via WhatsApp
+                    </a>
+                  </div>
+
+                  {/* Shipping Address Confirmation section */}
+                  {!activePayment.isReadOnly && (
+                    <div className="space-y-2 border-t border-slate-100 pt-3">
+                      <span className="text-[10px] text-slate-400 block font-black uppercase">Konfirmasi Alamat Pengiriman</span>
+                      
+                      {!useCustomAddress ? (
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/50 text-[11px] text-slate-700 font-semibold space-y-1">
+                          <span className="text-[9px] text-slate-400 block font-bold">ALAMAT PROFIL PERUSAHAAN (AUTOFILLED)</span>
+                          <p>{buyers.find(b => b.id === (userData?.associatedId || 'guest_customer'))?.address || buyers.find(b => b.id === (userData?.associatedId || 'guest_customer'))?.city || 'Alamat tidak diatur'}</p>
+                        </div>
+                      ) : (
+                        <textarea
+                          placeholder="Masukkan alamat pengiriman alternatif untuk pesanan ini..."
+                          value={customAddress}
+                          onChange={(e) => setCustomAddress(e.target.value)}
+                          rows={2}
+                          className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800 resize-none font-sans animate-fade-in"
+                        />
+                      )}
+
+                      <label className="flex items-center gap-1.5 text-[11px] text-slate-550 font-bold cursor-pointer select-none">
+                        <input
+                          type="checkbox"
+                          checked={useCustomAddress}
+                          onChange={(e) => setUseCustomAddress(e.target.checked)}
+                          className="accent-brand-navy h-3.5 w-3.5 rounded border-slate-350"
+                        />
+                        Kirim ke alamat lain untuk pesanan ini
+                      </label>
+                    </div>
                   )}
-                </div>
 
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-xs font-semibold space-y-3">
-                  <div className="flex justify-between border-b border-slate-200/50 pb-2">
-                    <span className="text-slate-400 uppercase text-[9px] font-black">Bank Tujuan</span>
-                    <span className="text-slate-800 font-extrabold">Bank Mandiri (VA)</span>
-                  </div>
-                  <div className="flex justify-between items-center border-b border-slate-200/50 pb-2">
-                    <span className="text-slate-400 uppercase text-[9px] font-black">Nomor Virtual Account</span>
-                    <span className="text-slate-800 font-black text-sm tracking-wider">8873-0821-2234-5566</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-200/50 pb-2">
-                    <span className="text-slate-400 uppercase text-[9px] font-black">Nama Rekening</span>
-                    <span className="text-slate-800 font-extrabold">ARUNA Gotong Royong Escrow</span>
-                  </div>
-                  <div className="flex justify-between pt-1">
-                    <span className="text-slate-400 uppercase text-[9px] font-black self-center">Total Nominal Transfer</span>
-                    <span className="text-base font-black text-brand-orange">
-                      Rp {activePayment.totalAmount.toLocaleString('id-ID')}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="bg-brand-red/5 border border-brand-red/15 text-slate-650 p-3.5 rounded-xl text-[11px] leading-relaxed">
-                  <strong className="text-brand-red font-extrabold">Penting:</strong> Harap transfer nominal sesuai jumlah di atas. Dana Anda akan ditahan sementara oleh sistem platform dan baru dicairkan ke Koperasi Desa setelah komoditas dikirim & diterima dengan sukses.
-                </div>
-
-                {/* Shipping Address Confirmation section */}
-                <div className="space-y-2 border-t border-slate-100 pt-3">
-                  <span className="text-[10px] text-slate-400 block font-black uppercase">Konfirmasi Alamat Pengiriman</span>
-                  
-                  {!useCustomAddress ? (
-                    <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/50 text-[11px] text-slate-700 font-semibold space-y-1">
-                      <span className="text-[9px] text-slate-400 block font-bold">ALAMAT PROFIL PERUSAHAAN (AUTOFILLED)</span>
-                      <p>{buyers.find(b => b.id === (userData?.associatedId || 'guest_customer'))?.address || buyers.find(b => b.id === (userData?.associatedId || 'guest_customer'))?.city || 'Alamat tidak diatur'}</p>
+                  {activePayment.isReadOnly ? (
+                    <div className="space-y-3 pt-2">
+                      <div className="bg-slate-50 border border-slate-200/50 text-slate-600 p-3.5 rounded-xl text-[10px] leading-relaxed">
+                        <strong className="font-extrabold text-slate-700">Status Pesanan:</strong> Pesanan ini telah terdaftar di database dan sedang menantikan verifikasi manual oleh Pengurus Koperasi. Pastikan Anda sudah mengirimkan bukti bayar langsung ke WhatsApp Koperasi menggunakan tombol hijau di atas.
+                      </div>
+                      <Button 
+                        onClick={() => setActivePayment(null)}
+                        className="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs py-3 rounded-xl cursor-pointer"
+                      >
+                        Tutup
+                      </Button>
                     </div>
                   ) : (
-                    <textarea
-                      placeholder="Masukkan alamat pengiriman alternatif untuk pesanan ini..."
-                      value={customAddress}
-                      onChange={(e) => setCustomAddress(e.target.value)}
-                      rows={2}
-                      className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800 resize-none font-sans animate-fade-in"
-                    />
+                    <Button 
+                      onClick={confirmPaymentTransfer}
+                      disabled={verifyingPayment}
+                      className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      {verifyingPayment ? (
+                        <>
+                          <Loader2 className="h-4.5 w-4.5 animate-spin text-brand-cream" />
+                          Merekonsiliasi Dana Bank...
+                        </>
+                      ) : (
+                        'Saya Sudah Transfer / Konfirmasi'
+                      )}
+                    </Button>
                   )}
-
-                  <label className="flex items-center gap-1.5 text-[11px] text-slate-550 font-bold cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={useCustomAddress}
-                      onChange={(e) => setUseCustomAddress(e.target.checked)}
-                      className="accent-brand-navy h-3.5 w-3.5 rounded border-slate-350"
-                    />
-                    Kirim ke alamat lain untuk pesanan ini
-                  </label>
+                </>
+              ) : (
+                <div className="text-center py-6 space-y-4">
+                  <div className="h-16 w-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                    <CheckCircle2 className="h-10 w-10 animate-bounce" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-base font-black text-slate-900">Pesanan Berhasil Dibuat!</h3>
+                    <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                      Status transaksi: <span className="font-extrabold text-rose-500">Pending (Menunggu Pembayaran)</span>. Pengurus koperasi akan memverifikasi mutasi rekening Anda setelah menerima bukti transfer di WhatsApp.
+                    </p>
+                  </div>
                 </div>
+              )}
 
-                <Button 
-                  onClick={confirmPaymentTransfer}
-                  disabled={verifyingPayment}
-                  className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
-                >
-                  {verifyingPayment ? (
-                    <>
-                      <Loader2 className="h-4.5 w-4.5 animate-spin text-brand-cream" />
-                      Merekonsiliasi Dana Bank...
-                    </>
-                  ) : (
-                    'Saya Sudah Transfer / Konfirmasi'
-                  )}
-                </Button>
-              </>
-            ) : (
-              <div className="text-center py-6 space-y-4">
-                <div className="h-16 w-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                  <CheckCircle2 className="h-10 w-10 animate-bounce" />
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-base font-black text-slate-900">Pesanan Berhasil Dibuat!</h3>
-                  <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
-                    Status transaksi: <span className="font-extrabold text-rose-500">Pending (Menunggu Pembayaran)</span>. Admin platform akan memverifikasi mutasi rekening Anda secara manual sebelum stok komoditas dipotong.
-                  </p>
-                </div>
-              </div>
-            )}
-
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       </div>
     </div>

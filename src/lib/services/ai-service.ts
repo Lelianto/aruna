@@ -42,7 +42,7 @@ export class VoiceAssistant {
       
       if (SpeechRecognition) {
         this.recognition = new SpeechRecognition();
-        this.recognition.continuous = false;
+        this.recognition.continuous = true;
         this.recognition.interimResults = true;
         this.recognition.lang = 'id-ID'; // Indonesian Language
 
@@ -50,15 +50,16 @@ export class VoiceAssistant {
           let interimTranscript = '';
           let finalTranscript = '';
 
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
+          for (let i = 0; i < event.results.length; ++i) {
+            const segment = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript;
+              finalTranscript += segment;
             } else {
-              interimTranscript += event.results[i][0].transcript;
+              interimTranscript += segment;
             }
           }
 
-          const text = finalTranscript || interimTranscript;
+          const text = finalTranscript + interimTranscript;
           this.onTextChange(text);
         };
 
@@ -256,7 +257,7 @@ async function parseCommandOffline(command: string): Promise<any> {
 /**
  * Processes text commands using Gemini online, falling back to local regex parsing if offline.
  */
-export async function executeAICommand(commandText: string): Promise<any> {
+export async function executeAICommand(commandText: string, context?: any): Promise<any> {
   const online = isOnline();
 
   // If offline, parse locally immediately
@@ -276,7 +277,8 @@ export async function executeAICommand(commandText: string): Promise<any> {
       body: JSON.stringify({
         command: commandText,
         commodities,
-        members
+        members,
+        context
       })
     });
 

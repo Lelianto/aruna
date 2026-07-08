@@ -277,7 +277,7 @@ export default function OnboardingMitraPage() {
               <Users className="h-4.5 w-4.5 text-brand-orange" /> Tambah Koperasi Tani Desa Baru
             </CardTitle>
             <CardDescription className="text-[11px]">
-              Daftarkan gudang dan data administratif pengurus koperasi desa sebagai penyedia pasok komoditas.
+              Daftarkan koperasi dan data administratif pengurus koperasi desa sebagai penyedia pasok komoditas.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -285,80 +285,80 @@ export default function OnboardingMitraPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase">Nama Koperasi:</label>
+                  <label className="text-[9px] font-semibold text-slate-500">Nama Koperasi <span className="text-red-500">*</span>:</label>
                   <input
                     type="text"
                     required
                     placeholder="Koperasi Tani Makmur"
                     value={coopData.name}
                     onChange={(e) => setCoopData({ ...coopData, name: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
+                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase">Nama Ketua Koperasi:</label>
+                  <label className="text-[9px] font-semibold text-slate-500">Nama Ketua Koperasi <span className="text-red-500">*</span>:</label>
                   <input
                     type="text"
                     required
                     placeholder="Bpk. Sukirman"
                     value={coopData.head}
                     onChange={(e) => setCoopData({ ...coopData, head: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
+                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase">Kabupaten / Kota:</label>
+                  <label className="text-[9px] font-semibold text-slate-500">Kabupaten / Kota <span className="text-red-500">*</span>:</label>
                   <input
                     type="text"
                     required
                     placeholder="Lombok Barat"
                     value={coopData.city}
                     onChange={(e) => setCoopData({ ...coopData, city: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
+                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase">Provinsi:</label>
+                  <label className="text-[9px] font-semibold text-slate-500">Provinsi <span className="text-red-500">*</span>:</label>
                   <input
                     type="text"
                     required
                     placeholder="NTB"
                     value={coopData.province}
                     onChange={(e) => setCoopData({ ...coopData, province: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
+                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase">No. Telepon Pengurus:</label>
+                  <label className="text-[9px] font-semibold text-slate-500">No. Telepon Pengurus <span className="text-red-500">*</span>:</label>
                   <input
                     type="text"
                     required
                     placeholder="0812-xxxx-xxxx"
                     value={coopData.phone}
                     onChange={(e) => setCoopData({ ...coopData, phone: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
+                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-slate-500 uppercase">Alamat Lengkap Gudang:</label>
+                <label className="text-[9px] font-semibold text-slate-500">Alamat Lengkap Koperasi <span className="text-red-500">*</span>:</label>
                 <input
                   type="text"
                   required
                   placeholder="Jl. Raya Pertanian No. 100, Kecamatan Gerung"
                   value={coopData.address}
                   onChange={(e) => setCoopData({ ...coopData, address: e.target.value })}
-                  className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
+                  className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-orange text-slate-800"
                 />
               </div>
 
               {/* Pinpoint Map Selection */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-bold text-slate-500 uppercase block">Lokasi Gudang Koperasi (Peta Pinpoint):</label>
+                <label className="text-[9px] font-semibold text-slate-500 block">Lokasi Koperasi (Peta Pinpoint) <span className="text-red-500">*</span>:</label>
                 <div className="w-full h-[220px] rounded-xl overflow-hidden border border-slate-200 shadow-2xs relative">
                   <PinpointMapWrapper
                     onLocationSelect={(lat, lng) => setCoopCoords({ lat, lng })}
@@ -400,73 +400,73 @@ export default function OnboardingMitraPage() {
             <form onSubmit={handleBuyerSubmit} className="space-y-4">
               
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-slate-500 uppercase">Nama Perusahaan / Pabrik:</label>
+                <label className="text-[9px] font-semibold text-slate-500">Nama Perusahaan / Pabrik <span className="text-red-500">*</span>:</label>
                 <input
                   type="text"
                   required
                   placeholder="PT Indofood CBP Sukses Makmur Tbk"
                   value={buyerData.company_name}
                   onChange={(e) => setBuyerData({ ...buyerData, company_name: e.target.value })}
-                  className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800"
+                  className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase">Kota Lokasi Pabrik:</label>
+                  <label className="text-[9px] font-semibold text-slate-500">Kota Lokasi Pabrik <span className="text-red-500">*</span>:</label>
                   <input
                     type="text"
                     required
                     placeholder="Semarang"
                     value={buyerData.city}
                     onChange={(e) => setBuyerData({ ...buyerData, city: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800"
+                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase">Sektor Industri:</label>
+                  <label className="text-[9px] font-semibold text-slate-500">Sektor Industri <span className="text-red-500">*</span>:</label>
                   <input
                     type="text"
                     required
                     placeholder="Makanan Olahan / FMCG"
                     value={buyerData.industry}
                     onChange={(e) => setBuyerData({ ...buyerData, industry: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800"
+                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-[9px] font-bold text-slate-500 uppercase">Alamat Lengkap Pabrik / Gudang Penerima:</label>
+                <label className="text-[9px] font-semibold text-slate-500">Alamat Lengkap Pabrik / Gudang Penerima <span className="text-red-500">*</span>:</label>
                 <textarea
                   required
                   placeholder="Contoh: Jl. Industri Raya No. 45, Kawasan Industri Jababeka, Cikarang, Bekasi"
                   value={buyerData.address}
                   onChange={(e) => setBuyerData({ ...buyerData, address: e.target.value })}
                   rows={2}
-                  className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800 resize-none font-sans"
+                  className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800 resize-none font-sans"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-slate-100 pt-3">
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase">NIB (Nomor Induk Berusaha) - Opsional:</label>
+                  <label className="text-[9px] font-semibold text-slate-500">NIB (Nomor Induk Berusaha) <span className="text-slate-400 font-medium lowercase">(opsional)</span>:</label>
                   <input
                     type="text"
                     placeholder="12 digit nomor NIB"
                     value={buyerData.nib}
                     onChange={(e) => setBuyerData({ ...buyerData, nib: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800"
+                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-slate-500 uppercase">SIUP / Nomor Akta Pendirian - Opsional:</label>
+                  <label className="text-[9px] font-semibold text-slate-500">SIUP / Nomor Akta Pendirian <span className="text-slate-400 font-medium lowercase">(opsional)</span>:</label>
                   <input
                     type="text"
                     placeholder="AHU-xxxxxx.AH.xx.xx"
                     value={buyerData.siup}
                     onChange={(e) => setBuyerData({ ...buyerData, siup: e.target.value })}
-                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800"
+                    className="w-full p-2 border border-slate-200 rounded-lg text-xs font-normal focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800"
                   />
                 </div>
               </div>

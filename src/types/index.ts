@@ -62,6 +62,7 @@ export interface MarketRequest {
   status: 'Menunggu Pembayaran' | 'Menunggu Pemenuhan' | 'Terpenuhi Sebagian' | 'Terpenuhi';
   created_at?: string;
   shipping_address?: string;
+  invoice_number?: string;
 }
 
 export interface SupplyMatch {

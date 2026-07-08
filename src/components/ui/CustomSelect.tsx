@@ -12,7 +12,7 @@ interface CustomSelectProps {
   options: Option[];
   value: string;
   onChange: (value: string) => void;
-  label?: string;
+  label?: React.ReactNode;
   className?: string;
   placeholder?: string;
 }
@@ -36,7 +36,7 @@ export function CustomSelect({ options, value, onChange, label, className = '', 
   return (
     <div ref={containerRef} className={`relative select-none ${className}`}>
       {label && (
-        <span className="text-[10px] font-black text-slate-450 uppercase tracking-wider block mb-1 select-none">
+        <span className="text-[10px] font-semibold text-slate-450 block mb-1 select-none">
           {label}
         </span>
       )}
@@ -44,9 +44,9 @@ export function CustomSelect({ options, value, onChange, label, className = '', 
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-2.5 bg-slate-55 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 text-left hover:bg-slate-100/50 focus:outline-none focus:ring-1 focus:ring-brand-navy/30 transition-all duration-150 cursor-pointer shadow-3xs"
+        className="w-full flex items-center justify-between p-2.5 bg-slate-55 border border-slate-200 rounded-xl text-xs font-normal text-slate-700 text-left hover:bg-slate-100/50 focus:outline-none focus:ring-1 focus:ring-brand-navy/30 transition-all duration-150 cursor-pointer shadow-3xs"
       >
-        <span className={selectedOption ? 'text-slate-800' : 'text-slate-400 font-medium'}>
+        <span className={selectedOption ? 'text-slate-800' : 'text-slate-400'}>
           {selectedOption ? selectedOption.label : placeholder}
         </span>
       </button>
@@ -66,7 +66,7 @@ export function CustomSelect({ options, value, onChange, label, className = '', 
                     onChange(opt.value);
                     setIsOpen(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2 text-xs font-bold transition-colors block cursor-pointer ${
+                  className={`w-full text-left px-3.5 py-2 text-xs font-normal transition-colors block cursor-pointer ${
                     isSelected 
                       ? 'bg-brand-navy text-white' 
                       : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'

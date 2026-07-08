@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.5-flash',
+      model: 'gemma-4-31b-it',
       generationConfig: { responseMimeType: 'application/json' }
     });
 
@@ -59,11 +59,34 @@ export async function GET(request: NextRequest) {
         ]
       }
       Jangan sertakan teks pembuka atau penutup, langsung keluarkan objek JSON tersebut.
+      PENTING: HANYA keluarkan objek JSON. Dilarang keras mengeluarkan teks penjelasan, kata pengantar, penutup, atau tanda markdown. Output Anda harus langsung diawali dengan '{' dan diakhiri dengan '}'.
     `;
 
     const result = await model.generateContent(prompt);
     const textResponse = result.response.text();
-    const parsedData = JSON.parse(textResponse);
+    
+    // Extract the largest valid JSON block ending at the last '}'
+    const endIdx = textResponse.lastIndexOf('}');
+    if (endIdx === -1) {
+      throw new Error('No closing brace found in response');
+    }
+
+    let parsedData = null;
+    let startIdx = textResponse.indexOf('{');
+    while (startIdx !== -1 && startIdx < endIdx) {
+      const candidate = textResponse.substring(startIdx, endIdx + 1);
+      try {
+        parsedData = JSON.parse(candidate);
+        break; // Found the valid JSON block!
+      } catch (e) {
+        // Continue searching
+      }
+      startIdx = textResponse.indexOf('{', startIdx + 1);
+    }
+
+    if (!parsedData) {
+      throw new Error(`Failed to find a valid JSON block in the model response. Raw response: ${textResponse}`);
+    }
 
     return NextResponse.json(parsedData);
   } catch (error: any) {
