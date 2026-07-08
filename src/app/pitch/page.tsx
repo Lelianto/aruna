@@ -28,7 +28,7 @@ export default function PitchPage() {
       subtitle: "Mendiagnosis krisis rantai pasok pangan dan perkebunan koperasi desa di Indonesia.",
       category: "1. LATAR BELAKANG & KRISIS",
       content: (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs h-full overflow-y-auto max-h-[385px] pr-1">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs h-full pr-1">
           {/* 1. WHO */}
           <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200/80 rounded-xl p-3.5 flex flex-col justify-between">
             <div>
@@ -71,13 +71,13 @@ export default function PitchPage() {
                 <div>
                   <span className="text-[9px] text-brand-red font-bold block uppercase tracking-wider mb-1">Problem Yang Dipecahkan</span>
                   <p className="text-slate-600 font-medium leading-relaxed">
-                    Koperasi tidak bisa penuhi kuota minimum industri (offtaker) sendirian dan buta data sebaran panen lokal yang diincar tengkulak.
+                    Koperasi tidak bisa penuhi kuota minimum industri (offtaker) sendirian dan buta data sebaran panen lokal karena kendala sinyal & administrasi manual.
                   </p>
                 </div>
                 <div>
                   <span className="text-[9px] text-emerald-600 font-bold block uppercase tracking-wider mb-1">Nilai Yang Diciptakan</span>
                   <p className="text-slate-650 font-semibold leading-relaxed">
-                    Agregasi supply otomatis terdekat (Gotong Royong), kepastian serapan harga adil, & sertifikasi kesiapan via ARUNA Score.
+                    Dashboard Mandiri, Kasir POS terintegrasi, AI Command (Gemma 4) bertenaga suara, kepastian serapan harga adil, & sertifikasi kesiapan via ARUNA Score.
                   </p>
                 </div>
               </div>
@@ -137,8 +137,8 @@ export default function PitchPage() {
               <span className="text-[9px] bg-brand-red/10 text-brand-red px-2 py-0.5 rounded-full font-bold w-fit uppercase">Ketua Koperasi Tani</span>
               <CardTitle className="text-base font-black text-slate-900 mt-1">Pak Joko (52 th, Tangerang)</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2.5 text-slate-600">
-              <p className="italic">"Kami punya jagung berkualitas, tapi industri minta 100 Ton per minggu. Kami hanya sanggup 20 Ton. Akhirnya terpaksa jual murah ke tengkulak."</p>
+            <CardContent className="space-y-2.5 text-slate-605 text-[11px] leading-relaxed">
+              <p className="italic font-medium">"Kami punya komoditas bagus, tapi industri minta 100 Ton per minggu. Sinyal internet sering hilang di gudang semenjak mati listrik. Kami butuh pencatatan cepat (AI Command & Kasir POS) yang tetap bekerja saat sinyal mati."</p>
               <div className="border-t pt-2.5 space-y-1.5">
                 <div><strong>Kebutuhan:</strong> Kepastian serapan hasil panen anggota dengan harga transparan.</div>
                 <div><strong>Tantangan:</strong> Terkendala kapasitas logistik, fluktuasi stok, & buta informasi pasar industri.</div>
@@ -152,8 +152,8 @@ export default function PitchPage() {
               <span className="text-[9px] bg-brand-navy/10 text-brand-navy px-2 py-0.5 rounded-full font-bold w-fit uppercase">Procurement Manager Industri</span>
               <CardTitle className="text-base font-black text-slate-900 mt-1">Bu Rina (38 th, PT Sinar Pangan)</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2.5 text-slate-600">
-              <p className="italic">"Kami butuh pasokan jagung 200 Ton konsisten setiap bulan. Terlalu berisiko dan repot jika kami harus membuat ratusan kontrak kecil dengan petani desa."</p>
+            <CardContent className="space-y-2.5 text-slate-605 text-[11px] leading-relaxed">
+              <p className="italic font-medium">"Kami butuh pasokan jagung 200 Ton konsisten setiap bulan. Kami butuh laporan performa penyerapan stok & analisis kelayakan gotong royong koperasi secara cepat (AI Insights)."</p>
               <div className="border-t pt-2.5 space-y-1.5">
                 <div><strong>Kebutuhan:</strong> Bahan baku berkualitas standar, jaminan suplai kontinu, kontrak satu pintu.</div>
                 <div><strong>Tantangan:</strong> Sulit memverifikasi kredibilitas koperasi secara manual & fluktuasi harga komoditas lokal.</div>
@@ -199,15 +199,15 @@ export default function PitchPage() {
             <div className="space-y-2">
               <div>
                 <strong className="text-brand-navy block mb-0.5">1. Products & Services:</strong>
-                <p className="text-slate-600">Dashboard Konsolidasi, Peta Potensi Komoditas Nusantara, Portal Mandiri Input Stok Koperasi.</p>
+                <p className="text-slate-600">Portal Inventori & Kasir POS, AI Command Gemma 4 (NLOS), AI Insights Analitik, Arsitektur Sinkronisasi Offline-First.</p>
               </div>
               <div>
                 <strong className="text-brand-navy block mb-0.5">2. Pain Relievers:</strong>
-                <p className="text-slate-600">Gotong Royong Matching Engine (menggabungkan stok beberapa koperasi desa terdekat untuk penuhi satu order besar).</p>
+                <p className="text-slate-600">Gotong Royong Matching Engine (menggabungkan stok beberapa koperasi desa terdekat untuk penuhi satu order besar) & Sync Queue saat offline.</p>
               </div>
               <div>
                 <strong className="text-brand-navy block mb-0.5">3. Gain Creators:</strong>
-                <p className="text-slate-600">Standardisasi kualitas otomatis lewat ARUNA Score Card, AI Insights prediktif untuk optimasi jadwal tanam.</p>
+                <p className="text-slate-600">Standardisasi kualitas otomatis lewat ARUNA Score Card, AI Insights prediktif untuk optimasi jadwal gotong royong logistik.</p>
               </div>
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function PitchPage() {
       subtitle: "Menentukan batasan fitur produk, teknologi, dan rencana awal pembuktian pasar.",
       category: "4. SPESIFIKASI MVP",
       content: (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 text-[11px] h-full overflow-y-auto max-h-[385px] pr-1">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-3 text-[11px] h-full pr-1">
           {/* Column 1: Who */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between">
             <div>
@@ -240,7 +240,7 @@ export default function PitchPage() {
               <div>
                 <span className="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-black uppercase tracking-wider block w-fit mb-2">2 & 4. Problem & Pain Points</span>
                 <p className="text-slate-600 leading-relaxed mb-1">
-                  <strong>Pernyataan Masalah:</strong> "Koperasi desa kesulitan penuhi kuota volume industri karena stok terfragmentasi."
+                  <strong>Pernyataan Masalah:</strong> "Koperasi desa kesulitan penuhi kuota volume industri karena stok terfragmentasi dan jaringan internet tidak stabil."
                 </p>
                 <p className="text-slate-500">
                   <strong>Bukti/Validasi:</strong> 92% kegagalan transaksi, monopoli harga oleh tengkulak lokal.
@@ -253,11 +253,11 @@ export default function PitchPage() {
               <div>
                 <span className="text-[9px] bg-amber-600 text-white px-2 py-0.5 rounded font-black uppercase tracking-wider block w-fit mb-2">3. Solusi Yang Diusulkan</span>
                 <p className="text-slate-650 leading-relaxed mb-1">
-                  <strong>Agregasi Gotong Royong:</strong> Menyatukan stok terdekat secara proporsional.
+                  <strong>Agregasi Gotong Royong:</strong> Menyatukan stok terdekat secara proporsional didukung database offline-first.
                 </p>
                 <p className="text-slate-500">
-                  <strong>Unique Value:</strong> Auto-matchmaking terdekat. <br />
-                  <strong>Differentiator:</strong> Score-based fair queuing.
+                  <strong>Unique Value:</strong> Auto-matchmaking terdekat & AI Command suara. <br />
+                  <strong>Differentiator:</strong> Score-based fair queuing & Offline-first Sync.
                 </p>
               </div>
             </div>
@@ -270,7 +270,7 @@ export default function PitchPage() {
               <div>
                 <span className="text-[9px] bg-amber-600 text-white px-2 py-0.5 rounded font-black uppercase tracking-wider block w-fit mb-1">4. Validasi PMF</span>
                 <div className="space-y-1 text-[10px]">
-                  <div><strong>Metode:</strong> Uji Pilot Jagung 100T.</div>
+                  <div><strong>Metode:</strong> Uji Pilot Jagung 100T Banten.</div>
                   <div><strong>Metrik:</strong> SLA 100%, margin tani +40%.</div>
                   <div><strong>Timeline:</strong> 3 Bulan Uji Panen.</div>
                 </div>
@@ -282,9 +282,8 @@ export default function PitchPage() {
               <div>
                 <span className="text-[9px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-black uppercase tracking-wider block w-fit mb-1">5. Scope & Tech Stack</span>
                 <div className="space-y-1 text-[10px] text-slate-500">
-                  <div><strong>Masuk:</strong> Map, Scoring, Input Stok.</div>
-                  <div><strong>Keluar:</strong> Escrow & IoT Cold Storage.</div>
-                  <div><strong>Tech:</strong> Next.js + Firebase + Gemini.</div>
+                  <div><strong>Masuk:</strong> POS Cashier, Stock Opname, AI Command (Gemma 4), AI Insights (SWOT), Offline Sync (IndexedDB).</div>
+                  <div><strong>Tech:</strong> Next.js + Firebase + Gemma 4 31B.</div>
                 </div>
               </div>
             </div>
@@ -298,7 +297,7 @@ export default function PitchPage() {
       subtitle: "Langkah demi langkah aliran data dari input stok desa hingga penyerapan industri.",
       category: "5. SIMULASI PLATFORM",
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs h-full overflow-y-auto max-h-[385px] pr-1">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs h-full pr-1">
           {/* Step 1 */}
           <div className="p-3 bg-white border border-slate-200 rounded-xl flex flex-col justify-between">
             <div>
@@ -317,9 +316,9 @@ export default function PitchPage() {
           <div className="p-3 bg-white border border-slate-200 rounded-xl flex flex-col justify-between">
             <div>
               <span className="text-[9px] bg-brand-navy text-white px-2 py-0.5 rounded font-bold uppercase block w-fit mb-2">2. Aksi Utama</span>
-              <h5 className="font-bold text-slate-800 text-xs mb-1">Input Stok Mandiri</h5>
+              <h5 className="font-bold text-slate-800 text-xs mb-1">Input Stok & Kasir POS</h5>
               <p className="text-slate-500 leading-relaxed text-[11px]">
-                Ketua Koperasi masuk ke portal mandiri untuk melaporkan hasil panen jagung/kakao beserta stok siap distribusi.
+                Ketua Koperasi masuk ke portal mandiri untuk melaporkan hasil panen jagung/kakao serta mencatat penjualan lewat Kasir POS (mendukung offline).
               </p>
             </div>
             <div className="mt-4 pt-1.5 border-t text-[10px] text-slate-400 font-bold flex items-center gap-1">
@@ -331,9 +330,9 @@ export default function PitchPage() {
           <div className="p-3 bg-white border border-slate-200 rounded-xl flex flex-col justify-between">
             <div>
               <span className="text-[9px] bg-brand-navy text-white px-2 py-0.5 rounded font-bold uppercase block w-fit mb-2">3. Logika Sistem</span>
-              <h5 className="font-bold text-slate-800 text-xs mb-1">Greedy Matchmaker</h5>
+              <h5 className="font-bold text-slate-800 text-xs mb-1">AI Command & Insights</h5>
               <p className="text-slate-500 leading-relaxed text-[11px]">
-                Offtaker industri memposting kebutuhan volume besar, algoritma membagi suplai proporsional berdasarkan radius geografis.
+                AI Command (Gemma 4) memproses input pengurus via teks/suara dan menyajikan insights kelayakan otomatis untuk keputusan pembagian logistik.
               </p>
             </div>
             <div className="mt-4 pt-1.5 border-t text-[10px] text-slate-400 font-bold flex items-center gap-1">
@@ -359,9 +358,9 @@ export default function PitchPage() {
           <div className="p-3 bg-white border border-slate-200 rounded-xl flex flex-col justify-between">
             <div>
               <span className="text-[9px] bg-brand-navy text-white px-2 py-0.5 rounded font-bold uppercase block w-fit mb-2">5. Impact</span>
-              <h5 className="font-bold text-slate-800 text-xs mb-1">Value Delivered</h5>
+              <h5 className="font-bold text-slate-800 text-xs mb-1">Offline Sync & Value</h5>
               <p className="text-slate-500 leading-relaxed text-[11px]">
-                Kebutuhan bahan baku pabrik terpenuhi 100% tepat waktu, petani mendapat margin keuntungan adil terbebas tengkulak.
+                Armada sinkronisasi otomatis memindahkan data lokal ke cloud saat internet aktif, menjamin pemenuhan kuota 100% tepat waktu.
               </p>
             </div>
             <div className="mt-4 pt-1.5 border-t text-[10px] text-slate-400 font-bold flex items-center gap-1">
@@ -374,40 +373,44 @@ export default function PitchPage() {
     {
       id: 5,
       title: "Solusi ARUNA: Konsolidasi Rantai Pasok",
-      subtitle: "Algoritma Greedy Matchmaker dan standardisasi keaktifan via ARUNA Score.",
+      subtitle: "Membongkar pilar teknologi penunjang hilirisasi digital koperasi desa.",
       category: "6. TEKNOLOGI INTI",
       content: (
         <div className="grid md:grid-cols-2 gap-8 items-center h-full text-xs">
           <div className="space-y-4">
-            <h3 className="text-xl font-black text-slate-900">Konsolidasi Rantai Pasok</h3>
-            <p className="text-slate-600 leading-relaxed">
-              ARUNA bukan sekadar etalase jualan retail. Kami adalah platform agregasi dan analitik nasional yang mendemokratisasi akses rantai pasok bagi koperasi desa pedesaan.
-            </p>
+            <h3 className="text-base font-black text-slate-900 uppercase tracking-wider">Pilar Fungsional Platform</h3>
             <div className="grid gap-3">
               <div className="flex gap-2.5 p-3 bg-white rounded-xl border border-slate-200">
                 <Cpu className="h-5 w-5 text-brand-orange mt-0.5 shrink-0" />
                 <div>
-                  <h4 className="font-bold text-xs text-slate-955">Gotong Royong Matchmaker</h4>
-                  <p className="text-[11px] text-slate-500">Membagi alokasi pesanan besar kepada beberapa koperasi terdekat secara instan & proporsional.</p>
+                  <h4 className="font-bold text-xs text-slate-955">AI Command & Insights (Gemma 4)</h4>
+                  <p className="text-[11px] text-slate-500">Menganalisis performa koperasi desa & mengeksekusi stok/POS kasir secara otomatis via suara/teks.</p>
                 </div>
               </div>
               <div className="flex gap-2.5 p-3 bg-white rounded-xl border border-slate-200">
                 <Award className="h-5 w-5 text-brand-red mt-0.5 shrink-0" />
                 <div>
-                  <h4 className="font-bold text-xs text-slate-955">ARUNA Score Card</h4>
-                  <p className="text-[11px] text-slate-500">Menghitung keaktifan anggota (40%), performa keuangan (30%), dan stabilitas pasok (30%).</p>
+                  <h4 className="font-bold text-xs text-slate-955">ARUNA Score Card Engine</h4>
+                  <p className="text-[11px] text-slate-500">Standardisasi keaktifan anggota, kesehatan keuangan, dan stabilitas pasokan sebagai syarat kontrak industri.</p>
+                </div>
+              </div>
+              <div className="flex gap-2.5 p-3 bg-white rounded-xl border border-slate-200">
+                <Clock className="h-5 w-5 text-emerald-600 mt-0.5 shrink-0" />
+                <div>
+                  <h4 className="font-bold text-xs text-slate-955">Arsitektur Offline-First Sync</h4>
+                  <p className="text-[11px] text-slate-500">Menyimpan data di IndexedDB lokal saat internet putus, dan menyinkronkan otomatis (delete cache) setelah online.</p>
                 </div>
               </div>
             </div>
           </div>
-          <div className="p-5 bg-brand-navy text-white rounded-2xl flex flex-col justify-center space-y-3 relative overflow-hidden">
+          <div className="p-5 bg-brand-navy text-white rounded-2xl flex flex-col justify-center space-y-3 relative overflow-hidden h-full justify-center">
             <div className="absolute top-0 right-0 w-24 h-24 bg-brand-red/20 rounded-full blur-xl" />
             <h4 className="font-black text-brand-orange text-xs uppercase tracking-wider">Paradigma Baru</h4>
-            <div className="text-base font-bold text-white italic">
-              &ldquo;Dari berjalan sendiri-sendiri dan bersaing tidak sehat, menjadi kolaborasi gotong royong terintegrasi.&rdquo;
+            <div className="text-sm font-bold text-white italic leading-relaxed">
+              &ldquo;Gotong Royong Matchmaker menggabungkan stok dari beberapa koperasi desa terdekat untuk memenuhi kebutuhan kuota industri secara kolektif.&rdquo;
             </div>
-            <p className="text-slate-300 leading-relaxed">
-              Buyer/offtaker industri cukup mengelola satu kontrak pesanan agregat. Koperasi desa terdekat bersama-sama berbagi kapasitas logistik untuk memenuhinya.
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              Buyer/offtaker cukup mengelola satu kontrak pesanan agregat. Koperasi desa terdekat bersama-sama berbagi kapasitas logistik untuk memenuhinya tanpa takut kendala sinyal internet di pedalaman.
             </p>
           </div>
         </div>
@@ -433,11 +436,11 @@ export default function PitchPage() {
               <div className="grid grid-cols-2 gap-2 pt-1">
                 <div className="p-2 bg-white rounded border">
                   <span className="text-[10px] text-slate-400 block font-bold">Rasio Kemitraan</span>
-                  <span className="font-extrabold text-brand-navy">Grade A/B Koperasi</span>
+                  <span className="font-extrabold text-brand-navy text-[11px] block mt-0.5">Grade A/B Koperasi</span>
                 </div>
                 <div className="p-2 bg-white rounded border">
                   <span className="text-[10px] text-slate-400 block font-bold">Kepatuhan SLA</span>
-                  <span className="font-extrabold text-brand-red">99.2% Ketepatan Waktu</span>
+                  <span className="font-extrabold text-brand-red text-[11px] block mt-0.5">99.2% Ketepatan Waktu</span>
                 </div>
               </div>
             </div>
@@ -450,13 +453,13 @@ export default function PitchPage() {
             </h4>
             <div className="space-y-2.5">
               <div>
-                <strong className="text-slate-800 block">1. Hambatan Literasi Digital Desa:</strong>
-                <p className="text-slate-500">Banyak pengurus koperasi desa kesulitan menggunakan aplikasi smartphone secara mandiri.</p>
-                <span className="text-[10px] text-brand-navy font-bold block mt-0.5">Mitigasi: Admin Panel onboarding koperasi terintegrasi di sistem agar tim lapangan bisa mendaftarkan mereka.</span>
+                <strong className="text-slate-850 block">1. Hambatan Literasi Digital Desa:</strong>
+                <p className="text-slate-500 leading-tight">Banyak pengurus koperasi desa kesulitan menggunakan aplikasi smartphone secara mandiri.</p>
+                <span className="text-[10px] text-brand-navy font-bold block mt-0.5">Mitigasi: Kemudahan input lewat AI Command bertenaga suara (Gemma 4), mendemokratisasi akses teknologi untuk pengurus koperasi.</span>
               </div>
               <div>
-                <strong className="text-slate-800 block">2. Standardisasi Kualitas Hasil Panen:</strong>
-                <p className="text-slate-500">Koperasi Grade C/D sering kali memiliki standar kebersihan jagung/kakao yang berbeda.</p>
+                <strong className="text-slate-850 block">2. Standardisasi Kualitas Hasil Panen:</strong>
+                <p className="text-slate-500 leading-tight">Koperasi Grade C/D sering kali memiliki standar kebersihan jagung/kakao yang berbeda.</p>
                 <span className="text-[10px] text-brand-red font-bold block mt-0.5">Mitigasi: Penilaian Scoring Engine memberikan insentif kenaikan prioritas alokasi jika kualitas ditingkatkan.</span>
               </div>
             </div>
@@ -470,9 +473,9 @@ export default function PitchPage() {
       subtitle: "Rencana validasi bertahap di lapangan mulai dari proyek percontohan hingga pendanaan.",
       category: "8. EKSEKUSI AWAL",
       content: (
-        <div className="space-y-2.5 text-xs overflow-y-auto max-h-[385px] pr-1">
+        <div className="space-y-2.5 text-xs pr-1">
           {/* Header Row */}
-          <div className="grid grid-cols-4 gap-2 bg-brand-navy text-white p-2.5 rounded-lg font-black uppercase text-[10px] tracking-wider text-center">
+          <div className="grid grid-cols-4 gap-2 bg-brand-navy text-white p-2 rounded-lg font-black uppercase text-[9px] tracking-wider text-center">
             <div>Milestone Utama</div>
             <div>Output / Deliverable</div>
             <div>PIC (Nama/Peran)</div>
@@ -480,35 +483,35 @@ export default function PitchPage() {
           </div>
 
           {/* Row 1 */}
-          <div className="grid grid-cols-4 gap-2 bg-white border border-slate-200 p-3 rounded-lg items-center text-center">
+          <div className="grid grid-cols-4 gap-2 bg-white border border-slate-200 p-2.5 rounded-lg items-center text-center">
             <div className="font-bold text-slate-800 flex items-center gap-1.5 justify-center">
               <Warehouse className="h-4 w-4 text-brand-red shrink-0" />
               <span>Pilot Onboarding Banten</span>
             </div>
-            <div className="text-slate-600">Sistem database & pemetaan potensi 10 Koperasi produsen Jagung/Kakao.</div>
-            <div className="font-semibold text-slate-700 bg-slate-100 rounded px-1.5 py-0.5 w-fit mx-auto">Tim Lapangan & Admin</div>
+            <div className="text-slate-655 leading-tight">Sistem database & pemetaan potensi 10 Koperasi produsen Jagung/Kakao.</div>
+            <div className="font-semibold text-slate-700 bg-slate-100 rounded px-1.5 py-0.5 w-fit mx-auto text-[10px]">Tim Lapangan & Admin</div>
             <div className="font-bold text-brand-navy">10 Koperasi terdaftar dengan ARUNA Score Grade A/B</div>
           </div>
 
           {/* Row 2 */}
-          <div className="grid grid-cols-4 gap-2 bg-white border border-slate-200 p-3 rounded-lg items-center text-center">
+          <div className="grid grid-cols-4 gap-2 bg-white border border-slate-200 p-2.5 rounded-lg items-center text-center">
             <div className="font-bold text-slate-800 flex items-center gap-1.5 justify-center">
               <Cpu className="h-4 w-4 text-brand-orange shrink-0" />
               <span>Uji Coba Matchmaking</span>
             </div>
-            <div className="text-slate-600">Transaksi perdana konsolidasi supply Jagung 100 Ton dari 3 desa.</div>
-            <div className="font-semibold text-slate-700 bg-slate-100 rounded px-1.5 py-0.5 w-fit mx-auto">Lead Dev & Koperasi</div>
+            <div className="text-slate-655 leading-tight">Transaksi perdana konsolidasi supply Jagung 100 Ton dari 3 desa didukung Kasir POS & AI Command.</div>
+            <div className="font-semibold text-slate-700 bg-slate-100 rounded px-1.5 py-0.5 w-fit mx-auto text-[10px]">Lead Dev & Koperasi</div>
             <div className="font-bold text-brand-red">100% SLA pengisian volume order terpenuhi adil</div>
           </div>
 
           {/* Row 3 */}
-          <div className="grid grid-cols-4 gap-2 bg-white border border-slate-200 p-3 rounded-lg items-center text-center">
+          <div className="grid grid-cols-4 gap-2 bg-white border border-slate-200 p-2.5 rounded-lg items-center text-center">
             <div className="font-bold text-slate-800 flex items-center gap-1.5 justify-center">
               <Landmark className="h-4 w-4 text-emerald-600 shrink-0" />
-              <span>Kemitraan Modal LPDB</span>
+              <span>Kemitraan LPDB</span>
             </div>
-            <div className="text-slate-600">Akses pendanaan kerja modal bergulir logistik bagi Koperasi Grade B/C.</div>
-            <div className="font-semibold text-slate-700 bg-slate-100 rounded px-1.5 py-0.5 w-fit mx-auto">Gov Relations & Koperasi</div>
+            <div className="text-slate-655 leading-tight">Akses pendanaan kerja modal bergulir logistik bagi Koperasi Grade B/C.</div>
+            <div className="font-semibold text-slate-700 bg-slate-100 rounded px-1.5 py-0.5 w-fit mx-auto text-[10px]">Gov Relations & Koperasi</div>
             <div className="font-bold text-emerald-600">Penyaluran Rp 5 Milyar modal kerja gotong royong</div>
           </div>
         </div>
@@ -522,10 +525,10 @@ export default function PitchPage() {
       content: (
         <div className="grid md:grid-cols-2 gap-8 items-center h-full text-xs">
           <div className="space-y-3">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Rencana Kerja 4 Fase</h3>
+            <h3 className="text-base font-black text-slate-900 dark:text-white uppercase tracking-wider">Rencana Kerja 4 Fase</h3>
             <div className="space-y-3">
               {[
-                { title: "Fase 1: MVP & Pemetaan Analitik (Q3 2026)", desc: "Menyelesaikan pemetaan komoditas nasional, scoring engine, dan pendaftaran 100+ koperasi awal." },
+                { title: "Fase 1: MVP & Pemetaan Analitik (Q3 2026)", desc: "Menyelesaikan pemetaan komoditas, scoring engine, POS Kasir, AI Command/Insights (Gemma 4), & Offline-first Sync." },
                 { title: "Fase 2: Integrasi Supply Chain & Logistik (Q1 2027)", desc: "Menambahkan manajemen logistik terintegrasi, pelacakan armada gotong royong, dan escrow payment." },
                 { title: "Fase 3: Smart Warehouse & Kemitraan LPDB (Q3 2027)", desc: "Penyediaan hub gudang berpendingin (cold chain) di daerah sentra produksi serta pembiayaan mikro." },
                 { title: "Fase 4: Global Export Cooperatives (2028)", desc: "Menghubungkan agregasi komoditas koperasi pedesaan ke pasar ekspor internasional secara langsung." }
@@ -601,8 +604,8 @@ export default function PitchPage() {
               <button
                 key={s.id}
                 onClick={() => setActiveSlide(idx)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${activeSlide === idx
-                    ? 'bg-brand-navy text-white'
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${activeSlide === idx
+                    ? 'bg-brand-navy text-white shadow'
                     : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100 dark:bg-slate-950 dark:text-slate-400 dark:border-slate-800'
                   }`}
               >
@@ -613,12 +616,12 @@ export default function PitchPage() {
         </div>
 
         {/* Slide Frame (Card) */}
-        <Card className="border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden min-h-[480px] flex flex-col bg-white">
-          <div className="border-b border-slate-100 dark:border-slate-800/80 px-6 py-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40">
+        <Card className="border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden flex flex-col bg-white w-full max-w-4xl mx-auto">
+          <div className="border-b border-slate-100 dark:border-slate-800/80 px-6 py-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40 select-none">
             <span className="text-xs bg-brand-orange/20 text-brand-orange px-2.5 py-0.5 rounded-full font-extrabold tracking-wider uppercase">
               {slides[activeSlide].category}
             </span>
-            <span className="text-xs text-slate-400 font-bold">
+            <span className="text-xs text-slate-450 font-bold">
               Slide {activeSlide + 1} dari {slides.length}
             </span>
           </div>
@@ -633,16 +636,18 @@ export default function PitchPage() {
           </CardHeader>
 
           <CardContent className="flex-1 p-6 md:p-8">
-            {slides[activeSlide].content}
+            <div className="h-[350px] overflow-y-auto pr-1">
+              {slides[activeSlide].content}
+            </div>
           </CardContent>
 
-          <div className="border-t border-slate-100 dark:border-slate-800/80 px-6 py-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40">
+          <div className="border-t border-slate-100 dark:border-slate-800/80 px-6 py-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/40 select-none">
             <Button
               variant="outline"
               size="sm"
               onClick={prevSlide}
               disabled={activeSlide === 0}
-              className="flex items-center gap-1.5 text-xs font-bold"
+              className="flex items-center gap-1.5 text-xs font-bold cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" /> Sebelumnya
             </Button>
@@ -651,7 +656,7 @@ export default function PitchPage() {
               {slides.map((_, idx) => (
                 <div
                   key={idx}
-                  className={`h-2 rounded-full transition-all duration-300 ${activeSlide === idx ? 'w-6 bg-brand-red' : 'w-2 bg-slate-300 dark:bg-slate-700'
+                  className={`h-2 rounded-full transition-all duration-300 ${activeSlide === idx ? 'w-6 bg-brand-red' : 'w-2 bg-slate-350 dark:bg-slate-700'
                     }`}
                 />
               ))}
@@ -662,7 +667,7 @@ export default function PitchPage() {
               size="sm"
               onClick={nextSlide}
               disabled={activeSlide === slides.length - 1}
-              className="flex items-center gap-1.5 bg-brand-navy hover:bg-brand-navy/90 text-white text-xs font-bold"
+              className="flex items-center gap-1.5 bg-brand-navy hover:bg-brand-navy/90 text-white text-xs font-bold cursor-pointer"
             >
               Selanjutnya <ArrowRight className="h-4 w-4" />
             </Button>
