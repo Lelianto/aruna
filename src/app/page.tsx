@@ -95,7 +95,7 @@ export default function LandingPage() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                Online & Sinkron
+                Terhubung & Sinkron
               </span>
               <span>•</span>
               <span>Asisten AI Terintegrasi</span>
@@ -116,7 +116,7 @@ export default function LandingPage() {
                   </h3>
                 </div>
                 <span className="rounded-full bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-700 uppercase tracking-wider">
-                  Engine Aktif
+                  Sistem Aktif
                 </span>
               </div>
 
@@ -237,7 +237,7 @@ export default function LandingPage() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center space-y-2 mb-12">
           <span className="text-[10px] font-black text-brand-red uppercase tracking-wider">Fitur Utama</span>
-          <h2 className="text-2xl sm:text-3xl font-black text-brand-navy">Fungsionalitas Command Center</h2>
+          <h2 className="text-2xl sm:text-3xl font-black text-brand-navy">Fungsionalitas Pusat Kendali</h2>
           <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">Dirancang sederhana dan intuitif demi menjembatani gap operasional desa.</p>
         </div>
 
@@ -249,7 +249,7 @@ export default function LandingPage() {
                 <ShoppingCart className="h-5 w-5" />
               </div>
               <div className="space-y-1 text-left">
-                <h4 className="font-black text-xs text-slate-900">POS Kasir & Pembelian</h4>
+                <h4 className="font-black text-xs text-slate-900">Kasir POS & Pembelian</h4>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   Pencatatan kasir penjualan anggota & log stok masuk pembelian produk anggota terintegrasi dengan penyesuaian stok instan.
                 </p>
@@ -294,7 +294,7 @@ export default function LandingPage() {
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div className="space-y-1 text-left">
-                <h4 className="font-black text-xs text-slate-900">ARUNA Score Engine</h4>
+                <h4 className="font-black text-xs text-slate-900">Penilaian Kinerja Koperasi</h4>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   Peringkat kelayakan kemitraan otomatis koperasi desa berdasarkan kesehatan finansial dan stabilitas supply.
                 </p>
@@ -310,7 +310,7 @@ export default function LandingPage() {
           <div className="space-y-1 text-left">
             <div className="flex items-center gap-1.5 text-xs font-black text-emerald-700">
               <CheckCircle2 className="h-4 w-4 animate-bounce" />
-              Sistem Command Center Siap Digunakan
+              Sistem Pusat Kendali Siap Digunakan
             </div>
             <p className="text-[11px] text-slate-450 leading-relaxed max-w-xl">
               Hubungkan database koperasi Anda secara real-time. Didukung sinkronisasi offline terpadu dan analisis AI prediktif untuk optimalisasi operasional.
