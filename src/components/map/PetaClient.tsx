@@ -290,11 +290,11 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
                 </div>
               )}
 
-              {/* Gemini AI Smart Advisor */}
+              {/* Penasihat Pintar AI */}
               <div className="bg-brand-cream/55 border border-brand-navy/15 rounded-xl p-3.5 space-y-3 shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] bg-brand-navy text-white px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider block">
-                    Gemini AI Smart Advisor
+                    Penasihat Pintar AI
                   </span>
                   {loadingGemini[selectedCoop.id] && (
                     <span className="h-1.5 w-1.5 rounded-full bg-brand-red animate-ping shrink-0"></span>

@@ -15,10 +15,10 @@ export default function Navbar() {
     { name: 'Peta Potensi', href: '/peta', icon: Map },
     { name: 'Dashboard Nasional', href: '/dashboard', icon: BarChart3 },
     { name: 'Komoditas', href: '/komoditas', icon: Compass },
-    { name: 'Marketplace', href: '/marketplace', icon: ShoppingBag },
-    { name: 'ARUNA Score', href: '/scoring', icon: Award },
-    { name: 'AI Insights', href: '/insights', icon: Lightbulb },
-    { name: 'Onboarding', href: '/onboarding-mitra', icon: UserPlus },
+    { name: 'Pasar Digital', href: '/marketplace', icon: ShoppingBag },
+    { name: 'Skor Kelayakan', href: '/scoring', icon: Award },
+    { name: 'Analisis AI', href: '/insights', icon: Lightbulb },
+    { name: 'Pendaftaran', href: '/onboarding-mitra', icon: UserPlus },
     { name: 'Portal Saya', href: '/mitra-dashboard', icon: LayoutDashboard }
   ];
 
