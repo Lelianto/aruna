@@ -35,7 +35,7 @@ function generateSKU(name: string): string {
 
 
 import { 
-  Building2, PackagePlus, ShoppingCart, Pencil, Trash2, 
+  Building2, PackagePlus, ShoppingCart, Pencil, Trash2, CreditCard,
   Plus, Save, X, CheckCircle2, AlertCircle, Loader2,
   MapPin, Users, TrendingUp, Phone, Warehouse, ChevronRight,
   Coins, Award, Scale, Check, FileCheck, ArrowUpRight, ArrowRight,
@@ -1141,7 +1141,9 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
 }) {
   const [cart, setCart] = useState<Array<{ commodity: Commodity, qty: number, price: number }>>([]);
   const [selectedMemberId, setSelectedMemberId] = useState<string>('');
-  const [paymentMethod, setPaymentMethod] = useState<'Tunai' | 'Transfer' | 'Simpanan'>('Tunai');
+  const [paymentMethod, setPaymentMethod] = useState<'Tunai' | 'Transfer' | 'Simpanan' | 'QRIS'>('Tunai');
+  const [showQrisModal, setShowQrisModal] = useState(false);
+  const [qrisVerifying, setQrisVerifying] = useState(false);
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
@@ -1181,6 +1183,12 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return showToast('Keranjang belanja kosong', 'error');
+
+    if (paymentMethod === 'QRIS' && !showQrisModal) {
+      setShowQrisModal(true);
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -1227,6 +1235,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
       }
       setCart([]);
       setSelectedMemberId('');
+      setPaymentMethod('Tunai');
       setIsMobileCartOpen(false);
       onRefresh();
     } catch (err) {
@@ -1234,6 +1243,66 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
       showToast('Transaksi kasir gagal disimpan', 'error');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const confirmQrisCheckout = async () => {
+    setQrisVerifying(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    try {
+      const newTransaction: POSTransaction = {
+        id: `sale-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`,
+        cooperative_id: coopId,
+        member_id: selectedMemberId || undefined,
+        items: cart.map(item => ({
+          commodity_id: item.commodity.id,
+          commodity_name: item.commodity.name,
+          quantity: item.qty,
+          price_per_kg: item.price,
+          unit: item.commodity.unit
+        })),
+        total_amount: totalAmount,
+        payment_method: 'QRIS',
+        created_at: new Date().toISOString(),
+        status: 'pending',
+        version: 1
+      };
+
+      if (isOnline()) {
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ entity_type: 'sale', action: 'create', payload: newTransaction })
+        });
+      } else {
+        if (localDb) {
+          await localDb.transactions.add(newTransaction);
+          for (const item of cart) {
+            const current = await localDb.commodities.get(item.commodity.id);
+            if (current) {
+              await localDb.commodities.update(item.commodity.id, {
+                available_stock: Math.max(0, current.available_stock - item.qty)
+              });
+            }
+          }
+        }
+        await queueForSync('sale', 'create', newTransaction);
+        triggerSync();
+      }
+
+      showToast('Pembayaran QRIS Kasir Berhasil!');
+      setCart([]);
+      setSelectedMemberId('');
+      setPaymentMethod('Tunai');
+      setShowQrisModal(false);
+      setIsMobileCartOpen(false);
+      onRefresh();
+    } catch (err) {
+      console.error(err);
+      showToast('Pembayaran QRIS gagal diproses', 'error');
+    } finally {
+      setQrisVerifying(false);
     }
   };
 
@@ -1284,7 +1353,8 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
           options={[
             { value: 'Tunai', label: 'Tunai' },
             { value: 'Transfer', label: 'Transfer' },
-            { value: 'Simpanan', label: 'Simpanan' }
+            { value: 'Simpanan', label: 'Simpanan' },
+            { value: 'QRIS', label: 'QRIS (GPN)' }
           ]}
           value={paymentMethod}
           onChange={(val) => setPaymentMethod(val as any)}
@@ -1420,6 +1490,80 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
         </div>
       )}
 
+      {/* 5. QRIS Payment Gateway Modal for POS */}
+      {showQrisModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs font-sans text-slate-800 animate-fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                <CreditCard className="h-5 w-5 text-brand-navy animate-pulse" />
+                QRIS Dinamis Kasir (POS)
+              </h3>
+              {!qrisVerifying && (
+                <button onClick={() => setShowQrisModal(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+            </div>
+
+            {/* QRIS Simulated QR Code Graphic */}
+            <div className="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100/80 space-y-3">
+              <div className="bg-[#E52A30] px-4 py-1 rounded-full flex items-center justify-center gap-1 text-white font-black text-[9px] tracking-widest uppercase shadow-xs">
+                <span>QRIS</span>
+                <span className="text-[7px] font-medium opacity-80">GPN</span>
+              </div>
+              
+              <div className="p-3 bg-white rounded-xl shadow-xs border border-slate-100">
+                <img 
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=003049&data=aruna-pos-qris-${totalAmount}`} 
+                  alt="QRIS QR Code" 
+                  className="w-40 h-40 rounded-lg object-contain" 
+                />
+              </div>
+              
+              <div className="text-center space-y-0.5">
+                <span className="text-[9px] text-slate-400 block font-black uppercase">Sisa Waktu Pembayaran</span>
+                <span className="text-xs font-black text-brand-navy font-mono animate-pulse">02:59</span>
+              </div>
+            </div>
+
+            {/* Total Amount Box */}
+            <div className="bg-brand-navy/5 border border-brand-navy/10 p-3.5 rounded-xl flex justify-between items-center text-xs font-semibold">
+              <span className="text-slate-500 uppercase text-[9px] font-black">Total Tagihan POS</span>
+              <span className="text-base font-black text-brand-orange tabular-nums">
+                Rp {totalAmount.toLocaleString('id-ID')}
+              </span>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2">
+              <Button 
+                onClick={() => setShowQrisModal(false)}
+                disabled={qrisVerifying}
+                variant="outline"
+                className="flex-1 text-xs cursor-pointer rounded-xl h-11"
+              >
+                Batal
+              </Button>
+              <Button 
+                onClick={confirmQrisCheckout}
+                disabled={qrisVerifying}
+                className="flex-2 bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
+              >
+                {qrisVerifying ? (
+                  <>
+                    <Loader2 className="h-4.5 w-4.5 animate-spin text-brand-cream" />
+                    Memproses...
+                  </>
+                ) : (
+                  'Sudah Scan & Bayar'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -1445,6 +1589,8 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
     harvest_period: '',
     description: ''
   });
+  const [productImage, setProductImage] = useState<File | null>(null);
+  const [editProductImage, setEditProductImage] = useState<File | null>(null);
   
   // Stock opname audit state
   const [selectedCommId, setSelectedCommId] = useState('');
@@ -1471,6 +1617,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
 
   const startEdit = (c: Commodity) => {
     setEditingComm(c);
+    setEditProductImage(null);
     setEditForm({
       name: c.name,
       sku: c.sku,
@@ -1493,6 +1640,12 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
     setSaving(true);
     try {
       const normalizedName = normalizeProductName(editForm.name);
+      
+      let imageUrl = editingComm.image_url || '';
+      if (editProductImage) {
+        imageUrl = await uploadDocument(editProductImage, `products/${coopId}/${Date.now()}_${editProductImage.name}`);
+      }
+
       const updatedProduct = {
         ...editingComm,
         name: normalizedName,
@@ -1504,7 +1657,8 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
         price_per_unit: editForm.price_per_unit || undefined,
         unit: normalizeUnit(editForm.unit),
         harvest_period: editForm.harvest_period || 'Sepanjang Tahun',
-        description: editForm.description.trim() || undefined
+        description: editForm.description.trim() || undefined,
+        image_url: imageUrl || undefined
       };
 
       if (isOnline()) {
@@ -1575,6 +1729,12 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
     try {
       const normalizedName = normalizeProductName(form.name);
       const generatedSku = form.sku.trim() || generateSKU(normalizedName);
+      
+      let imageUrl = '';
+      if (productImage) {
+        imageUrl = await uploadDocument(productImage, `products/${coopId}/${Date.now()}_${productImage.name}`);
+      }
+
       if (isOnline()) {
         const commodity_id = doc(collection(db, 'commodities')).id;
         const newProduct = {
@@ -1590,6 +1750,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
           unit: normalizeUnit(form.unit),
           harvest_period: form.harvest_period || 'Sepanjang Tahun',
           description: form.description.trim() || undefined,
+          image_url: imageUrl || undefined,
           created_at: new Date().toISOString()
         };
         await fetch('/api/sync', {
@@ -1612,6 +1773,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
           unit: normalizeUnit(form.unit),
           harvest_period: form.harvest_period || 'Sepanjang Tahun',
           description: form.description.trim() || undefined,
+          image_url: imageUrl || undefined,
           created_at: new Date().toISOString()
         };
         if (localDb) {
@@ -1634,6 +1796,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
         harvest_period: '',
         description: ''
       });
+      setProductImage(null);
       setShowForm(false);
       onRefresh();
     } catch (e) {
@@ -1839,6 +2002,21 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
+            <div className="sm:col-span-2 space-y-1">
+              <label className="text-[10px] font-semibold text-slate-400 block">
+                Foto Produk <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
+              </label>
+              <input 
+                type="file" 
+                accept="image/*"
+                onChange={e => {
+                  if (e.target.files && e.target.files[0]) {
+                    setProductImage(e.target.files[0]);
+                  }
+                }}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
+              />
+            </div>
             <div className="sm:col-span-2 flex justify-end">
               <Button 
                 onClick={handleAddProduct} 
@@ -1941,8 +2119,15 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 <div key={c.id} className={`p-4 rounded-xl border flex flex-col justify-between space-y-3 transition-all ${
                   isLowStock ? 'border-red-200 bg-red-50/10' : 'border-slate-100 bg-slate-50'
                 }`}>
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="space-y-1">
+                  <div className="flex justify-between items-start gap-3">
+                    {c.image_url && (
+                      <img 
+                        src={c.image_url} 
+                        alt={c.name} 
+                        className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0" 
+                      />
+                    )}
+                    <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-[9px] font-black uppercase text-slate-450 bg-slate-200/50 px-2 py-0.5 rounded-full">{c.category}</span>
                         <span className="text-[9px] font-black uppercase text-slate-500 bg-slate-200/50 px-2 py-0.5 rounded-full font-mono">SKU: {c.sku || 'N/A'}</span>
@@ -2128,6 +2313,21 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                   onChange={e => setEditForm({...editForm, description: e.target.value})}
                   rows={2}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none resize-none focus:ring-1 focus:ring-brand-navy"
+                />
+              </div>
+              <div className="sm:col-span-2 space-y-1">
+                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                  Ganti Foto Produk (opsional):
+                </label>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={e => {
+                    if (e.target.files && e.target.files[0]) {
+                      setEditProductImage(e.target.files[0]);
+                    }
+                  }}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
                 />
               </div>
             </div>

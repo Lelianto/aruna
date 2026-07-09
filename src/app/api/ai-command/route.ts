@@ -47,34 +47,41 @@ export async function POST(request: NextRequest) {
          - Opsional: Nama anggota (memberName/memberId - default "Umum"), metode pembayaran (paymentMethod - "Tunai" | "Transfer" | "Simpanan" - default "Tunai").
       2. PEMBELIAN / PENGADAAN (action: "create_purchase")
          - Wajib: Nama produk (commodity_name), jumlahnya (quantity) harus > 0, dan nama petani/pemasok (supplierName).
+         - Opsional: Harga jual per unit/kg (price_per_unit) jika pengguna ingin menetapkan harga jual produk baru ini secara langsung.
       3. PENYESUAIAN STOK (action: "update_stock")
          - Wajib: Nama produk (commodity_name), jumlahnya (quantity) harus >= 0, dan operasi penyesuaian (operation: "add" | "reduce" | "set").
+         - Opsional: Harga jual per unit/kg (price_per_unit) jika pengguna ingin menetapkan harga jual produk baru ini secara langsung.
       4. UBAH/EDIT PRODUK (action: "edit_product")
          - Wajib: Nama produk lama (commodity_name) atau ID produk (commodity_id), dan setidaknya satu data baru yang ingin diubah (seperti nama baru, kategori baru, satuan baru, atau harga baru).
       5. HAPUS PRODUK (action: "delete_product")
          - Wajib: Nama produk (commodity_name) atau ID produk (commodity_id).
-
+ 
       ATURAN KLARIFIKASI (action: "need_clarification"):
       Jika data wajib di atas belum lengkap (misal pengguna tidak menyebutkan jumlah saat ingin menjual/membeli barang, atau tidak menyebutkan nama petani saat mencatat pembelian):
       - JANGAN membuat asumsi jumlah (seperti menyetelnya ke 0 atau 1) kecuali konteksnya sangat jelas.
+      - JIKA MAKSUD PERINTAH PENGGUNA AMBIGU/TIDAK JELAS (misalnya pengguna berkata "tambah singkong 10kg" tanpa menyebutkan apakah itu untuk penjualan, pembelian masuk dari petani, atau penyesuaian stok gudang):
+        1. Kembalikan action: "need_clarification"
+        2. Set "missing_field" ke "target_action" atau "feature".
+        3. Tulis "confirmation_message" yang menanyakan jenis pencatatan apa yang ingin dilakukan (contoh: "Apakah Anda ingin mencatat penjualan (sales), mencatat pembelian/stok masuk dari supplier (purchase), atau melakukan penyesuaian stok gudang (stock adjustment)?").
       - Kembalikan aksi klarifikasi dengan skema JSON berikut:
         {
           "action": "need_clarification",
           "payload": {
-            "missing_field": "nama_field_yang_kurang" (misal: "quantity" atau "supplierName"),
-            "partial_action": "aksi_yang_akan_dibuat" (misal: "create_sale" atau "create_purchase"),
+            "missing_field": "nama_field_yang_kurang" (misal: "quantity", "supplierName", "target_action"),
+            "partial_action": "aksi_yang_akan_dibuat" (misal: "create_sale" or "create_purchase" or "update_stock" or null),
             "partial_payload": { ... data yang berhasil diekstrak sejauh ini ... }
           },
-          "confirmation_message": "Kalimat pertanyaan klarifikasi yang ramah dan sopan dalam Bahasa Indonesia untuk menanyakan field yang kurang (misal: 'Maaf, berapa kg beras premium yang ingin Anda jual ke Pak Budi?' atau 'Dari petani siapa pembelian jagung ini diperoleh?')"
+          "confirmation_message": "Kalimat pertanyaan klarifikasi yang ramah dan sopan dalam Bahasa Indonesia untuk menanyakan field yang kurang."
         }
-
+ 
       ATURAN PENGGABUNGAN CONTEXT:
       - Jika terdapat CONTEXT SEBELUMNYA dengan action "need_clarification":
-        1. Ekstrak informasi dari PERINTAH PENGGUNA TERBARU (misal pengguna menjawab "15 kg" atau "Pak Budi").
-        2. Gabungkan informasi baru tersebut ke dalam "partial_payload" dari context tersebut.
-        3. Jika seluruh data wajib kini sudah lengkap, kembalikan aksi final (misal: "create_sale", "create_purchase") dengan payload lengkap dan status normal.
-        4. Jika data masih belum lengkap, tetap kembalikan action "need_clarification" dengan payload yang diperbarui dan tanyakan kembali field yang masih kurang.
-
+        1. Ekstrak informasi dari PERINTAH PENGGUNA TERBARU (misal pengguna menjawab "pembelian", "penjualan", "15 kg", atau "Pak Budi").
+        2. Jika missing_field sebelumnya adalah "target_action" atau "feature", tentukan aksi tujuan berdasarkan jawabannya (misal "pembelian" -> "create_purchase", "penjualan" -> "create_sale", "penyesuaian" -> "update_stock").
+        3. Gabungkan informasi baru tersebut ke dalam "partial_payload" dari context tersebut.
+        4. Jika seluruh data wajib kini sudah lengkap, kembalikan aksi final (misal: "create_sale", "create_purchase") dengan payload lengkap dan status normal.
+        5. Jika data masih belum lengkap (misal setelah aksi ditentukan, nama supplier atau kuantitas masih belum ada), tetap kembalikan action "need_clarification" dengan payload yang diperbarui dan tanyakan kembali field yang masih kurang.
+ 
       ATURAN AKSI FINAL (JIKA DATA LENGKAP):
       1. PENJUALAN (action: "create_sale")
          Payload format:
@@ -87,7 +94,7 @@ export async function POST(request: NextRequest) {
       2. PEMBELIAN / PENGADAAN (action: "create_purchase")
          Payload format:
          {
-           "items": [{ "commodity_name": "nama_komoditas", "quantity": angka, "unit": "satuan" }],
+           "items": [{ "commodity_name": "nama_komoditas", "quantity": angka, "unit": "satuan", "price_per_unit": angka_harga_jual_jika_disebutkan }],
            "supplierName": "nama_supplier_atau_petani"
          }
       3. PENYESUAIAN STOK (action: "update_stock")
@@ -97,7 +104,8 @@ export async function POST(request: NextRequest) {
            "commodity_name": "nama_komoditas",
            "quantity": angka,
            "unit": "satuan",
-           "operation": "add" | "reduce" | "set"
+           "operation": "add" | "reduce" | "set",
+           "price_per_unit": angka_harga_jual_jika_disebutkan
          }
       4. TANYA STOK (action: "query_stock")
          { "commodity_name": "nama_komoditas" }

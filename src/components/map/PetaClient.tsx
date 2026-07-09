@@ -71,17 +71,6 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
     }
   }, [user, userData, loading, router]);
 
-  if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi')) {
-    return (
-      <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy mx-auto mb-4"></div>
-          <p className="text-xs text-slate-500 font-bold">Memuat...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Gemini AI Insights state
   const [geminiInsights, setGeminiInsights] = useState<Record<string, { summary: string; analysis: string[]; recommendations: string[] }>>({});
   const [loadingGemini, setLoadingGemini] = useState<Record<string, boolean>>({});
@@ -166,6 +155,17 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
     if (!selectedCoopId) return null;
     return cooperatives.find(c => c.id === selectedCoopId) || null;
   }, [selectedCoopId, cooperatives]);
+
+  if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi')) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy mx-auto mb-4"></div>
+          <p className="text-xs text-slate-500 font-bold">Memuat...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#faf9f6] min-h-screen relative font-sans py-6">

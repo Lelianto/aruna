@@ -133,7 +133,7 @@ export interface POSTransaction {
   member_id?: string;
   items: POSItem[];
   total_amount: number;
-  payment_method: 'Tunai' | 'Transfer' | 'Simpanan';
+  payment_method: 'Tunai' | 'Transfer' | 'Simpanan' | 'QRIS';
   created_at: string;
   status: 'pending' | 'synced';
   version: number;

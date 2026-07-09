@@ -3,13 +3,16 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, BarChart3, Map, ShoppingBag, Award, Lightbulb, Compass, Presentation, ArrowUpRight, LogIn, LogOut, UserPlus, LayoutDashboard } from 'lucide-react';
+import { Menu, X, BarChart3, Map, MapPin, ShoppingBag, Award, Lightbulb, Compass, Presentation, ArrowUpRight, LogIn, LogOut, UserPlus, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
-  const { user, userData, signInWithGoogle, logout } = useAuth();
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [newAddress, setNewAddress] = useState('');
+  const [savingAddress, setSavingAddress] = useState(false);
+  const { user, userData, signInWithGoogle, logout, updateUserAddress } = useAuth();
 
   const navItems = [
     { name: 'Peta Potensi', href: '/peta', icon: Map },
@@ -99,12 +102,27 @@ export default function Navbar() {
                     <span className="text-[9px] text-brand-orange font-bold uppercase tracking-wider block">
                       {userData?.role === 'admin' ? 'Admin Platform' :
                         userData?.role === 'buyer' ? 'Buyer Industri' :
-                          userData?.role === 'koperasi' ? 'Ketua Koperasi' : 'Registrasi Peran'}
+                          userData?.role === 'koperasi' ? 'Ketua Koperasi' :
+                            userData?.role === 'customer' ? 'Customer Umum' : 'Registrasi Peran'}
                     </span>
                     <span className="text-slate-200 text-[9px]">|</span>
                     <Link href="/select-role" className="text-[9px] text-brand-red hover:underline font-extrabold block">
                       Ganti Peran
                     </Link>
+                    {userData?.role === 'customer' && (
+                      <>
+                        <span className="text-slate-200 text-[9px]">|</span>
+                        <button 
+                          onClick={() => {
+                            setNewAddress(userData?.address || '');
+                            setShowAddressModal(true);
+                          }}
+                          className="text-[9px] text-brand-navy hover:underline font-extrabold block cursor-pointer"
+                        >
+                          Atur Alamat
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
                 <button
@@ -168,7 +186,8 @@ export default function Navbar() {
                     <span className="text-[10px] text-brand-orange font-bold uppercase tracking-wider block">
                       {userData?.role === 'admin' ? 'Admin Platform' :
                         userData?.role === 'buyer' ? 'Buyer Industri' :
-                          userData?.role === 'koperasi' ? 'Ketua Koperasi' : 'Registrasi Peran'}
+                          userData?.role === 'koperasi' ? 'Ketua Koperasi' :
+                            userData?.role === 'customer' ? 'Customer Umum' : 'Registrasi Peran'}
                     </span>
                     <span className="text-slate-300 text-[10px]">|</span>
                     <Link
@@ -178,6 +197,21 @@ export default function Navbar() {
                     >
                       Ganti Peran
                     </Link>
+                    {userData?.role === 'customer' && (
+                      <>
+                        <span className="text-slate-300 text-[10px]">|</span>
+                        <button 
+                          onClick={() => {
+                            setNewAddress(userData?.address || '');
+                            setShowAddressModal(true);
+                            setIsOpen(false);
+                          }}
+                          className="text-[10px] text-brand-navy hover:underline font-extrabold block cursor-pointer bg-transparent border-0 p-0"
+                        >
+                          Atur Alamat
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
                 <button
@@ -201,6 +235,67 @@ export default function Navbar() {
                 <LogIn className="h-4.5 w-4.5" /> Masuk Google
               </button>
             )}
+          </div>
+        </div>
+      )}
+      {/* Address Management Modal for General Customer */}
+      {showAddressModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs font-sans text-slate-800 animate-fade-in">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                <MapPin className="h-5 w-5 text-brand-red animate-bounce" />
+                Atur Alamat Utama Pengiriman
+              </h3>
+              <button 
+                onClick={() => setShowAddressModal(false)}
+                className="text-slate-400 hover:text-slate-700 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">Alamat Lengkap Pengiriman</label>
+              <textarea
+                value={newAddress}
+                onChange={(e) => setNewAddress(e.target.value)}
+                placeholder="Masukkan alamat pengiriman utama Anda, cth: Perumahan Indah Permai Blok C No. 4, Gading Serpong, Tangerang"
+                className="w-full text-xs font-semibold bg-white border border-slate-200 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-brand-navy"
+                rows={4}
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setShowAddressModal(false)}
+                className="flex-1 border border-slate-200 hover:bg-slate-50 font-bold py-2 rounded-xl text-xs cursor-pointer text-slate-600 transition-colors"
+              >
+                Batal
+              </button>
+              <button 
+                onClick={async () => {
+                  if (!newAddress.trim()) {
+                    alert("Alamat tidak boleh kosong.");
+                    return;
+                  }
+                  setSavingAddress(true);
+                  try {
+                    await updateUserAddress(newAddress.trim());
+                    setShowAddressModal(false);
+                  } catch (err) {
+                    console.error("Gagal mengubah alamat:", err);
+                    alert("Gagal mengubah alamat utama.");
+                  } finally {
+                    setSavingAddress(false);
+                  }
+                }}
+                disabled={savingAddress}
+                className="flex-2 bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-2.5 rounded-xl cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                {savingAddress ? 'Menyimpan...' : 'Simpan Alamat'}
+              </button>
+            </div>
           </div>
         </div>
       )}

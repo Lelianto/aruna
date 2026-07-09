@@ -4,9 +4,9 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { 
-  ArrowRight, Building2, CheckCircle2, 
-  Compass, Cpu, Map, Network, ShieldCheck, 
+import {
+  ArrowRight, Building2, CheckCircle2,
+  Compass, Cpu, Map, Network, ShieldCheck,
   Sparkles, WifiOff, Volume2, ShoppingCart, RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -41,23 +41,18 @@ export default function LandingPage() {
 
   return (
     <div className="flex-1 flex flex-col bg-[#faf9f6] font-sans overflow-hidden">
-      
+
       {/* Hero Section */}
       <section className="relative pt-16 pb-20 border-b border-slate-200/60 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-brand-cream/40 via-[#faf9f6] to-white">
-        
+
         {/* Decorative background glows */}
         <div className="absolute top-20 right-1/4 h-80 w-80 bg-brand-orange/5 rounded-full filter blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-10 left-10 h-80 w-80 bg-brand-red/5 rounded-full filter blur-3xl pointer-events-none"></div>
-        
+
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid gap-12 lg:grid-cols-[1fr_1fr] items-center relative z-10">
-          
+
           {/* Left: Punchy Headings & Actions */}
           <div className="space-y-6 text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-cream border border-brand-navy/10 text-brand-navy font-bold text-[10px] uppercase tracking-wider shadow-2xs">
-              <Sparkles className="h-3.5 w-3.5 text-brand-orange fill-brand-orange animate-pulse" />
-              Sistem Operasi Koperasi Masa Depan
-            </div>
-            
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-brand-navy leading-[1.1] tracking-tight">
               Konsolidasi Usaha <br />
               Koperasi Merah Putih <br />
@@ -71,7 +66,7 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <Button 
+              <Button
                 onClick={handleCTAClick}
                 className="px-6 py-5 bg-brand-red hover:bg-brand-red/90 text-white font-black text-sm flex items-center justify-center gap-2 rounded-xl shadow-md transition-all duration-200 cursor-pointer"
               >
@@ -79,7 +74,7 @@ export default function LandingPage() {
                 <ArrowRight className="h-4.5 w-4.5" />
               </Button>
               <Link href="/pitch" className="w-full sm:w-auto">
-                <Button 
+                <Button
                   variant="outline"
                   className="w-full px-6 py-5 border-slate-200 text-slate-700 font-bold text-sm rounded-xl hover:bg-slate-50 transition-all duration-200 cursor-pointer bg-white"
                 >
@@ -105,9 +100,9 @@ export default function LandingPage() {
           {/* Right: Sandbox Aggregation Matchmaker Simulator */}
           <div className="relative">
             <div className="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-brand-orange/10 to-brand-red/10 blur-2xl opacity-75 pointer-events-none"></div>
-            
+
             <div className="relative rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-[0_20px_50px_rgba(18,48,66,0.04)] space-y-5">
-              
+
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Kalkulator Konsolidasi</span>
@@ -126,7 +121,7 @@ export default function LandingPage() {
                   <span>Volume Pesanan:</span>
                   <span className="text-brand-red font-black text-sm">{simulateValue} Ton</span>
                 </div>
-                <input 
+                <input
                   type="range"
                   min={200}
                   max={800}
@@ -159,7 +154,7 @@ export default function LandingPage() {
                     <div className="text-right">
                       <p className="text-xs font-black text-brand-red">{coop.allocated} Ton</p>
                       <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1 ml-auto">
-                        <div 
+                        <div
                           className="bg-brand-orange h-full rounded-full transition-all duration-300"
                           style={{ width: `${(coop.allocated / 300) * 100}%` }}
                         ></div>
@@ -200,7 +195,7 @@ export default function LandingPage() {
             <div className="space-y-1">
               <h3 className="font-extrabold text-sm text-slate-900">Sistem Bekerja Offline</h3>
               <p className="text-xs text-slate-450 leading-relaxed">
-                 POS Kasir tetap dapat digunakan untuk transaksi saat internet mati. Data disimpan aman di memori lokal dan disinkronkan otomatis setelah internet aktif kembali.
+                POS Kasir tetap dapat digunakan untuk transaksi saat internet mati. Data disimpan aman di memori lokal dan disinkronkan otomatis setelah internet aktif kembali.
               </p>
             </div>
           </div>

@@ -18,6 +18,7 @@ interface UserData {
   email: string;
   role: 'admin' | 'buyer' | 'koperasi' | 'customer' | null;
   associatedId?: string; // id of buyer or cooperative
+  address?: string; // primary delivery address for customer
 }
 
 interface AuthContextType {
@@ -28,6 +29,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   setRoleForUser: (role: 'admin' | 'buyer' | 'koperasi' | 'customer', associatedId?: string) => Promise<void>;
+  updateUserAddress: (address: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -55,28 +57,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Read from localStorage to check bypass login state (default to true if not set)
-    const isLoggedIn = localStorage.getItem('bypass_logged_in') !== 'false';
-    if (isLoggedIn) {
-      setUser(mockFirebaseUser);
-      setUserData(mockUserData);
-    } else {
-      setUser(null);
-      setUserData(null);
-    }
-    setLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setUser(firebaseUser);
+      if (firebaseUser) {
+        try {
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            setUserData(userDocSnap.data() as UserData);
+            setNeedsRoleSelection(false);
+          } else {
+            setUserData(null);
+            setNeedsRoleSelection(true);
+          }
+        } catch (err) {
+          console.error("Error loading user profile from Firestore:", err);
+          setUserData(null);
+        }
+      } else {
+        setUserData(null);
+        setNeedsRoleSelection(false);
+      }
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const signInWithGoogle = async () => {
     setLoading(true);
     try {
-      localStorage.setItem('bypass_logged_in', 'true');
-      setUser(mockFirebaseUser);
-      setUserData(mockUserData);
-      setLoading(false);
-      router.push('/mitra-dashboard');
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUser = result.user;
+      
+      const userDocRef = doc(db, 'users', firebaseUser.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const data = userDocSnap.data() as UserData;
+        setUserData(data);
+        setNeedsRoleSelection(false);
+        if (data.role === 'koperasi' || data.role === 'admin') {
+          router.push('/mitra-dashboard');
+        } else {
+          router.push('/');
+        }
+      } else {
+        setUserData(null);
+        setNeedsRoleSelection(true);
+        router.push('/select-role');
+      }
     } catch (error) {
       console.error("Error signing in with Google:", error);
+    } finally {
       setLoading(false);
     }
   };
@@ -84,15 +119,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setLoading(true);
     try {
-      localStorage.setItem('bypass_logged_in', 'false');
+      localStorage.clear(); // Clear all user-related data
       await signOut(auth);
+    } catch (error) {
+      console.warn("Firebase Auth signOut failed, proceeding with UI logout:", error);
+    } finally {
       setUser(null);
       setUserData(null);
       setLoading(false);
       router.push('/');
-    } catch (error) {
-      console.error("Error signing out:", error);
-      setLoading(false);
     }
   };
 
@@ -104,13 +139,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       uid: user.uid,
       name: user.displayName || 'Pengguna Baru',
       email: user.email || '',
-      role,
-      associatedId
+      role
     };
+
+    if (associatedId !== undefined) {
+      updatedProfile.associatedId = associatedId;
+    }
 
     await setDoc(userDocRef, updatedProfile);
     setUserData(updatedProfile);
     setNeedsRoleSelection(false);
+  };
+
+  const updateUserAddress = async (address: string) => {
+    if (!user || !userData) return;
+    const userDocRef = doc(db, 'users', user.uid);
+    const updatedProfile = { ...userData, address };
+    await setDoc(userDocRef, updatedProfile);
+    setUserData(updatedProfile);
   };
 
   return (
@@ -121,7 +167,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       needsRoleSelection,
       signInWithGoogle,
       logout,
-      setRoleForUser
+      setRoleForUser,
+      updateUserAddress
     }}>
       {children}
     </AuthContext.Provider>
