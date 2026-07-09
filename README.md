@@ -25,64 +25,46 @@ ARUNA merupakan **platform intelligence** yang mendukung digitalisasi komoditas 
 
 ---
 
-## ✨ Empat Fitur Utama
+## ✨ Fitur Utama Platform
 
-### 🗺️ 1. Peta Potensi Komoditas
-Menyajikan persebaran koperasi, komoditas unggulan, kapasitas produksi, dan lokasi secara **interaktif** — sehingga pemerintah maupun pelaku usaha dapat melihat potensi ekonomi desa dalam satu dashboard nasional.
+### 🗺️ 1. Peta Potensi Komoditas & Command Center
+Menyajikan persebaran koperasi, komoditas unggulan, kapasitas produksi, dan lokasi secara **interaktif** menggunakan peta Leaflet.
+* **Role Restrict**: Akses halaman Peta Command Center dibatasi khusus untuk peran `admin` dan `koperasi`.
+* **Gemini AI Insights**: Analisis dan rangkuman wilayah berdasarkan kapasitas produksi kumulatif secara real-time.
 
-### 🤝 2. Gotong Royong Supply Engine *(Pembeda Utama)*
-Mesin pencocokan yang secara **otomatis menggabungkan beberapa koperasi** untuk memenuhi permintaan pasar nasional yang tidak dapat dipenuhi oleh satu koperasi saja. Pendekatan ini mengimplementasikan prinsip gotong royong ke dalam rantai pasok digital.
+### 🤝 2. Gotong Royong Supply Engine (Auto-Split Billing)
+Mesin pencocokan yang secara **otomatis menggabungkan beberapa koperasi** untuk memenuhi permintaan pasar nasional.
+* **Gerbang Pembayaran QRIS Dinamis**: Rincian checkout dipecah per koperasi mitra penyedia barang dengan sistem *Auto-Split Escrow (H+1)*.
+* **Auto-Decrement & Auto-Confirm**: Transaksi langsung otomatis memotong stok gudang koperasi yang bersangkutan saat pembayaran terkonfirmasi.
 
-**Contoh nyata:** PT Indofood butuh 500 ton jagung. ARUNA otomatis mengidentifikasi dan mengalokasikan pasokan dari 3 koperasi berbeda lintas provinsi — masing-masing berkontribusi sesuai kapasitasnya.
+### 🏪 3. POS Kasir Koperasi Offline-First (SimKopDes Connector)
+Modul Kasir POS (Point of Sale) mandiri bagi koperasi desa untuk pencatatan penjualan lokal.
+* **Offline-First Storage**: Menggunakan IndexedDB lokal (`localDb`) untuk menyimpan transaksi penjualan, pembelian, dan inventori saat jaringan internet terputus.
+* **Background Sync Manager**: Secara otomatis melacak antrean sinkronisasi (`queueForSync`) dan melakukan sinkronisasi data ke cloud backend secara instan begitu koneksi pulih (`triggerSync`).
+* **QRIS GPN POS**: Kasir dapat memunculkan barcode QRIS dinamis untuk pembayaran instan pelanggan umum.
 
-```
-Permintaan buyer masuk (volume + lokasi pabrik)
-        ↓
-Sistem memetakan koperasi yang cocok (komoditas, stok, skor)
-        ↓
-Kuota dibagi proporsional → koperasi kecil pun bisa ikut memenuhi pasar nasional
-```
+### 📖 4. Riwayat Pembukuan Transaksi & Detail Popup
+Sistem pembukuan transaksi koperasi yang proper dan rapi.
+* **Detil Transaksi**: Baris riwayat transaksi dapat diklik untuk membuka **Modal Rincian Transaksi** yang menampilkan tabel rincian item produk, subtotal perhitungan, nama pelanggan/petani, serta tombol simulasi cetak struk belanja atau tanda terima barang masuk.
+* **Proteksi Format**: Menggunakan proteksi defensif guna menghindari *runtime error* pada pemformatan nominal mata uang.
 
-### ⭐ 3. ARUNA Score
-Mengukur **kesiapan koperasi** berdasarkan kapasitas pasok, aktivitas usaha, dan partisipasi anggota — sehingga memudahkan proses pemilihan mitra yang tepat dan terpercaya.
-
-### 💡 4. ARUNA Insight
-Menghasilkan **rekomendasi berbasis rule engine** mengenai peluang kolaborasi, peningkatan kapasitas produksi, dan distribusi komoditas agar koperasi bisa terus berkembang.
-
----
-
-## 📊 Statistik Demo
-
-| Indikator | Angka |
-|-----------|-------|
-| 🏛️ Koperasi mitra | **20+** |
-| 🗺️ Provinsi aktif | **14** |
-| 🌾 Komoditas unggulan | **15+** |
-| 📦 Kapasitas pasokan bulanan | **800+ Ton** |
+### 👤 5. Manajemen Profil & Alamat Pelanggan
+* **Identitas Customer**: Navbar mendeteksi dan menampilkan identitas peran pembeli dengan label `Customer Umum`.
+* **Atur Alamat Utama**: Menu Navbar menyediakan pengaturan alamat utama untuk customer umum, yang terintegrasi secara otomatis sebagai alamat pengiriman utama saat melakukan checkout di pasar digital.
 
 ---
 
-## 🤝 Kontribusi & Informasi
-
-Project ini dibuat untuk **Digital Cooperatives Expo 2026**. Jika ingin berkontribusi atau punya pertanyaan, silakan buka *issue* atau hubungi tim pengembang.
-
----
----
-
-## 🛠️ Informasi Teknis
-
-> Bagian ini ditujukan untuk **developer** yang ingin menjalankan atau berkontribusi pada kode sumber ARUNA.
+## 🛠️ Informasi Teknis (Untuk Developer)
 
 ### Stack Teknologi
 
-- **[Next.js 16](https://nextjs.org/)** — Framework web modern (React)
-- **[TypeScript](https://www.typescriptlang.org/)** — JavaScript dengan tipe data yang lebih aman
-- **[Tailwind CSS v4](https://tailwindcss.com/)** — Sistem desain visual
-- **[Leaflet](https://leafletjs.com/) / React Leaflet** — Peta interaktif
-- **[Recharts](https://recharts.org/)** — Visualisasi data & grafik
-- **[Zustand](https://zustand-demo.pmnd.rs/)** — Manajemen state aplikasi
-- **[TanStack Query](https://tanstack.com/query)** — Fetching & caching data
-- **[Zod](https://zod.dev/) + React Hook Form** — Validasi form
+- **[Next.js 16 (App Router)](https://nextjs.org/)** — Framework React modern
+- **[Firebase & Firestore](https://firebase.google.com/)** — Database cloud dan autentikasi pengguna
+- **[Leaflet / React Leaflet](https://leafletjs.com/)** — Integrasi GIS dan peta interaktif
+- **[Dexie.js / IndexedDB](https://dexie.org/)** — Mesin database offline lokal untuk sinkronisasi POS
+- **[Recharts](https://recharts.org/)** — Visualisasi data analitis dashboard nasional
+- **[Tailwind CSS v4](https://tailwindcss.com/)** — Sistem desain responsif
+- **[Lucide Icons](https://lucide.dev/)** — Set ikon visual UI premium
 
 ### Cara Menjalankan Secara Lokal
 
@@ -102,24 +84,24 @@ npm run dev
 
 Buka [http://localhost:3000](http://localhost:3000) — aplikasi siap digunakan!
 
-> Data yang tampil adalah **data demo** yang sudah disiapkan. Tidak perlu koneksi ke database eksternal untuk mencoba semua fitur.
-
-### Struktur Folder
+### Struktur Folder Utama
 
 ```
 aruna/
 ├── src/
 │   ├── app/               # Halaman-halaman aplikasi (routing Next.js)
 │   │   ├── page.tsx       # Halaman utama / landing page
-│   │   ├── dashboard/     # Dashboard nasional
-│   │   ├── peta/          # Peta potensi interaktif
-│   │   ├── marketplace/   # Supply engine & matching
-│   │   ├── scoring/       # ARUNA Score
-│   │   └── insights/      # Analisis & tren pasar
-│   ├── components/        # Komponen UI yang dapat digunakan ulang
-│   ├── lib/               # Fungsi utilitas & helper
+│   │   ├── select-role/   # Pemilihan peran pengguna & registrasi kyc
+│   │   ├── dashboard/     # Dashboard nasional analitik
+│   │   ├── peta/          # Peta potensi interaktif (Command Center)
+│   │   ├── marketplace/   # Supply engine & matching e-commerce
+│   │   ├── mitra-dashboard/ # Dasbor POS Kasir & Konektor offline
+│   │   └── api/           # API Routes (AI commands, upload dokumen, dll.)
+│   ├── components/        # Komponen UI yang dapat digunakan ulang (Navbar, map client)
+│   ├── context/           # React Context (Autentikasi & state peran)
+│   ├── lib/               # Layanan database offline, konfigurasi Firebase, upload
 │   └── types/             # Definisi tipe data TypeScript
-├── database/              # Data demo / seed
+├── database/              # Data demo / seed awal
 ├── public/                # Aset statis (gambar, ikon, dll.)
 └── package.json           # Daftar dependensi proyek
 ```
