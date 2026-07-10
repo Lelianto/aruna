@@ -157,13 +157,14 @@ export class HybridCooperativeRepository implements CooperativeRepository {
   async getAllWithDetails(): Promise<CooperativeWithCommodities[]> {
     // Bulk-load everything in parallel (3 round-trips total) instead of a
     // per-cooperative fan-out. The previous version called getByCooperativeId()
-    // (a full ~14k-row commodity fetch) and getScore() (a Firestore read) for
+    // (a full ~14k-row commodity fetch) and getScore() (a Prisma read) for
     // EACH of the 1000+ cooperatives — thousands of redundant fetches that made
     // dashboard/insights/scoring/potensi-desa pages extremely slow.
-    const [coops, allCommodities, scoresSnap] = await Promise.all([
+    const baseUrl = getBaseUrl();
+    const [coops, allCommodities, scoresRes] = await Promise.all([
       this.getAll(),
       commodityRepository.getAll(),
-      getDocs(collection(db, 'scores')),
+      fetch(`${baseUrl}/api/cooperative-scores?all=1`, { cache: 'no-store' }),
     ]);
 
     // Group commodities by cooperative_id in a single pass (O(n)).
@@ -177,11 +178,10 @@ export class HybridCooperativeRepository implements CooperativeRepository {
       }
     }
 
-    // Index precomputed scores from Firestore for O(1) lookup.
-    const scoresMap: Record<string, CooperativeScore> = {};
-    scoresSnap.forEach((docSnap) => {
-      scoresMap[docSnap.id] = { id: docSnap.id, ...docSnap.data() } as CooperativeScore;
-    });
+    // Index precomputed scores from Postgres (aruna_cooperative_scores) for O(1) lookup.
+    const scoresMap: Record<string, CooperativeScore> = scoresRes.ok
+      ? await scoresRes.json()
+      : {};
 
     const maxRev = coops.length > 0 ? Math.max(...coops.map(c => c.annual_revenue || 0), 1) : 1;
 

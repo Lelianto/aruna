@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   loadCooperativeScore,
+  loadAllCooperativeScores,
   upsertCooperativeScore,
   deleteCooperativeScore,
   CooperativeScoreInput,
@@ -9,6 +10,18 @@ import {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const cooperativeId = searchParams.get('cooperativeId');
+  const all = searchParams.get('all') === '1';
+
+  if (all) {
+    try {
+      const scores = await loadAllCooperativeScores();
+      return NextResponse.json(scores);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error fetching all cooperative scores:', error);
+      return NextResponse.json({ error: `Failed to fetch scores: ${message}` }, { status: 500 });
+    }
+  }
 
   if (!cooperativeId) {
     return NextResponse.json({ error: 'Missing cooperativeId' }, { status: 400 });
