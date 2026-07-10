@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, BarChart3, Map, MapPin, ShoppingBag, Award, Lightbulb, Compass, Presentation, ArrowUpRight, LogIn, LogOut, UserPlus, LayoutDashboard } from 'lucide-react';
+import { Menu, X, BarChart3, Map, MapPin, ShoppingBag, Award, Lightbulb, Compass, Presentation, ArrowUpRight, LogIn, LogOut, UserPlus, LayoutDashboard, Landmark } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
@@ -15,6 +15,7 @@ export default function Navbar() {
   const { user, userData, signInWithGoogle, logout, updateUserAddress } = useAuth();
 
   const navItems = [
+    { name: 'Potensi Desa', href: '/potensi-desa', icon: Landmark },
     { name: 'Peta Potensi', href: '/peta', icon: Map },
     { name: 'Dashboard Nasional', href: '/dashboard', icon: BarChart3 },
     { name: 'Komoditas', href: '/komoditas', icon: Compass },
@@ -28,15 +29,15 @@ export default function Navbar() {
   const filteredNavItems = navItems.filter(item => {
     // Tamu tanpa login / belum pilih peran
     if (!user || !userData?.role) {
-      return item.href === '/marketplace' || item.href === '/komoditas';
+      return item.href === '/marketplace' || item.href === '/komoditas' || item.href === '/potensi-desa';
     }
     // Buyer
     if (userData.role === 'buyer') {
-      return item.href === '/marketplace' || item.href === '/komoditas';
+      return item.href === '/marketplace' || item.href === '/komoditas' || item.href === '/potensi-desa';
     }
     // Customer
     if (userData.role === 'customer') {
-      return item.href === '/marketplace' || item.href === '/komoditas';
+      return item.href === '/marketplace' || item.href === '/komoditas' || item.href === '/potensi-desa';
     }
     // Koperasi
     if (userData.role === 'koperasi') {
@@ -44,6 +45,7 @@ export default function Navbar() {
         item.href === '/peta' ||
         item.href === '/komoditas' ||
         item.href === '/marketplace' ||
+        item.href === '/potensi-desa' ||
         item.href === '/mitra-dashboard'
       );
     }

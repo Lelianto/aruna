@@ -1,7 +1,15 @@
 import { Commodity } from '@/types';
 import { db } from '../firebase/config';
-import { collection, getDocs, doc, getDoc, query, where, addDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { seedDatabaseIfEmpty } from '../firebase/seeder';
+import { collection, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
+
+function getBaseUrl() {
+  if (typeof window !== 'undefined') {
+    return '';
+  }
+  const host = process.env.VERCEL_URL || 'localhost:3000';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  return `${protocol}://${host}`;
+}
 
 export interface CommodityRepository {
   getAll(): Promise<Commodity[]>;
@@ -14,34 +22,60 @@ export interface CommodityRepository {
   deleteCommodity(id: string): Promise<void>;
 }
 
-export class FirestoreCommodityRepository implements CommodityRepository {
+export class HybridCommodityRepository implements CommodityRepository {
   async getAll(): Promise<Commodity[]> {
-    await seedDatabaseIfEmpty();
-    const snap = await getDocs(collection(db, 'commodities'));
-    const list: Commodity[] = [];
-    snap.forEach((docSnap) => {
-      list.push({ id: docSnap.id, ...docSnap.data() } as Commodity);
-    });
-    return list;
+    try {
+      // 1. Fetch baseline from PostgreSQL
+      const baseUrl = getBaseUrl();
+      const res = await fetch(`${baseUrl}/api/commodities`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to fetch from PG API');
+      const pgList: Commodity[] = await res.json();
+
+      // 2. Fetch overrides & custom commodities from Firestore
+      const fsSnap = await getDocs(collection(db, 'commodities'));
+      const fsList: Commodity[] = [];
+      fsSnap.forEach((docSnap) => {
+        fsList.push({ id: docSnap.id, ...docSnap.data() } as Commodity);
+      });
+
+      // 3. Merge: overrides replace pg values, new ones are appended
+      const merged = [...pgList];
+      fsList.forEach(fsComm => {
+        const idx = merged.findIndex(c => c.id === fsComm.id);
+        if (idx !== -1) {
+          merged[idx] = { ...merged[idx], ...fsComm };
+        } else {
+          merged.push(fsComm);
+        }
+      });
+
+      return merged;
+    } catch (error) {
+      console.error('Error in commodityRepository.getAll:', error);
+      return [];
+    }
   }
 
   async getById(id: string): Promise<Commodity | null> {
-    await seedDatabaseIfEmpty();
-    const snap = await getDoc(doc(db, 'commodities', id));
-    if (!snap.exists()) return null;
-    return { id: snap.id, ...snap.data() } as Commodity;
+    if (!id) return null;
+    try {
+      const list = await this.getAll();
+      return list.find(c => c.id === id) || null;
+    } catch (error) {
+      console.error(`Error in commodityRepository.getById for ${id}:`, error);
+      return null;
+    }
   }
 
   async getByCooperativeId(cooperativeId: string): Promise<Commodity[]> {
     if (!cooperativeId) return [];
-    await seedDatabaseIfEmpty();
-    const q = query(collection(db, 'commodities'), where('cooperative_id', '==', cooperativeId));
-    const snap = await getDocs(q);
-    const list: Commodity[] = [];
-    snap.forEach((docSnap) => {
-      list.push({ id: docSnap.id, ...docSnap.data() } as Commodity);
-    });
-    return list;
+    try {
+      const list = await this.getAll();
+      return list.filter(c => c.cooperative_id === cooperativeId);
+    } catch (error) {
+      console.error(`Error in commodityRepository.getByCooperativeId for ${cooperativeId}:`, error);
+      return [];
+    }
   }
 
   async getUniqueNames(): Promise<string[]> {
@@ -64,20 +98,26 @@ export class FirestoreCommodityRepository implements CommodityRepository {
   }
 
   async addCommodity(data: Omit<Commodity, 'id'>): Promise<string> {
-    const ref = await addDoc(collection(db, 'commodities'), {
+    // Save to Firestore as a custom commodity
+    const docRef = doc(collection(db, 'commodities'));
+    const id = docRef.id;
+    await setDoc(docRef, {
       ...data,
-      created_at: new Date().toISOString(),
+      id,
+      created_at: new Date().toISOString()
     });
-    return ref.id;
+    return id;
   }
 
   async updateCommodity(id: string, data: Partial<Omit<Commodity, 'id'>>): Promise<void> {
-    await updateDoc(doc(db, 'commodities', id), data);
+    // Write override to Firestore
+    await setDoc(doc(db, 'commodities', id), data, { merge: true });
   }
 
   async deleteCommodity(id: string): Promise<void> {
+    // Delete from Firestore overrides
     await deleteDoc(doc(db, 'commodities', id));
   }
 }
 
-export const commodityRepository: CommodityRepository = new FirestoreCommodityRepository();
+export const commodityRepository: CommodityRepository = new HybridCommodityRepository();
