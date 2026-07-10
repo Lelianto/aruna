@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { MarketRequestWithBuyer, Buyer, MarketRequest, Commodity, CooperativeWithCommodities, SupplyMatch } from '@/types';
+import { MarketRequestWithBuyer, Buyer, MarketRequest, Commodity, Cooperative, SupplyMatch } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -80,8 +81,40 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return Math.round(d * 10) / 10; // 1 decimal place
 }
 
+// Progressive, batched in-stock product loader shared by the initial load and
+// the post-transaction refreshes. Fetches in-stock products page by page
+// (server-filtered + cached), applies Firestore overrides once, and reports
+// each accumulated batch via `onBatch` so the UI can paint before the whole
+// catalog arrives. Returns the full accumulated list.
+async function loadInStockCommodities(onBatch?: (items: Commodity[]) => void): Promise<Commodity[]> {
+  const BATCH = 300;
+  const accumulated: Commodity[] = [];
+  const overrides = await commodityRepository.getCommodityOverrides();
+  let offset = 0;
+  // Bounded loop guard in case `total` is ever inconsistent.
+  for (let guard = 0; guard < 100; guard++) {
+    const { items, total } = await commodityRepository.getInStockPage(BATCH, offset, overrides);
+    accumulated.push(...items);
+    onBatch?.([...accumulated]);
+    offset += BATCH;
+    if (items.length === 0 || offset >= total) break;
+  }
+  return accumulated;
+}
+
 export default function MarketplaceClient({ initialRequests }: MarketplaceClientProps) {
   const { user, userData, signInWithGoogle } = useAuth();
+  const router = useRouter();
+
+  // Pasar Digital adalah kanal transaksi (jelajah katalog, keranjang, checkout).
+  // Admin berperan sebagai pengawas platform, bukan pelaku transaksi, sehingga
+  // tidak diizinkan mengakses pasar digital — arahkan ke Dashboard Nasional.
+  const isAdmin = userData?.role === 'admin';
+  useEffect(() => {
+    if (isAdmin) {
+      router.push('/dashboard');
+    }
+  }, [isAdmin, router]);
 
   // Tab control: 'gotong_royong' (Industrial requests) or 'customer' (Direct consumer search) or 'pesanan' (My orders)
   const [activeMarketTab, setActiveMarketTab] = useState<MarketTab>(() => {
@@ -142,7 +175,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   const [successMsg, setSuccessMsg] = useState<string>('');
 
   // ─── STATE 2: CUSTOMER CENTRIC MARKETPLACE ──────────────────────────────────
-  const [coops, setCoops] = useState<CooperativeWithCommodities[]>([]);
+  const [coops, setCoops] = useState<Cooperative[]>([]);
   const [allCommodities, setAllCommodities] = useState<Commodity[]>([]);
   const [customerSearch, setCustomerSearch] = useState<string>('');
 
@@ -262,19 +295,25 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     return () => unsubscribe();
   }, []);
 
-  // Load Cooperatives & Commodities for Customer search
+  // Load Cooperatives & Commodities for Customer search.
+  // Products load progressively in batches (see loadInStockCommodities) so the
+  // grid paints after the first page instead of waiting for the whole catalog.
+  // Cooperatives load separately (lightweight getAll — never getAllWithDetails,
+  // which fans out a full commodity fetch per cooperative and never resolves).
+  // StrictMode-safe via the `cancelled` guard (ignores the discarded mount).
   useEffect(() => {
-    async function loadCustomerMarketData() {
-      try {
-        const coopList = await cooperativeRepository.getAllWithDetails();
-        const comList = await commodityRepository.getAll();
-        setCoops(coopList);
-        setAllCommodities(comList);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    loadCustomerMarketData();
+    let cancelled = false;
+
+    loadInStockCommodities((partial) => {
+      if (!cancelled) setAllCommodities(partial);
+    }).catch((err) => console.error('Gagal memuat produk komoditas:', err));
+
+    // Cooperative list supplies name/city/coordinates for distance ranking.
+    cooperativeRepository.getAll()
+      .then((list) => { if (!cancelled) setCoops(list); })
+      .catch((err) => console.error('Gagal memuat data koperasi:', err));
+
+    return () => { cancelled = true; };
   }, []);
 
   // Request browser geolocation for hyperlocal ranking
@@ -409,7 +448,9 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         coopName: coop?.name || 'Koperasi Mitra',
         city: coop?.city || 'Garut',
         province: coop?.province || 'Jawa Barat',
-        grade: coop?.score?.grade || 'B',
+        // Grade comes from the scoring engine (not in the lightweight coop list);
+        // default to 'B' here to avoid the expensive per-coop score computation.
+        grade: 'B',
         coopPhone: coop?.phone || '082122345566',
         distance,
         distanceSource,
@@ -701,9 +742,12 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         index++;
       }
 
-      // Refresh local UI data
-      const coopList = await cooperativeRepository.getAllWithDetails();
-      const comList = await commodityRepository.getAll();
+      // Refresh local UI: reuse the batched in-stock loader so the product list
+      // stays consistent with the initial load (in-stock only, cached, batched).
+      const [coopList, comList] = await Promise.all([
+        cooperativeRepository.getAll(),
+        loadInStockCommodities(),
+      ]);
       setCoops(coopList);
       setAllCommodities(comList);
 
@@ -767,9 +811,11 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         const reqRef = doc(db, 'market_requests', req.id);
         await updateDoc(reqRef, { status: 'Terpenuhi' });
 
-        // Refresh local UI lists
-        const coopList = await cooperativeRepository.getAllWithDetails();
-        const comList = await commodityRepository.getAll();
+        // Refresh local UI: reuse the batched in-stock loader for consistency.
+        const [coopList, comList] = await Promise.all([
+          cooperativeRepository.getAll(),
+          loadInStockCommodities(),
+        ]);
         setCoops(coopList);
         setAllCommodities(comList);
 
@@ -781,6 +827,22 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     }
   };
 
+  // Admin bukan pelaku transaksi — tahan render katalog sementara useEffect di
+  // atas mengarahkan admin keluar dari Pasar Digital ke Dashboard Nasional.
+  if (isAdmin) {
+    return (
+      <div className="page-shell flex-1 flex items-center justify-center py-20 bg-[#f7f8fa]">
+        <div className="text-center max-w-sm px-6">
+          <ShieldAlert className="h-10 w-10 text-brand-red mx-auto mb-3" />
+          <p className="text-sm font-semibold text-slate-900">Akses Dibatasi</p>
+          <p className="text-xs font-semibold text-slate-500 mt-1">
+            Pasar Digital diperuntukkan bagi koperasi & pembeli. Anda dialihkan ke Dashboard Nasional.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="page-shell flex-1 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
@@ -788,7 +850,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         {/* Toggle Marketplace mode tab */}
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center border-b border-slate-200 pb-4">
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 flex items-center gap-2">
               <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-brand-red shrink-0" />
               ARUNA Commerce Network
             </h1>
@@ -798,7 +860,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
           </div>
 
           {user && (showToggle ? (
-            <div className="flex bg-slate-100 p-0.5 rounded-lg text-[11px] sm:text-xs font-bold w-full sm:w-auto overflow-x-auto no-scrollbar sm:shrink-0">
+            <div className="flex bg-slate-100 p-0.5 rounded-lg text-[11px] sm:text-xs font-semibold w-full sm:w-auto overflow-x-auto no-scrollbar sm:shrink-0">
               <button
                 onClick={() => handleSetMarketTab('gotong_royong')}
                 className={`px-3 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap flex-1 sm:flex-none ${activeMarketTab === 'gotong_royong' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
@@ -819,7 +881,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
               </button>
             </div>
           ) : (
-            <div className="flex bg-slate-100 p-0.5 rounded-lg text-[11px] sm:text-xs font-bold w-full sm:w-auto overflow-x-auto no-scrollbar sm:shrink-0">
+            <div className="flex bg-slate-100 p-0.5 rounded-lg text-[11px] sm:text-xs font-semibold w-full sm:w-auto overflow-x-auto no-scrollbar sm:shrink-0">
               <button
                 onClick={() => handleSetMarketTab('customer')}
                 className={`px-3 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap flex-1 sm:flex-none ${activeMarketTab === 'customer' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
@@ -870,7 +932,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
               {canCreate && (
                 <Button
                   onClick={handleOpenCreateModal}
-                  className="w-full sm:w-auto bg-brand-red hover:bg-brand-red/90 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md cursor-pointer flex items-center gap-1.5 justify-center"
+                  className="w-full sm:w-auto bg-brand-red hover:bg-brand-red/90 text-white font-semibold text-xs px-5 py-2.5 rounded-xl shadow-md cursor-pointer flex items-center gap-1.5 justify-center"
                 >
                   <Plus className="h-4.5 w-4.5" /> Posting Kebutuhan Baru
                 </Button>
@@ -882,32 +944,32 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 <Card key={req.id} className="border-slate-200 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex flex-col justify-between">
                   <CardHeader className="pb-3 flex flex-row justify-between items-start gap-3">
                     <div className="space-y-1">
-                      <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${req.status === 'Menunggu Pembayaran' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                          req.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' :
-                            'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      <span className={`inline-block text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase ${req.status === 'Menunggu Pembayaran' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                        req.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' :
+                          'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         }`}>
                         {req.status}
                       </span>
-                      <h3 className="text-base font-black text-slate-900 pt-1.5">
+                      <h3 className="text-base font-semibold text-slate-900 pt-1.5">
                         {req.commodity_name}
                       </h3>
                     </div>
                     <div className="text-right">
-                      <span className="text-[9px] text-slate-400 block font-bold uppercase">Volume</span>
-                      <span className="text-sm font-black text-brand-red">{req.quantity} {req.unit}</span>
+                      <span className="text-[9px] text-slate-400 block font-semibold uppercase">Volume</span>
+                      <span className="text-sm font-semibold text-brand-red">{req.quantity} {req.unit}</span>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs font-semibold text-slate-600 flex items-center gap-2">
                       <Building2 className="h-4 w-4 text-slate-400" />
                       <div>
-                        <span className="text-[10px] text-slate-400 block font-bold uppercase">Offtaker</span>
+                        <span className="text-[10px] text-slate-400 block font-semibold uppercase">Offtaker</span>
                         {req.buyer.company_name} ({req.buyer.city})
                       </div>
                     </div>
                     {req.status === 'Menunggu Pemenuhan' && (
                       <Link href={`/marketplace/${req.id}`} className="block">
-                        <Button className="w-full bg-brand-navy hover:bg-brand-navy/90 text-white font-black text-xs py-2 flex items-center justify-center gap-1 cursor-pointer rounded-xl">
+                        <Button className="w-full bg-brand-navy hover:bg-brand-navy/90 text-white font-semibold text-xs py-2 flex items-center justify-center gap-1 cursor-pointer rounded-xl">
                           Uji Gotong Royong Engine <ArrowRight className="h-4 w-4" />
                         </Button>
                       </Link>
@@ -917,12 +979,12 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                         {userData?.role === 'admin' ? (
                           <Button
                             onClick={() => handleApprovePaymentRequest(req)}
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl"
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl"
                           >
                             <CheckCircle2 className="h-4 w-4" /> Verifikasi Pembayaran
                           </Button>
                         ) : (
-                          <div className="text-[10px] text-rose-500 font-extrabold flex items-center gap-1 bg-rose-50 p-2.5 rounded-lg border border-rose-100/50 justify-center">
+                          <div className="text-[10px] text-rose-500 font-semibold flex items-center gap-1 bg-rose-50 p-2.5 rounded-lg border border-rose-100/50 justify-center">
                             <Clock className="h-4 w-4 animate-spin text-rose-500" />
                             Menunggu Verifikasi Admin
                           </div>
@@ -1007,20 +1069,20 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                           </>
                         )}
                         {/* Distance chip */}
-                        <span className={`absolute top-2 right-2 backdrop-blur-sm border text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 z-10 ${osrmLoading
-                            ? 'bg-white/70 border-slate-200 text-slate-400 animate-pulse'
-                            : prod.distanceSource === 'osrm'
-                              ? 'bg-emerald-50/90 border-emerald-200 text-emerald-700'
-                              : 'bg-white/90 border-slate-200 text-slate-600'
+                        <span className={`absolute top-2 right-2 backdrop-blur-sm border text-[9px] font-semibold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 z-10 ${osrmLoading
+                          ? 'bg-white/70 border-slate-200 text-slate-400 animate-pulse'
+                          : prod.distanceSource === 'osrm'
+                            ? 'bg-emerald-50/90 border-emerald-200 text-emerald-700'
+                            : 'bg-white/90 border-slate-200 text-slate-600'
                           }`}>
                           <MapPin className="h-2.5 w-2.5 text-brand-red" />
                           {osrmLoading ? '...' : `${prod.distance} km`}
                           {!osrmLoading && prod.distanceSource === 'osrm' && (
-                            <span className="text-[8px] text-emerald-600 font-black">via jalan</span>
+                            <span className="text-[8px] text-emerald-600 font-semibold">via jalan</span>
                           )}
                         </span>
                         {/* Grade badge */}
-                        <span className={`absolute top-2 left-2 text-[9px] font-black px-1.5 py-0.5 rounded-full text-white z-10 ${prod.grade === 'A' ? 'bg-emerald-500' : prod.grade === 'B' ? 'bg-blue-500' : 'bg-slate-400'
+                        <span className={`absolute top-2 left-2 text-[9px] font-semibold px-1.5 py-0.5 rounded-full text-white z-10 ${prod.grade === 'A' ? 'bg-emerald-500' : prod.grade === 'B' ? 'bg-blue-500' : 'bg-slate-400'
                           }`}>
                           Kelas {prod.grade}
                         </span>
@@ -1030,7 +1092,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       <div className="p-3 flex flex-col flex-1 gap-2">
                         {/* Name & coop */}
                         <div>
-                          <h3 className="text-sm font-bold text-slate-900 leading-tight line-clamp-1">{prod.name}</h3>
+                          <h3 className="text-sm font-semibold text-slate-900 leading-tight line-clamp-1">{prod.name}</h3>
                           <p className="text-[10px] text-slate-400 font-medium mt-0.5 flex items-center gap-1 line-clamp-1">
                             <Building2 className="h-3 w-3 shrink-0" /> {prod.coopName}
                           </p>
@@ -1038,7 +1100,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
                         {/* Price */}
                         <div>
-                          <span className="text-base font-black text-brand-navy tabular-nums">
+                          <span className="text-base font-semibold text-brand-navy tabular-nums">
                             Rp {prod.pricePerKg.toLocaleString('id-ID')}
                           </span>
                           <span className="text-[10px] text-slate-400 font-semibold"> / {prod.unit}</span>
@@ -1091,9 +1153,9 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                     <button
                       key={i}
                       onClick={() => handleSelectPage(i)}
-                      className={`w-7 h-7 text-xs font-bold rounded-lg transition-colors cursor-pointer ${i === currentPage
-                          ? 'bg-brand-navy text-white'
-                          : 'border border-slate-200 text-slate-500 hover:bg-slate-50'
+                      className={`w-7 h-7 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${i === currentPage
+                        ? 'bg-brand-navy text-white'
+                        : 'border border-slate-200 text-slate-500 hover:bg-slate-50'
                         }`}
                     >
                       {i + 1}
@@ -1124,7 +1186,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         {activeMarketTab === 'pesanan' && (
           <div className="space-y-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-lg font-black text-slate-800">
+              <h2 className="text-lg font-semibold text-slate-800">
                 {userData?.role === 'admin' ? 'Daftar Seluruh Transaksi Platform' : 'Riwayat Belanja & Status Pesanan Anda'}
               </h2>
             </div>
@@ -1135,7 +1197,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                   <ShoppingBag className="h-8 w-8" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-black text-slate-800">Belum Ada Transaksi</h3>
+                  <h3 className="text-xs font-semibold text-slate-800">Belum Ada Transaksi</h3>
                   <p className="text-[10px] text-slate-400 mt-1 max-w-[240px] mx-auto leading-relaxed">
                     Anda belum melakukan pemesanan komoditas. Silakan cari produk di halaman utama belanja.
                   </p>
@@ -1147,25 +1209,25 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                   <Card key={order.id} className="border-slate-200 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex flex-col justify-between">
                     <CardHeader className="pb-3 flex flex-row justify-between items-start gap-3">
                       <div className="space-y-1">
-                        <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${order.status === 'Menunggu Pembayaran' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                            order.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' :
-                              'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        <span className={`inline-block text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase ${order.status === 'Menunggu Pembayaran' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                          order.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' :
+                            'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           }`}>
                           {order.status}
                         </span>
-                        <h3 className="text-base font-black text-slate-900 pt-1.5 font-sans">
+                        <h3 className="text-base font-semibold text-slate-900 pt-1.5 font-sans">
                           {order.commodity_name}
                         </h3>
                         <span className="text-[9px] text-slate-400 block font-semibold font-sans">
                           Tanggal: {order.created_at ? new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                         </span>
-                        <span className="text-[9px] text-slate-450 block font-bold font-sans">
-                          Invoice: <span className="font-extrabold text-slate-700">{order.invoice_number || order.id.slice(0, 8).toUpperCase()}</span>
+                        <span className="text-[9px] text-slate-450 block font-semibold font-sans">
+                          Invoice: <span className="font-semibold text-slate-700">{order.invoice_number || order.id.slice(0, 8).toUpperCase()}</span>
                         </span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[9px] text-slate-400 block font-bold uppercase">Volume</span>
-                        <span className="text-sm font-black text-brand-red">{order.quantity} {order.unit}</span>
+                        <span className="text-[9px] text-slate-400 block font-semibold uppercase">Volume</span>
+                        <span className="text-sm font-semibold text-brand-red">{order.quantity} {order.unit}</span>
                       </div>
                     </CardHeader>
 
@@ -1173,7 +1235,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs font-semibold text-slate-655 flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-slate-400 animate-pulse" />
                         <div>
-                          <span className="text-[10px] text-slate-400 block font-bold uppercase">Koperasi Penyedia</span>
+                          <span className="text-[10px] text-slate-400 block font-semibold uppercase">Koperasi Penyedia</span>
                           {order.coopName} ({order.coopCity})
                         </div>
                       </div>
@@ -1181,7 +1243,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       {/* Display delivery address detail */}
                       {order.shipping_address && (
                         <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[10px] font-semibold text-slate-500 space-y-1">
-                          <span className="text-slate-400 block font-black uppercase text-[8px]">Tujuan Pengiriman</span>
+                          <span className="text-slate-400 block font-semibold uppercase text-[8px]">Tujuan Pengiriman</span>
                           <p className="line-clamp-2 leading-relaxed text-slate-650">{order.shipping_address}</p>
                         </div>
                       )}
@@ -1190,7 +1252,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       {order.status === 'Menunggu Pembayaran' && userData?.role === 'admin' && (
                         <Button
                           onClick={() => handleApprovePaymentRequest(order)}
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
                         >
                           <CheckCircle2 className="h-4.5 w-4.5" /> Verifikasi Pembayaran
                         </Button>
@@ -1205,7 +1267,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                             const totalAmount = order.quantity * mockCommodityPrice + deliveryCost;
                             handleShowOrderPaymentDetails(order);
                           }}
-                          className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
+                          className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-semibold text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
                         >
                           <CreditCard className="h-4 w-4" /> Lihat Detail VA
                         </Button>
@@ -1223,7 +1285,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-black text-slate-900">Posting Permintaan Komoditas Baru</h3>
+                <h3 className="text-lg font-semibold text-slate-900">Posting Permintaan Komoditas Baru</h3>
                 <button onClick={handleCloseCreateModal} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
               </div>
 
@@ -1244,7 +1306,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 />
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-500 block uppercase">Volume Kebutuhan Pasokan (Ton):</label>
+                  <label className="text-[10px] font-semibold text-slate-500 block uppercase">Volume Kebutuhan Pasokan (Ton):</label>
                   <input
                     type="number"
                     step="any"
@@ -1279,7 +1341,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                   <Button
                     type="submit"
                     disabled={isSubmitting}
-                    className="bg-brand-red hover:bg-brand-red/90 text-white font-black text-xs cursor-pointer rounded-xl h-10 px-6"
+                    className="bg-brand-red hover:bg-brand-red/90 text-white font-semibold text-xs cursor-pointer rounded-xl h-10 px-6"
                   >
                     {isSubmitting ? 'Memproses...' : 'Posting Permintaan'}
                   </Button>
@@ -1294,19 +1356,19 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
             <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-black text-slate-900">Simulasi Checkout Pelanggan</h3>
+                <h3 className="text-base font-semibold text-slate-900">Simulasi Checkout Pelanggan</h3>
                 <button onClick={handleCloseCheckoutModal} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
               </div>
 
               <div className="space-y-4 text-xs font-semibold">
                 <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1">
-                  <span className="text-[10px] text-slate-400 block font-black uppercase">Item</span>
-                  <span className="text-sm font-black text-slate-800 block">{checkoutItem.name}</span>
+                  <span className="text-[10px] text-slate-400 block font-semibold uppercase">Item</span>
+                  <span className="text-sm font-semibold text-slate-800 block">{checkoutItem.name}</span>
                   <span className="text-[10px] text-slate-500 block">Koperasi: {checkoutItem.coopName}</span>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-500 block uppercase">Jumlah Beli (Kg):</label>
+                  <label className="text-[10px] font-semibold text-slate-500 block uppercase">Jumlah Beli (Kg):</label>
                   <input
                     type="number"
                     min={1}
@@ -1323,7 +1385,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                     <div className="flex gap-2 items-start">
                       <ShieldAlert className="h-4.5 w-4.5 text-brand-orange shrink-0 mt-0.5" />
                       <div>
-                        <h4 className="text-[10px] font-black uppercase tracking-wider text-amber-950">Peringatan: Stok Terdekat Terbatas</h4>
+                        <h4 className="text-[10px] font-semibold uppercase tracking-wider text-amber-950">Peringatan: Stok Terdekat Terbatas</h4>
                         <p className="text-[11px] text-amber-800 leading-normal mt-0.5">
                           Koperasi {checkoutItem.coopName} kekurangan stok untuk volume tersebut. Sistem menawarkan split pengiriman dari koperasi tetangga.
                         </p>
@@ -1331,7 +1393,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                     </div>
 
                     <div className="flex flex-col gap-2 pt-1">
-                      <label className="flex items-center gap-1.5 text-xs text-slate-700 font-extrabold cursor-pointer">
+                      <label className="flex items-center gap-1.5 text-xs text-slate-700 font-semibold cursor-pointer">
                         <input
                           type="radio"
                           name="shipping_opt"
@@ -1341,7 +1403,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                         />
                         Single Kirim (Satu Kargo Lebih Lambat)
                       </label>
-                      <label className="flex items-center gap-1.5 text-xs text-slate-700 font-extrabold cursor-pointer">
+                      <label className="flex items-center gap-1.5 text-xs text-slate-700 font-semibold cursor-pointer">
                         <input
                           type="radio"
                           name="shipping_opt"
@@ -1357,14 +1419,14 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
                 <div className="border-t border-slate-100 pt-3 flex justify-between items-center text-xs">
                   <div>
-                    <span className="text-[10px] text-slate-400 font-black block uppercase">Ongkos Kirim</span>
-                    <span className="font-extrabold text-slate-700">
+                    <span className="text-[10px] text-slate-400 font-semibold block uppercase">Ongkos Kirim</span>
+                    <span className="font-semibold text-slate-700">
                       Rp {(shippingOption === 'split' ? checkoutItem.deliveryCost * 1.5 : checkoutItem.deliveryCost).toLocaleString('id-ID')}
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 font-black block uppercase">Total Bayar</span>
-                    <span className="text-base font-black text-brand-orange">
+                    <span className="text-[10px] text-slate-400 font-semibold block uppercase">Total Bayar</span>
+                    <span className="text-base font-semibold text-brand-orange">
                       Rp {(checkoutQuantity * checkoutItem.pricePerKg + (shippingOption === 'split' ? checkoutItem.deliveryCost * 1.5 : checkoutItem.deliveryCost)).toLocaleString('id-ID')}
                     </span>
                   </div>
@@ -1380,7 +1442,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                   </Button>
                   <Button
                     onClick={initiateDirectPayment}
-                    className="bg-brand-navy hover:bg-brand-navy/90 text-white font-black text-xs cursor-pointer rounded-xl h-10 px-6"
+                    className="bg-brand-navy hover:bg-brand-navy/90 text-white font-semibold text-xs cursor-pointer rounded-xl h-10 px-6"
                   >
                     Konfirmasi Checkout
                   </Button>
@@ -1399,7 +1461,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 <ShoppingBag className="h-8 w-8 text-brand-red" />
               </div>
               <div className="space-y-1.5">
-                <h2 className="text-lg font-black text-slate-900">Masuk untuk Berbelanja</h2>
+                <h2 className="text-lg font-semibold text-slate-900">Masuk untuk Berbelanja</h2>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Buat akun atau masuk untuk menambahkan produk ke keranjang dan melakukan pemesanan ke koperasi.
                 </p>
@@ -1407,7 +1469,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
               <div className="space-y-2">
                 <Button
                   onClick={handleLoginWithGoogle}
-                  className="w-full py-3 bg-brand-red hover:bg-brand-red/90 text-white font-black text-sm flex items-center justify-center gap-2 rounded-xl cursor-pointer"
+                  className="w-full py-3 bg-brand-red hover:bg-brand-red/90 text-white font-semibold text-sm flex items-center justify-center gap-2 rounded-xl cursor-pointer"
                 >
                   <LogIn className="h-4 w-4" />
                   Masuk dengan Google
@@ -1432,7 +1494,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         >
           <ShoppingBag className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
           {cart.length > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 bg-brand-navy text-white text-[9px] font-black h-5 w-5 rounded-full flex items-center justify-center border border-white animate-pulse">
+            <span className="absolute -top-1.5 -right-1.5 bg-brand-navy text-white text-[9px] font-semibold h-5 w-5 rounded-full flex items-center justify-center border border-white animate-pulse">
               {cart.reduce((sum, item) => sum + item.quantity, 0)}
             </span>
           )}
@@ -1451,8 +1513,8 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                   <div className="flex items-center gap-2">
                     <ShoppingBag className="h-5 w-5 text-brand-red" />
-                    <h2 className="text-base font-black text-slate-800">Keranjang Belanja</h2>
-                    <Badge variant="secondary" className="font-extrabold text-[10px] bg-slate-200 text-slate-700">
+                    <h2 className="text-base font-semibold text-slate-800">Keranjang Belanja</h2>
+                    <Badge variant="secondary" className="font-semibold text-[10px] bg-slate-200 text-slate-700">
                       {cart.reduce((sum, item) => sum + item.quantity, 0)} item
                     </Badge>
                   </div>
@@ -1469,19 +1531,19 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                         <ShoppingBag className="h-8 w-8" />
                       </div>
                       <div>
-                        <p className="text-xs font-black text-slate-800">Keranjang Belanja Kosong</p>
+                        <p className="text-xs font-semibold text-slate-800">Keranjang Belanja Kosong</p>
                         <p className="text-[10px] text-slate-400 mt-1 max-w-[200px]">Silakan pilih komoditas dari koperasi terdekat untuk ditambahkan.</p>
                       </div>
                     </div>
                   ) : (
                     cart.map((item, index) => (
-                      <div key={`${item.id}-${item.name}-${index}`} className="flex gap-3 p-3 border border-slate-100 rounded-xl bg-[#faf9f6]/40 hover:bg-[#faf9f6] transition-colors relative">
+                      <div key={`${item.id}-${item.name}-${index}`} className="flex gap-3 p-3 border border-slate-100 rounded-xl bg-[#f7f8fa]/40 hover:bg-[#f7f8fa] transition-colors relative">
                         <div className="flex-1 space-y-1">
-                          <span className="text-[9px] bg-brand-red/10 text-brand-red px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                          <span className="text-[9px] bg-brand-red/10 text-brand-red px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider">
                             {item.coopName}
                           </span>
-                          <h4 className="text-xs font-black text-slate-800 leading-snug">{item.name}</h4>
-                          <p className="text-[10px] text-slate-400 font-extrabold">Rp {item.pricePerKg.toLocaleString('id-ID')} / kg</p>
+                          <h4 className="text-xs font-semibold text-slate-800 leading-snug">{item.name}</h4>
+                          <p className="text-[10px] text-slate-400 font-semibold">Rp {item.pricePerKg.toLocaleString('id-ID')} / kg</p>
                         </div>
                         <div className="flex flex-col items-end justify-between shrink-0">
                           <button onClick={() => handleRemoveCartItem(item.id, item.name)} className="text-slate-350 hover:text-red-500 cursor-pointer">
@@ -1491,14 +1553,14 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                           <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden text-xs">
                             <button
                               onClick={() => handleUpdateCartQty(item.id, item.name, item.quantity - 1)}
-                              className="px-2 py-1 bg-slate-50 hover:bg-slate-100 font-bold border-r border-slate-200 cursor-pointer"
+                              className="px-2 py-1 bg-slate-50 hover:bg-slate-100 font-semibold border-r border-slate-200 cursor-pointer"
                             >
                               -
                             </button>
-                            <span className="px-2.5 font-bold text-slate-700 min-w-[20px] text-center">{item.quantity}</span>
+                            <span className="px-2.5 font-semibold text-slate-700 min-w-[20px] text-center">{item.quantity}</span>
                             <button
                               onClick={() => handleUpdateCartQty(item.id, item.name, item.quantity + 1)}
-                              className="px-2 py-1 bg-slate-50 hover:bg-slate-100 font-bold border-l border-slate-200 cursor-pointer"
+                              className="px-2 py-1 bg-slate-50 hover:bg-slate-100 font-semibold border-l border-slate-200 cursor-pointer"
                             >
                               +
                             </button>
@@ -1515,19 +1577,19 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                     <div className="space-y-1.5 text-slate-500">
                       <div className="flex justify-between">
                         <span>Subtotal Produk:</span>
-                        <span className="font-extrabold text-slate-800 tabular-nums">
+                        <span className="font-semibold text-slate-800 tabular-nums">
                           Rp {cart.reduce((sum, item) => sum + (item.pricePerKg * item.quantity), 0).toLocaleString('id-ID')}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>Total Ongkos Kirim:</span>
-                        <span className="font-extrabold text-slate-800 tabular-nums">
+                        <span className="font-semibold text-slate-800 tabular-nums">
                           Rp {cart.reduce((sum, item) => sum + item.deliveryCost, 0).toLocaleString('id-ID')}
                         </span>
                       </div>
                       <div className="flex justify-between border-t border-slate-200 pt-2 text-sm">
-                        <span className="font-black text-slate-800">Total Pembayaran:</span>
-                        <span className="font-black text-brand-orange text-base tabular-nums">
+                        <span className="font-semibold text-slate-800">Total Pembayaran:</span>
+                        <span className="font-semibold text-brand-orange text-base tabular-nums">
                           Rp {(
                             cart.reduce((sum, item) => sum + (item.pricePerKg * item.quantity), 0) +
                             cart.reduce((sum, item) => sum + item.deliveryCost, 0)
@@ -1538,9 +1600,9 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
                     <Button
                       onClick={initiateCartPayment}
-                      className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer"
+                      className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-semibold text-xs py-3 rounded-xl cursor-pointer"
                     >
-                      Checkout Sekarang ({cart.reduce((sum, item) => sum + item.quantity, 0)} kg)
+                      Checkout Sekarang ({cart.reduce((sum, item) => sum + item.quantity, 0).toLocaleString('id-ID')} kg)
                     </Button>
                   </div>
                 )}
@@ -1572,7 +1634,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 {!paymentSuccess ? (
                   <>
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                      <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                      <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
                         <CreditCard className="h-5 w-5 text-brand-navy animate-pulse" />
                         Gerbang Pembayaran QRIS (ARUNA Hub)
                       </h3>
@@ -1585,7 +1647,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
                     {/* QRIS Simulated QR Code Graphic */}
                     <div className="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100/80 space-y-3">
-                      <div className="bg-[#E52A30] px-4 py-1 rounded-full flex items-center justify-center gap-1 text-white font-black text-[9px] tracking-widest uppercase shadow-xs">
+                      <div className="bg-[#E52A30] px-4 py-1 rounded-full flex items-center justify-center gap-1 text-white font-semibold text-[9px] tracking-widest uppercase shadow-xs">
                         <span>QRIS</span>
                         <span className="text-[7px] font-medium opacity-80">GPN</span>
                       </div>
@@ -1599,40 +1661,40 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       </div>
 
                       <div className="text-center space-y-0.5">
-                        <span className="text-[9px] text-slate-400 block font-black uppercase">Sisa Waktu Pembayaran</span>
-                        <span className="text-sm font-black text-brand-navy font-mono animate-pulse">04:59</span>
+                        <span className="text-[9px] text-slate-400 block font-semibold uppercase">Sisa Waktu Pembayaran</span>
+                        <span className="text-sm font-semibold text-brand-navy font-mono animate-pulse">04:59</span>
                       </div>
                     </div>
 
                     {/* Total Amount Box */}
                     <div className="bg-brand-navy/5 border border-brand-navy/10 p-3.5 rounded-xl flex justify-between items-center text-xs font-semibold">
-                      <span className="text-slate-500 uppercase text-[9px] font-black">Total Tagihan Belanja</span>
-                      <span className="text-base font-black text-brand-orange tabular-nums">
+                      <span className="text-slate-500 uppercase text-[9px] font-semibold">Total Tagihan Belanja</span>
+                      <span className="text-base font-semibold text-brand-orange tabular-nums">
                         Rp {activePayment.totalAmount.toLocaleString('id-ID')}
                       </span>
                     </div>
 
                     {/* Split Payout Breakdown */}
                     <div className="space-y-2">
-                      <span className="text-[9.5px] text-slate-400 block font-black uppercase tracking-wide">Rincian Split Payment (Sistem Otomatis)</span>
+                      <span className="text-[9.5px] text-slate-400 block font-semibold uppercase tracking-wide">Rincian Split Payment (Sistem Otomatis)</span>
                       <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
                         {Object.values(coopSplits).map((split, idx) => (
                           <div key={idx} className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex justify-between items-center gap-2">
                             <div className="flex items-center gap-2 min-w-0">
-                              <div className="h-7 w-7 rounded-lg bg-brand-navy/5 flex items-center justify-center font-black text-brand-navy text-[10px] shrink-0">
+                              <div className="h-7 w-7 rounded-lg bg-brand-navy/5 flex items-center justify-center font-semibold text-brand-navy text-[10px] shrink-0">
                                 🏢
                               </div>
                               <div className="min-w-0">
-                                <span className="text-[11px] font-black text-slate-800 block truncate max-w-[170px]">{split.coopName}</span>
-                                <span className="text-[9px] text-emerald-600 font-bold flex items-center gap-1">
+                                <span className="text-[11px] font-semibold text-slate-800 block truncate max-w-[170px]">{split.coopName}</span>
+                                <span className="text-[9px] text-emerald-600 font-semibold flex items-center gap-1">
                                   <span className="h-1 w-1 rounded-full bg-emerald-500 animate-ping shrink-0" />
                                   Auto-Split (H+1)
                                 </span>
                               </div>
                             </div>
                             <div className="text-right shrink-0">
-                              <span className="text-xs font-black text-slate-850 block">Rp {(split.subtotal + split.delivery).toLocaleString('id-ID')}</span>
-                              <span className="text-[8.5px] text-slate-400 font-extrabold block">Ongkir: Rp {split.delivery.toLocaleString('id-ID')}</span>
+                              <span className="text-xs font-semibold text-slate-850 block">Rp {(split.subtotal + split.delivery).toLocaleString('id-ID')}</span>
+                              <span className="text-[8.5px] text-slate-400 font-semibold block">Ongkir: Rp {split.delivery.toLocaleString('id-ID')}</span>
                             </div>
                           </div>
                         ))}
@@ -1642,18 +1704,18 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                     {/* Shipping Address Confirmation section */}
                     {!activePayment.isReadOnly && (
                       <div className="space-y-2 border-t border-slate-100 pt-3">
-                        <span className="text-[9.5px] text-slate-400 block font-black uppercase tracking-wide">Alamat Pengiriman</span>
+                        <span className="text-[9.5px] text-slate-400 block font-semibold uppercase tracking-wide">Alamat Pengiriman</span>
 
                         {!useCustomAddress ? (
                           <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/50 text-[11px] text-slate-700 font-semibold space-y-1">
                             <div className="flex justify-between items-center">
-                              <span className="text-[9px] text-slate-400 block font-bold">
+                              <span className="text-[9px] text-slate-400 block font-semibold">
                                 {userData?.role === 'customer' ? 'ALAMAT UTAMA PELANGGAN' : 'ALAMAT PROFIL PERUSAHAAN'}
                               </span>
                               {userData?.role === 'customer' && (
                                 <button
                                   onClick={handleShowAddressPrompt}
-                                  className="text-[9px] text-brand-red font-black hover:underline cursor-pointer bg-transparent border-0 p-0"
+                                  className="text-[9px] text-brand-red font-semibold hover:underline cursor-pointer bg-transparent border-0 p-0"
                                 >
                                   Ubah Alamat Utama
                                 </button>
@@ -1676,7 +1738,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                           />
                         )}
 
-                        <label className="flex items-center gap-1.5 text-[11px] text-slate-550 font-bold cursor-pointer select-none">
+                        <label className="flex items-center gap-1.5 text-[11px] text-slate-550 font-semibold cursor-pointer select-none">
                           <input
                             type="checkbox"
                             checked={useCustomAddress}
@@ -1692,7 +1754,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       <div className="space-y-3 pt-2">
                         <Button
                           onClick={handleClosePaymentModal}
-                          className="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs py-3 rounded-xl cursor-pointer"
+                          className="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold text-xs py-3 rounded-xl cursor-pointer"
                         >
                           Tutup
                         </Button>
@@ -1701,7 +1763,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       <Button
                         onClick={confirmPaymentTransfer}
                         disabled={verifyingPayment}
-                        className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                        className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-semibold text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
                       >
                         {verifyingPayment ? (
                           <>
@@ -1720,7 +1782,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       <CheckCircle2 className="h-10 w-10 animate-bounce" />
                     </div>
                     <div className="space-y-1.5">
-                      <h3 className="text-base font-black text-slate-900">Pembayaran Berhasil!</h3>
+                      <h3 className="text-base font-semibold text-slate-900">Pembayaran Berhasil!</h3>
                       <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
                         Dana telah disalurkan otomatis ke masing-masing rekening koperasi penyedia barang. Stok produk pada sistem telah otomatis dikurangi.
                       </p>

@@ -117,14 +117,14 @@ export default function PotensiMapComponent({
               <Popup>
                 <div className="p-1 max-w-[240px]">
                   <div className="flex justify-between items-start gap-2 mb-1.5">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">
                       {item.category}
                     </span>
-                    <span className="text-[10px] font-bold text-slate-500">
+                    <span className="text-[10px] font-semibold text-slate-500">
                       ID: {item.id.substring(0, 8)}
                     </span>
                   </div>
-                  <h4 className="text-xs font-black text-slate-900 mb-1 leading-tight">
+                  <h4 className="text-xs font-semibold text-slate-900 mb-1 leading-tight">
                     Desa {item.village}
                   </h4>
                   <p className="text-[11px] text-slate-500 mb-2.5 flex items-center gap-1">
@@ -134,19 +134,19 @@ export default function PotensiMapComponent({
                   <div className="space-y-1 bg-slate-50 p-2 rounded-lg border border-slate-100 mb-2">
                     <div className="flex justify-between text-[11px]">
                       <span className="text-slate-500 font-medium">Potensi:</span>
-                      <span className="text-slate-800 font-extrabold">{item.name}</span>
+                      <span className="text-slate-800 font-semibold">{item.name}</span>
                     </div>
                     <div className="flex justify-between text-[11px]">
                       <span className="text-slate-500 font-medium">Estimasi Volume:</span>
-                      <span className="text-slate-800 font-extrabold">{item.volume.toLocaleString('id-ID')} {item.category === 'Pariwisata' ? 'Kunjungan' : 'Ton'}</span>
+                      <span className="text-slate-800 font-semibold">{item.volume.toLocaleString('id-ID')} {item.category === 'Pariwisata' ? 'Kunjungan' : 'Ton'}</span>
                     </div>
                     <div className="flex justify-between text-[11px]">
                       <span className="text-slate-500 font-medium">Nilai Ekonomi:</span>
-                      <span className="text-emerald-600 font-black">Rp {item.value.toLocaleString('id-ID')}</span>
+                      <span className="text-emerald-600 font-semibold">Rp {item.value.toLocaleString('id-ID')}</span>
                     </div>
                     <div className="flex justify-between text-[11px]">
                       <span className="text-slate-500 font-medium">SDM Terlibat:</span>
-                      <span className="text-slate-800 font-extrabold">{item.sdm_terlibat} Orang</span>
+                      <span className="text-slate-800 font-semibold">{item.sdm_terlibat} Orang</span>
                     </div>
                   </div>
                 </div>

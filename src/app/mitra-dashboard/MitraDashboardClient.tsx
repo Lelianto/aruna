@@ -48,6 +48,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { uploadDocument } from '@/lib/firebase/upload';
 import { CustomSelect } from '@/components/ui/CustomSelect';
+import ReceiptModal from '@/components/pos/ReceiptModal';
+import { normalizeWhatsappNumber, isValidWhatsappNumber } from '@/lib/utils/phone';
 
 // Import Offline Services
 import { localDb, queueForSync, seedLocalDataIfEmpty } from '@/lib/services/local-db';
@@ -95,8 +97,11 @@ export default function MitraDashboardClient() {
 
   useEffect(() => {
     if (!authLoading) {
-      if (!user || !userData || (userData.role !== 'koperasi' && userData.role !== 'admin')) {
-        router.push('/');
+      // Portal Saya adalah ruang kerja operasional koperasi (POS, stok, SHU, dll).
+      // Admin bukan pelaku transaksi sehingga tidak boleh mengakses portal ini —
+      // admin diarahkan ke Dashboard Nasional, peran lain ke beranda.
+      if (!user || !userData || userData.role !== 'koperasi') {
+        router.push(userData?.role === 'admin' ? '/dashboard' : '/');
       }
     }
   }, [user, userData, authLoading, router]);
@@ -326,10 +331,10 @@ export default function MitraDashboardClient() {
 
   if (!coopId) {
     return (
-      <div className="page-shell flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
+      <div className="page-shell flex-1 flex items-center justify-center py-20 bg-[#f7f8fa]">
         <div className="text-center max-w-sm">
           <Building2 className="h-14 w-14 text-slate-300 mx-auto mb-4" />
-          <h2 className="text-lg font-black text-slate-800 mb-2">Akun Belum Terhubung</h2>
+          <h2 className="text-lg font-semibold text-slate-800 mb-2">Akun Belum Terhubung</h2>
           <p className="text-sm text-slate-500">
             Akun Anda belum dihubungkan ke data koperasi di sistem. Hubungi Admin ARUNA untuk menautkan akun Anda.
           </p>
@@ -355,7 +360,7 @@ export default function MitraDashboardClient() {
           if (items.length === 0) return null;
           return (
             <div key={group.key} className="space-y-1.5">
-              <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest block px-3">
+              <span className="text-[9px] font-semibold text-slate-500 uppercase tracking-widest block px-3">
                 {group.title}
               </span>
               <div className="space-y-0.5">
@@ -369,7 +374,7 @@ export default function MitraDashboardClient() {
                         setActiveTab(item.key);
                         setIsMobileMenuOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${isActive
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${isActive
                         ? 'bg-brand-navy text-white shadow-xs'
                         : 'text-slate-650 hover:bg-slate-100 hover:text-slate-900'
                         }`}
@@ -379,7 +384,7 @@ export default function MitraDashboardClient() {
                         {item.label}
                       </span>
                       {item.badge !== undefined && item.badge > 0 && (
-                        <span className={`text-[9px] font-black h-4.5 min-w-4.5 px-1.5 rounded-full flex items-center justify-center ${isActive ? 'bg-brand-red text-white' : 'bg-slate-200 text-slate-600'
+                        <span className={`text-[9px] font-semibold h-4.5 min-w-4.5 px-1.5 rounded-full flex items-center justify-center ${isActive ? 'bg-brand-red text-white' : 'bg-slate-200 text-slate-600'
                           }`}>
                           {item.badge}
                         </span>
@@ -396,19 +401,19 @@ export default function MitraDashboardClient() {
   };
 
   return (
-    <div className="flex-1 bg-[#faf9f6] min-h-screen relative font-sans py-6">
+    <div className="flex-1 bg-[#f7f8fa] min-h-screen relative font-sans py-6">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-6">
 
         {/* 1. SIDEBAR (DESKTOP) */}
         <aside className="hidden md:flex flex-col w-72 bg-white border border-slate-200/80 rounded-2xl p-5 space-y-6 shrink-0 h-[calc(100vh-140px)] sticky top-24 z-30 shadow-3xs">
           {/* Brand Header */}
           <div className="flex items-center gap-2.5 px-3">
-            <div className="h-9 w-9 rounded-xl bg-brand-navy text-white flex items-center justify-center font-black text-sm">
+            <div className="h-9 w-9 rounded-xl bg-brand-navy text-white flex items-center justify-center font-semibold text-sm">
               A
             </div>
             <div>
-              <span className="text-xs font-black text-brand-navy block leading-tight">ARUNA Coop OS</span>
-              <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider block">National Cooperative</span>
+              <span className="text-xs font-semibold text-brand-navy block leading-tight">ARUNA Coop OS</span>
+              <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider block">National Cooperative</span>
             </div>
           </div>
 
@@ -419,8 +424,8 @@ export default function MitraDashboardClient() {
           {coop && (
             <div className="pt-4 border-t border-slate-100 flex items-center justify-between px-2 text-xs">
               <div className="truncate max-w-[150px]">
-                <span className="font-black text-slate-900 block truncate">{coop.name}</span>
-                <span className="text-[10px] text-slate-500 font-bold block truncate">{coop.city}</span>
+                <span className="font-semibold text-slate-900 block truncate">{coop.name}</span>
+                <span className="text-[10px] text-slate-500 font-semibold block truncate">{coop.city}</span>
               </div>
               <button
                 onClick={() => logout()}
@@ -445,8 +450,8 @@ export default function MitraDashboardClient() {
             <div className="relative flex flex-col w-72 bg-white h-full p-5 space-y-6 shadow-2xl animate-slide-in-left">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-brand-navy text-white flex items-center justify-center font-black text-xs">A</div>
-                  <span className="text-xs font-black text-brand-navy block leading-tight">Coop OS</span>
+                  <div className="h-8 w-8 rounded-lg bg-brand-navy text-white flex items-center justify-center font-semibold text-xs">A</div>
+                  <span className="text-xs font-semibold text-brand-navy block leading-tight">Coop OS</span>
                 </div>
                 <button
                   onClick={() => setIsMobileMenuOpen(false)}
@@ -461,10 +466,10 @@ export default function MitraDashboardClient() {
               {coop && (
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
                   <div>
-                    <span className="font-black text-slate-900 block">{coop.name}</span>
-                    <span className="text-[10px] text-slate-500 font-bold block">{coop.city}</span>
+                    <span className="font-semibold text-slate-900 block">{coop.name}</span>
+                    <span className="text-[10px] text-slate-500 font-semibold block">{coop.city}</span>
                   </div>
-                  <button onClick={() => logout()} className="text-slate-400 hover:text-brand-red flex items-center gap-1 font-bold">
+                  <button onClick={() => logout()} className="text-slate-400 hover:text-brand-red flex items-center gap-1 font-semibold">
                     <LogOut className="h-4 w-4" /> Keluar
                   </button>
                 </div>
@@ -487,27 +492,27 @@ export default function MitraDashboardClient() {
                 <Menu className="h-5.5 w-5.5" />
               </button>
               <div>
-                <h2 className="text-sm font-black text-slate-900 uppercase tracking-wide flex items-center gap-1.5 leading-none">
+                <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-wide flex items-center gap-1.5 leading-none">
                   {activeMenu && <activeMenu.icon className="h-4.5 w-4.5 text-brand-navy" />}
                   {activeMenu?.label}
                 </h2>
                 {coop && activeTab !== 'anggota' && (
-                  <p className="text-[10px] text-slate-450 font-bold mt-2 leading-none">
-                    {coop.name} &bull; {coop.city}, {coop.province} &bull; SimkopDes: <span className="font-extrabold text-slate-700">{coop.simkopdes_id || '-'}</span>
+                  <p className="text-[10px] text-slate-450 font-semibold mt-2 leading-none">
+                    {coop.name} &bull; {coop.city}, {coop.province} &bull; SimkopDes: <span className="font-semibold text-slate-700">{coop.simkopdes_id || '-'}</span>
                   </p>
                 )}
               </div>
             </div>
 
             {/* Compressed Sync status tag */}
-            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 rounded-full px-3 py-1.5 text-[11px] font-bold text-slate-600 shadow-3xs max-w-[240px] truncate">
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200/60 rounded-full px-3 py-1.5 text-[11px] font-semibold text-slate-600 shadow-3xs max-w-[240px] truncate">
               <span className={`h-2 w-2 rounded-full shrink-0 ${online ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
               <span className="truncate">{statusText}</span>
               {queueCount > 0 && (
                 <button
                   onClick={() => triggerSync()}
                   disabled={syncing}
-                  className="ml-1 text-[9px] text-brand-navy font-black hover:underline shrink-0"
+                  className="ml-1 text-[9px] text-brand-navy font-semibold hover:underline shrink-0"
                 >
                   Sync ({queueCount})
                 </button>
@@ -523,7 +528,7 @@ export default function MitraDashboardClient() {
               <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 flex items-start gap-3 shadow-3xs">
                 <ShieldAlert className="h-5 w-5 text-brand-orange shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="text-xs font-extrabold text-amber-950 uppercase tracking-wider">Verifikasi NIB/SK Sedang Diproses</h4>
+                  <h4 className="text-xs font-semibold text-amber-950 uppercase tracking-wider">Verifikasi NIB/SK Sedang Diproses</h4>
                   <p className="text-xs text-amber-800 mt-0.5 leading-relaxed">
                     Dokumen legalitas koperasi Anda sedang dalam peninjauan kepatuhan ARUNA. Bonus skor +15 poin ARUNA akan langsung aktif setelah dokumen terverifikasi.
                   </p>
@@ -536,6 +541,7 @@ export default function MitraDashboardClient() {
               {activeTab === 'kasir' && (
                 <POSModule
                   coopId={coopId}
+                  coop={coop}
                   commodities={commodities}
                   members={members}
                   onRefresh={fetchData}
@@ -638,7 +644,7 @@ export default function MitraDashboardClient() {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <Mic className="h-4.5 w-4.5 text-brand-orange animate-pulse" />
-                <span className="text-xs font-black uppercase tracking-wider text-slate-350">AI Command Center</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-350">AI Command Center</span>
               </div>
               <button
                 onClick={() => setIsAIConsoleOpen(false)}
@@ -1024,7 +1030,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
       <div className="flex-1 overflow-y-auto space-y-4 pr-1 py-3 text-center">
         {/* Visual prompt guidelines */}
         <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800 text-left space-y-2.5">
-          <span className="text-[10px] text-brand-orange font-black uppercase tracking-wider block">Gunakan Perintah Suara / Teks:</span>
+          <span className="text-[10px] text-brand-orange font-semibold uppercase tracking-wider block">Gunakan Perintah Suara / Teks:</span>
           <ul className="space-y-1.5 text-slate-350 list-disc list-inside leading-relaxed text-[11px]">
             <li><em>"Jual beras 10 kg ke Pak Budi"</em> (POS)</li>
             <li><em>"Tambah stok jagung 50 kilo"</em> (Inventory)</li>
@@ -1042,7 +1048,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
               <span className="h-2 w-2 rounded-full bg-brand-red animate-bounce" style={{ animationDelay: '150ms' }}></span>
               <span className="h-2 w-2 rounded-full bg-brand-red animate-bounce" style={{ animationDelay: '300ms' }}></span>
             </div>
-            <p className="text-[10px] font-black text-brand-red uppercase tracking-wider animate-pulse">Sedang Mendengarkan...</p>
+            <p className="text-[10px] font-semibold text-brand-red uppercase tracking-wider animate-pulse">Sedang Mendengarkan...</p>
           </div>
         )}
 
@@ -1050,7 +1056,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
         {assistantResponse && (
           <div className="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-left space-y-3 animate-fade-in-up mt-4">
             <div>
-              <span className="text-[9px] font-black text-brand-orange uppercase tracking-wider block">
+              <span className="text-[9px] font-semibold text-brand-orange uppercase tracking-wider block">
                 {assistantResponse.action === 'need_clarification' ? 'Klarifikasi Perintah' : 'Konfirmasi Perintah AI'}
               </span>
               <p className="text-slate-200 mt-1 leading-relaxed">
@@ -1062,7 +1068,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
                 <Button
                   size="sm"
                   onClick={() => setAssistantResponse(null)}
-                  className="bg-transparent border border-slate-700 hover:bg-slate-800 text-slate-300 font-bold text-xs h-8 px-3 rounded-lg cursor-pointer"
+                  className="bg-transparent border border-slate-700 hover:bg-slate-800 text-slate-300 font-semibold text-xs h-8 px-3 rounded-lg cursor-pointer"
                 >
                   Batal
                 </Button>
@@ -1070,7 +1076,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
                   <Button
                     size="sm"
                     onClick={handleConfirmAction}
-                    className="bg-brand-orange hover:bg-brand-orange/90 text-white font-black text-xs h-8 px-3 rounded-lg cursor-pointer flex items-center gap-1"
+                    className="bg-brand-orange hover:bg-brand-orange/90 text-white font-semibold text-xs h-8 px-3 rounded-lg cursor-pointer flex items-center gap-1"
                   >
                     <Check className="h-3.5 w-3.5" /> Konfirmasi
                   </Button>
@@ -1084,7 +1090,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
                     setAssistantResponse(null);
                     setQueryText('');
                   }}
-                  className="bg-slate-800 hover:bg-slate-750 text-white font-black text-xs h-8 px-3 rounded-lg cursor-pointer"
+                  className="bg-slate-800 hover:bg-slate-750 text-white font-semibold text-xs h-8 px-3 rounded-lg cursor-pointer"
                 >
                   Tutup
                 </Button>
@@ -1113,7 +1119,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
             onKeyDown={e => {
               if (e.key === 'Enter') handleSendText();
             }}
-            className="flex-1 bg-slate-900 border border-slate-850 px-3 py-2 rounded-xl text-xs text-white focus:outline-none placeholder-slate-500 font-bold"
+            className="flex-1 bg-slate-900 border border-slate-850 px-3 py-2 rounded-xl text-xs text-white focus:outline-none placeholder-slate-500 font-semibold"
             disabled={loading}
           />
 
@@ -1132,12 +1138,16 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
 }
 
 // ─── MODULE: POS / KASIR (2-COLUMN DESTKOP / MOBILE BOTTOM SHEET) ─────────────
-function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
-  coopId: string; commodities: Commodity[]; members: Member[]; onRefresh: () => void; showToast: (m: string, t?: 'success' | 'error') => void;
+function POSModule({ coopId, coop, commodities, members, onRefresh, showToast }: {
+  coopId: string; coop: Cooperative | null; commodities: Commodity[]; members: Member[]; onRefresh: () => void; showToast: (m: string, t?: 'success' | 'error') => void;
 }) {
   const [cart, setCart] = useState<Array<{ commodity: Commodity, qty: number, price: number }>>([]);
   const [selectedMemberId, setSelectedMemberId] = useState<string>('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerWa, setCustomerWa] = useState('');
+  const [completedTx, setCompletedTx] = useState<POSTransaction | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'Tunai' | 'Transfer' | 'Simpanan' | 'QRIS'>('Tunai');
+  const [amountPaid, setAmountPaid] = useState<number>(0);
   const [showQrisModal, setShowQrisModal] = useState(false);
   const [qrisVerifying, setQrisVerifying] = useState(false);
   const [search, setSearch] = useState('');
@@ -1177,8 +1187,42 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
   const totalAmount = cart.reduce((sum, item) => sum + (item.qty * item.price), 0);
   const totalItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
+  // Cash-tender helpers (Tunai only): change due + quick "uang diterima"
+  // suggestions (exact amount, then rounded up to common rupiah notes).
+  const changeDue = amountPaid - totalAmount;
+  const cashSuggestions = useMemo<number[]>(() => {
+    if (totalAmount <= 0) return [];
+    const set = new Set<number>([totalAmount]); // uang pas
+    [5000, 10000, 20000, 50000, 100000].forEach(step => {
+      set.add(Math.ceil(totalAmount / step) * step);
+    });
+    return Array.from(set).filter(v => v >= totalAmount).sort((a, b) => a - b).slice(0, 5);
+  }, [totalAmount]);
+
+  // Selecting a registered member auto-fills the receipt recipient (name + WA)
+  // so the cashier does not retype it. Choosing "Umum" clears the prefill.
+  const handleSelectMember = (memberId: string) => {
+    setSelectedMemberId(memberId);
+    const member = members.find(m => m.id === memberId);
+    if (member) {
+      setCustomerName(member.name || '');
+      setCustomerWa(member.phone ? normalizeWhatsappNumber(member.phone) : '');
+    } else {
+      setCustomerName('');
+      setCustomerWa('');
+    }
+  };
+
   const handleCheckout = async () => {
     if (cart.length === 0) return showToast('Keranjang belanja kosong', 'error');
+
+    if (customerWa.trim() && !isValidWhatsappNumber(customerWa)) {
+      return showToast('Nomor WhatsApp pembeli tidak valid. Contoh: 081234567890', 'error');
+    }
+
+    if (paymentMethod === 'Tunai' && amountPaid < totalAmount) {
+      return showToast('Uang diterima kurang dari total tagihan', 'error');
+    }
 
     if (paymentMethod === 'QRIS' && !showQrisModal) {
       setShowQrisModal(true);
@@ -1192,6 +1236,8 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
         id: `sale-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`,
         cooperative_id: coopId,
         member_id: selectedMemberId || undefined,
+        customer_name: customerName.trim() || undefined,
+        customer_wa: customerWa.trim() ? normalizeWhatsappNumber(customerWa) : undefined,
         items: cart.map(item => ({
           commodity_id: item.commodity.id,
           commodity_name: item.commodity.name,
@@ -1201,6 +1247,8 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
         })),
         total_amount: totalAmount,
         payment_method: paymentMethod,
+        amount_paid: paymentMethod === 'Tunai' ? amountPaid : undefined,
+        change: paymentMethod === 'Tunai' ? Math.max(0, amountPaid - totalAmount) : undefined,
         created_at: new Date().toISOString(),
         status: 'pending',
         version: 1
@@ -1229,9 +1277,13 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
         triggerSync();
         showToast('Transaksi kasir berhasil dicatat lokal!');
       }
+      setCompletedTx(newTransaction);
       setCart([]);
       setSelectedMemberId('');
+      setCustomerName('');
+      setCustomerWa('');
       setPaymentMethod('Tunai');
+      setAmountPaid(0);
       setIsMobileCartOpen(false);
       onRefresh();
     } catch (err) {
@@ -1251,6 +1303,8 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
         id: `sale-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`,
         cooperative_id: coopId,
         member_id: selectedMemberId || undefined,
+        customer_name: customerName.trim() || undefined,
+        customer_wa: customerWa.trim() ? normalizeWhatsappNumber(customerWa) : undefined,
         items: cart.map(item => ({
           commodity_id: item.commodity.id,
           commodity_name: item.commodity.name,
@@ -1288,9 +1342,13 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
       }
 
       showToast('Pembayaran QRIS Kasir Berhasil!');
+      setCompletedTx(newTransaction);
       setCart([]);
       setSelectedMemberId('');
+      setCustomerName('');
+      setCustomerWa('');
       setPaymentMethod('Tunai');
+      setAmountPaid(0);
       setShowQrisModal(false);
       setIsMobileCartOpen(false);
       onRefresh();
@@ -1307,13 +1365,13 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
     <div className="space-y-4 text-xs font-semibold text-slate-700">
       <div className="min-h-[140px] max-h-[300px] overflow-y-auto space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200/50">
         {cart.length === 0 ? (
-          <div className="text-center py-10 text-slate-400 font-bold">Keranjang kosong.</div>
+          <div className="text-center py-10 text-slate-400 font-semibold">Keranjang kosong.</div>
         ) : (
           cart.map(item => (
             <div key={item.commodity.id} className="flex justify-between items-center border-b border-slate-105 pb-2 last:border-0 last:pb-0">
               <div className="space-y-0.5">
-                <span className="font-extrabold text-slate-900 block truncate max-w-[130px]">{item.commodity.name}</span>
-                <span className="text-[10px] text-slate-400 block font-bold">Rp {item.price.toLocaleString('id-ID')} / {item.commodity.unit}</span>
+                <span className="font-semibold text-slate-900 block truncate max-w-[130px]">{item.commodity.name}</span>
+                <span className="text-[10px] text-slate-400 block font-semibold">Rp {item.price.toLocaleString('id-ID')} / {item.commodity.unit}</span>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
                 <input
@@ -1322,10 +1380,10 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
                   step="any"
                   value={item.qty}
                   onChange={e => updateCartQty(item.commodity.id, parseFloat(e.target.value) || 0, item.commodity.available_stock)}
-                  className="w-12 px-1 py-1 text-center border border-slate-250 rounded-md text-xs font-black bg-white focus:outline-none"
+                  className="w-12 px-1 py-1 text-center border border-slate-250 rounded-md text-xs font-semibold bg-white focus:outline-none"
                 />
-                <span className="text-[9px] text-slate-400 uppercase font-black tracking-wider w-8">{item.commodity.unit}</span>
-                <span className="font-black text-slate-800 w-16 text-right">
+                <span className="text-[9px] text-slate-400 uppercase font-semibold tracking-wider w-8">{item.commodity.unit}</span>
+                <span className="font-semibold text-slate-800 w-16 text-right">
                   Rp {(item.qty * item.price).toLocaleString('id-ID')}
                 </span>
               </div>
@@ -1342,7 +1400,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
             ...members.map(m => ({ value: m.id, label: m.name }))
           ]}
           value={selectedMemberId}
-          onChange={setSelectedMemberId}
+          onChange={handleSelectMember}
         />
         <CustomSelect
           label="Pembayaran:"
@@ -1357,15 +1415,85 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
         />
       </div>
 
+      {/* Buyer identity for the WhatsApp digital receipt (struk). Optional —
+          leave blank for walk-in buyers who don't want a receipt. */}
+      <div className="space-y-2 bg-emerald-50/40 border border-emerald-100 rounded-xl p-3">
+        <span className="text-[9px] font-semibold text-emerald-700 uppercase tracking-wider flex items-center gap-1.5">
+          <Phone className="h-3 w-3" /> Struk WhatsApp (opsional)
+        </span>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <label className="text-[9px] font-semibold text-slate-450 block">Nama Pembeli</label>
+            <input
+              type="text"
+              placeholder="cth: Ibu Sari"
+              value={customerName}
+              onChange={e => setCustomerName(e.target.value)}
+              className="w-full px-2.5 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[9px] font-semibold text-slate-450 block">No. WhatsApp</label>
+            <input
+              type="tel"
+              inputMode="numeric"
+              placeholder="cth: 081234567890"
+              value={customerWa}
+              onChange={e => setCustomerWa(e.target.value)}
+              className="w-full px-2.5 py-2 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Cash tendered + change (Tunai only) */}
+      {paymentMethod === 'Tunai' && (
+        <div className="space-y-2 bg-slate-50 border border-slate-200 rounded-xl p-3">
+          <div className="flex items-center justify-between">
+            <label className="text-[9px] font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+              <Coins className="h-3 w-3 text-brand-orange" /> Uang Diterima
+            </label>
+            <span className="text-[9px] font-semibold text-slate-400">Total: Rp {totalAmount.toLocaleString('id-ID')}</span>
+          </div>
+          <input
+            type="number"
+            min={0}
+            inputMode="numeric"
+            placeholder="0"
+            value={amountPaid || ''}
+            onChange={e => setAmountPaid(parseFloat(e.target.value) || 0)}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy text-right"
+          />
+          <div className="flex flex-wrap gap-1.5">
+            {cashSuggestions.map((amt, i) => (
+              <button
+                key={amt}
+                type="button"
+                onClick={() => setAmountPaid(amt)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border transition-colors cursor-pointer ${amountPaid === amt ? 'bg-brand-navy text-white border-brand-navy' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'}`}
+              >
+                {i === 0 ? 'Uang Pas' : `Rp ${amt.toLocaleString('id-ID')}`}
+              </button>
+            ))}
+          </div>
+          {amountPaid > 0 && (
+            <div className={`flex justify-between items-center pt-1.5 border-t border-slate-200 text-xs font-semibold ${changeDue < 0 ? 'text-brand-red' : 'text-emerald-600'}`}>
+              <span className="uppercase tracking-wider text-[10px]">{changeDue < 0 ? 'Uang Kurang' : 'Kembalian'}</span>
+              <span>Rp {Math.abs(changeDue).toLocaleString('id-ID')}</span>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="pt-3 border-t border-slate-100 flex justify-between items-center">
         <div>
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Total Tagihan</span>
-          <span className="text-base font-black text-brand-navy">Rp {totalAmount.toLocaleString('id-ID')}</span>
+          <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block">Total Tagihan</span>
+          <span className="text-base font-semibold text-brand-navy">Rp {totalAmount.toLocaleString('id-ID')}</span>
         </div>
         <Button
           onClick={handleCheckout}
           disabled={cart.length === 0 || saving}
-          className="bg-brand-red hover:bg-brand-red/90 text-white font-black px-5 py-2.5 rounded-xl shadow-md cursor-pointer flex items-center gap-1"
+          className="bg-brand-red hover:bg-brand-red/90 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md cursor-pointer flex items-center gap-1"
         >
           {saving ? 'Proses...' : 'Bayar Sekarang'} <ArrowUpRight className="h-4 w-4" />
         </Button>
@@ -1380,7 +1508,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
       <Card className="border-slate-200/80 bg-white">
         <CardHeader className="pb-3 flex flex-row items-center justify-between gap-4">
           <div>
-            <CardTitle className="text-sm font-black text-slate-900">Produk Tersedia</CardTitle>
+            <CardTitle className="text-sm font-semibold text-slate-900">Produk Tersedia</CardTitle>
             <CardDescription className="text-xs">Sentuh kartu komoditas untuk memasukkan ke keranjang</CardDescription>
           </div>
           <div className="relative w-48 shrink-0">
@@ -1396,7 +1524,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
         </CardHeader>
         <CardContent className="max-h-[500px] overflow-y-auto pr-2">
           {filteredCommodities.length === 0 ? (
-            <div className="text-center py-12 text-slate-400 text-xs font-extrabold uppercase">
+            <div className="text-center py-12 text-slate-400 text-xs font-semibold uppercase">
               Tidak ada produk dengan stok tersedia.
             </div>
           ) : (
@@ -1410,17 +1538,17 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
                     className="p-3.5 border border-slate-100 rounded-xl bg-slate-50 hover:bg-slate-100/50 hover:border-slate-200 transition-all cursor-pointer flex justify-between items-center relative overflow-hidden group active:scale-[0.98]"
                   >
                     <div className="space-y-0.5">
-                      <h4 className="text-xs font-black text-slate-800">{c.name}</h4>
-                      <span className="text-[9px] text-slate-400 font-extrabold uppercase block">{c.category}</span>
-                      <span className="text-[10px] font-black text-brand-orange pt-1.5 block">Rp {(c.price_per_unit || 12000).toLocaleString('id-ID')} / {c.unit}</span>
+                      <h4 className="text-xs font-semibold text-slate-800">{c.name}</h4>
+                      <span className="text-[9px] text-slate-400 font-semibold uppercase block">{c.category}</span>
+                      <span className="text-[10px] font-semibold text-brand-orange pt-1.5 block">Rp {(c.price_per_unit || 12000).toLocaleString('id-ID')} / {c.unit}</span>
                     </div>
                     <div className="text-right">
-                      <span className="text-[8px] text-slate-450 font-black uppercase tracking-wider block">Stok</span>
-                      <span className="text-xs font-black text-slate-700">{c.available_stock} {c.unit}</span>
+                      <span className="text-[8px] text-slate-450 font-semibold uppercase tracking-wider block">Stok</span>
+                      <span className="text-xs font-semibold text-slate-700">{c.available_stock.toLocaleString('id-ID')} {c.unit}</span>
                     </div>
                     {inCart && (
-                      <span className="absolute top-0 right-0 bg-brand-red text-white text-[9px] font-black px-2 py-0.5 rounded-bl-lg shadow-sm">
-                        {inCart.qty} {c.unit}
+                      <span className="absolute top-0 right-0 bg-brand-red text-white text-[9px] font-semibold px-2 py-0.5 rounded-bl-lg shadow-sm">
+                        {inCart.qty.toLocaleString('id-ID')} {c.unit}
                       </span>
                     )}
                   </div>
@@ -1434,7 +1562,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
       {/* 2. Desktop Cart panel (sidebar) */}
       <Card className="hidden lg:block border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100">
-          <CardTitle className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+          <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
             <ShoppingCart className="h-4.5 w-4.5 text-brand-red" /> Keranjang Belanja ({totalItemsCount})
           </CardTitle>
         </CardHeader>
@@ -1447,12 +1575,12 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
       {cart.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-200 md:hidden z-40 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex justify-between items-center">
           <div>
-            <span className="text-[10px] text-slate-400 font-black block uppercase tracking-wider">Total</span>
-            <span className="text-base font-black text-brand-orange">Rp {totalAmount.toLocaleString('id-ID')}</span>
+            <span className="text-[10px] text-slate-400 font-semibold block uppercase tracking-wider">Total</span>
+            <span className="text-base font-semibold text-brand-orange">Rp {totalAmount.toLocaleString('id-ID')}</span>
           </div>
           <Button
             onClick={() => setIsMobileCartOpen(true)}
-            className="bg-brand-red hover:bg-brand-red/90 text-white font-black text-xs px-5 py-2.5 rounded-xl cursor-pointer flex items-center gap-1"
+            className="bg-brand-red hover:bg-brand-red/90 text-white font-semibold text-xs px-5 py-2.5 rounded-xl cursor-pointer flex items-center gap-1"
           >
             Lihat Keranjang ({totalItemsCount}) <ArrowRight className="h-4 w-4" />
           </Button>
@@ -1470,7 +1598,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
           {/* Bottom Sheet drawer panel */}
           <div className="relative bg-white rounded-t-3xl p-5 shadow-2xl space-y-4 animate-slide-up max-h-[85vh] overflow-y-auto z-50">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
                 <ShoppingCart className="h-4.5 w-4.5 text-brand-red" /> Detail Keranjang
               </h3>
               <button
@@ -1491,7 +1619,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs font-sans text-slate-800 animate-fade-in">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
                 <CreditCard className="h-5 w-5 text-brand-navy animate-pulse" />
                 QRIS Dinamis Kasir (POS)
               </h3>
@@ -1504,7 +1632,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
 
             {/* QRIS Simulated QR Code Graphic */}
             <div className="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100/80 space-y-3">
-              <div className="bg-[#E52A30] px-4 py-1 rounded-full flex items-center justify-center gap-1 text-white font-black text-[9px] tracking-widest uppercase shadow-xs">
+              <div className="bg-[#E52A30] px-4 py-1 rounded-full flex items-center justify-center gap-1 text-white font-semibold text-[9px] tracking-widest uppercase shadow-xs">
                 <span>QRIS</span>
                 <span className="text-[7px] font-medium opacity-80">GPN</span>
               </div>
@@ -1518,15 +1646,15 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
               </div>
 
               <div className="text-center space-y-0.5">
-                <span className="text-[9px] text-slate-400 block font-black uppercase">Sisa Waktu Pembayaran</span>
-                <span className="text-xs font-black text-brand-navy font-mono animate-pulse">02:59</span>
+                <span className="text-[9px] text-slate-400 block font-semibold uppercase">Sisa Waktu Pembayaran</span>
+                <span className="text-xs font-semibold text-brand-navy font-mono animate-pulse">02:59</span>
               </div>
             </div>
 
             {/* Total Amount Box */}
             <div className="bg-brand-navy/5 border border-brand-navy/10 p-3.5 rounded-xl flex justify-between items-center text-xs font-semibold">
-              <span className="text-slate-500 uppercase text-[9px] font-black">Total Tagihan POS</span>
-              <span className="text-base font-black text-brand-orange tabular-nums">
+              <span className="text-slate-500 uppercase text-[9px] font-semibold">Total Tagihan POS</span>
+              <span className="text-base font-semibold text-brand-orange tabular-nums">
                 Rp {totalAmount.toLocaleString('id-ID')}
               </span>
             </div>
@@ -1544,7 +1672,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
               <Button
                 onClick={confirmQrisCheckout}
                 disabled={qrisVerifying}
-                className="flex-2 bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                className="flex-2 bg-brand-navy hover:bg-brand-navy/95 text-white font-semibold text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
               >
                 {qrisVerifying ? (
                   <>
@@ -1558,6 +1686,15 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 6. Digital receipt (struk) modal — send PDF to buyer via WhatsApp */}
+      {completedTx && (
+        <ReceiptModal
+          tx={completedTx}
+          coop={coop}
+          onClose={() => setCompletedTx(null)}
+        />
       )}
 
     </div>
@@ -1862,7 +1999,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
         <Button
           size="sm"
           onClick={() => { setShowOpname(false); setShowForm(!showForm); }}
-          className="bg-brand-navy hover:bg-brand-navy/95 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer rounded-xl h-9"
+          className="bg-brand-navy hover:bg-brand-navy/95 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer rounded-xl h-9"
         >
           {showForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
           {showForm ? 'Tutup Form' : 'Tambah Komoditas Baru'}
@@ -1870,7 +2007,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
         <Button
           size="sm"
           onClick={() => { setShowForm(false); setShowOpname(!showOpname); }}
-          className="bg-brand-orange hover:bg-brand-orange/95 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer rounded-xl h-9"
+          className="bg-brand-orange hover:bg-brand-orange/95 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer rounded-xl h-9"
         >
           {showOpname ? <X className="h-4 w-4" /> : <Scale className="h-4 w-4" />}
           {showOpname ? 'Tutup Opname' : 'Stock Opname (Audit)'}
@@ -1881,7 +2018,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
       {showForm && (
         <Card className="border-slate-200 bg-white">
           <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-            <CardTitle className="text-sm font-black text-brand-navy">Tambah Produk Baru ke Koperasi</CardTitle>
+            <CardTitle className="text-sm font-semibold text-brand-navy">Tambah Produk Baru ke Koperasi</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-normal text-slate-700">
             <div className="space-y-1">
@@ -2017,7 +2154,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <Button
                 onClick={handleAddProduct}
                 disabled={saving}
-                className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10"
+                className="bg-brand-navy hover:bg-brand-navy/95 text-white font-semibold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10"
               >
                 {saving ? 'Menyimpan...' : 'Simpan Komoditas'}
               </Button>
@@ -2030,7 +2167,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
       {showOpname && (
         <Card className="border-slate-200 bg-white">
           <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-            <CardTitle className="text-sm font-black text-brand-orange">Stock Opname / Rekonsiliasi Audit</CardTitle>
+            <CardTitle className="text-sm font-semibold text-brand-orange">Stock Opname / Rekonsiliasi Audit</CardTitle>
             <CardDescription className="text-xs">Sesuaikan data stok sistem dengan perhitungan fisik di koperasi</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-normal text-slate-700">
@@ -2081,10 +2218,10 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
 
             {activeCommodity && (
               <div className="sm:col-span-2 bg-slate-100 p-3.5 rounded-xl text-xs font-semibold text-slate-700 flex justify-between">
-                <span>Stok Terdaftar: {activeCommodity.available_stock} {activeCommodity.unit}</span>
+                <span>Stok Terdaftar: {activeCommodity.available_stock.toLocaleString('id-ID')} {activeCommodity.unit}</span>
                 <span>Perhitungan Fisik: {actualStock} {activeCommodity.unit}</span>
-                <span className={`font-black ${actualStock - activeCommodity.available_stock >= 0 ? 'text-emerald-700' : 'text-brand-red'}`}>
-                  Selisih: {actualStock - activeCommodity.available_stock} {activeCommodity.unit}
+                <span className={`font-semibold ${actualStock - activeCommodity.available_stock >= 0 ? 'text-emerald-700' : 'text-brand-red'}`}>
+                  Selisih: {(actualStock - activeCommodity.available_stock).toLocaleString('id-ID')} {activeCommodity.unit}
                 </span>
               </div>
             )}
@@ -2093,7 +2230,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <Button
                 onClick={handleStockOpname}
                 disabled={saving || !selectedCommId}
-                className="bg-brand-orange hover:bg-brand-orange/95 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10 disabled:opacity-50"
+                className="bg-brand-orange hover:bg-brand-orange/95 text-white font-semibold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10 disabled:opacity-50"
               >
                 {saving ? 'Memproses...' : 'Kunci Penyesuaian Stok'}
               </Button>
@@ -2105,7 +2242,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
       {/* Grid listing products */}
       <Card className="border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100">
-          <CardTitle className="text-sm font-black text-slate-900">Daftar Stok Inventori Koperasi</CardTitle>
+          <CardTitle className="text-sm font-semibold text-slate-900">Daftar Stok Inventori Koperasi</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -2124,17 +2261,17 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                     )}
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-[9px] font-black uppercase text-slate-450 bg-slate-200/50 px-2 py-0.5 rounded-full">{c.category}</span>
-                        <span className="text-[9px] font-black uppercase text-slate-500 bg-slate-200/50 px-2 py-0.5 rounded-full font-mono">SKU: {c.sku || 'N/A'}</span>
+                        <span className="text-[9px] font-semibold uppercase text-slate-450 bg-slate-200/50 px-2 py-0.5 rounded-full">{c.category}</span>
+                        <span className="text-[9px] font-semibold uppercase text-slate-500 bg-slate-200/50 px-2 py-0.5 rounded-full font-mono">SKU: {c.sku || 'N/A'}</span>
                       </div>
-                      <h4 className="text-xs font-black text-slate-800">{c.name}</h4>
+                      <h4 className="text-xs font-semibold text-slate-800">{c.name}</h4>
                       {c.description && <p className="text-[10px] text-slate-550 font-medium leading-normal line-clamp-2">{c.description}</p>}
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="text-xs font-black text-slate-700 block">{c.available_stock} {c.unit}</span>
-                      <span className="text-[9px] text-slate-400 font-extrabold block mt-0.5">Kap: {c.monthly_capacity} {c.unit}</span>
+                      <span className="text-xs font-semibold text-slate-700 block">{c.available_stock.toLocaleString('id-ID')} {c.unit}</span>
+                      <span className="text-[9px] text-slate-400 font-semibold block mt-0.5">Kap: {c.monthly_capacity} {c.unit}</span>
                       {c.price_per_unit && (
-                        <span className="text-[9.5px] text-brand-orange font-black block mt-0.5">
+                        <span className="text-[9.5px] text-brand-orange font-semibold block mt-0.5">
                           Rp {c.price_per_unit.toLocaleString('id-ID')} / {c.unit}
                         </span>
                       )}
@@ -2142,12 +2279,12 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                   </div>
 
                   {isLowStock && (
-                    <div className="text-[9.5px] font-black text-brand-red bg-red-50 border border-red-100 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0 animate-pulse">
-                      <ShieldAlert className="h-3.5 w-3.5" /> Stok Menipis (Batas: {c.minimum_stock} {c.unit})
+                    <div className="text-[9.5px] font-semibold text-brand-red bg-red-50 border border-red-100 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0 animate-pulse">
+                      <ShieldAlert className="h-3.5 w-3.5" /> Stok Menipis (Batas: {(c.minimum_stock ?? 0).toLocaleString('id-ID')} {c.unit})
                     </div>
                   )}
 
-                  <div className="pt-2 border-t border-slate-200/50 flex items-center justify-between text-[10px] font-extrabold text-slate-500 shrink-0">
+                  <div className="pt-2 border-t border-slate-200/50 flex items-center justify-between text-[10px] font-semibold text-slate-500 shrink-0">
                     <span>Panen: {c.harvest_period}</span>
                     <div className="flex items-center gap-2">
                       <button
@@ -2164,7 +2301,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
-                      <span className="text-brand-orange font-black flex items-center gap-0.5 ml-1">
+                      <span className="text-brand-orange font-semibold flex items-center gap-0.5 ml-1">
                         <Database className="h-3 w-3" /> Lokal
                       </span>
                     </div>
@@ -2185,7 +2322,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
           />
           <div className="relative bg-white rounded-2xl p-6 shadow-2xl space-y-4 max-w-lg w-full z-50 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
                 <Pencil className="h-4.5 w-4.5 text-brand-navy" /> Edit Komoditas: {editingComm.name}
               </h3>
               <button
@@ -2198,7 +2335,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                <label className="text-[10px] font-semibold text-slate-400 block font-semibold">
                   Nama Komoditas <span className="text-red-500">*</span>:
                 </label>
                 <input
@@ -2210,7 +2347,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                <label className="text-[10px] font-semibold text-slate-400 block font-semibold">
                   SKU / Kode Unik:
                 </label>
                 <input
@@ -2237,7 +2374,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               />
 
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                <label className="text-[10px] font-semibold text-slate-400 block font-semibold">
                   Kapasitas Bulanan ({editForm.unit}) *:
                 </label>
                 <input
@@ -2249,7 +2386,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                <label className="text-[10px] font-semibold text-slate-400 block font-semibold">
                   Stok Tersedia ({editForm.unit}) *:
                 </label>
                 <input
@@ -2261,7 +2398,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                <label className="text-[10px] font-semibold text-slate-400 block font-semibold">
                   Harga Satuan Standar (Rp) (opsional):
                 </label>
                 <input
@@ -2274,7 +2411,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                <label className="text-[10px] font-semibold text-slate-400 block font-semibold">
                   Batas Stok Minimum (opsional):
                 </label>
                 <input
@@ -2287,7 +2424,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                <label className="text-[10px] font-semibold text-slate-400 block font-semibold">
                   Musim Panen / Keterangan (opsional):
                 </label>
                 <input
@@ -2300,7 +2437,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               </div>
 
               <div className="sm:col-span-2 space-y-1">
-                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                <label className="text-[10px] font-semibold text-slate-400 block font-semibold">
                   Deskripsi Singkat (opsional):
                 </label>
                 <textarea
@@ -2311,7 +2448,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 />
               </div>
               <div className="sm:col-span-2 space-y-1">
-                <label className="text-[10px] font-semibold text-slate-400 block font-bold">
+                <label className="text-[10px] font-semibold text-slate-400 block font-semibold">
                   Ganti Foto Produk (opsional):
                 </label>
                 <input
@@ -2331,14 +2468,14 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <Button
                 onClick={() => setEditingComm(null)}
                 variant="outline"
-                className="text-xs px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-bold"
+                className="text-xs px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold"
               >
                 Batal
               </Button>
               <Button
                 onClick={handleEditProduct}
                 disabled={saving}
-                className="bg-brand-navy hover:bg-brand-navy/90 text-white text-xs px-5 py-2 rounded-xl shadow-md font-bold"
+                className="bg-brand-navy hover:bg-brand-navy/90 text-white text-xs px-5 py-2 rounded-xl shadow-md font-semibold"
               >
                 {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
               </Button>
@@ -2357,27 +2494,27 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
           <div className="relative bg-white rounded-2xl p-6 shadow-2xl space-y-4 max-w-sm w-full z-50 border border-slate-200 animate-scale-up">
             <div className="flex items-center gap-2 text-brand-red">
               <ShieldAlert className="h-5 w-5 shrink-0" />
-              <h3 className="text-sm font-black text-slate-900">
+              <h3 className="text-sm font-semibold text-slate-900">
                 Konfirmasi Hapus Produk
               </h3>
             </div>
 
             <p className="text-xs text-slate-500 font-semibold leading-relaxed">
-              Apakah Anda yakin ingin menghapus komoditas <span className="font-extrabold text-slate-800">"{deletingComm.name}"</span>? Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus komoditas <span className="font-semibold text-slate-800">"{deletingComm.name}"</span>? Tindakan ini tidak dapat dibatalkan.
             </p>
 
             <div className="pt-3 border-t border-slate-100 flex justify-end gap-2.5">
               <Button
                 onClick={() => setDeletingComm(null)}
                 variant="outline"
-                className="text-xs px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-bold cursor-pointer hover:bg-slate-50"
+                className="text-xs px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-semibold cursor-pointer hover:bg-slate-50"
               >
                 Batal
               </Button>
               <Button
                 onClick={confirmDeleteProduct}
                 disabled={saving}
-                className="bg-brand-red hover:bg-brand-red/90 text-white text-xs px-5 py-2 rounded-xl shadow-md font-bold cursor-pointer"
+                className="bg-brand-red hover:bg-brand-red/90 text-white text-xs px-5 py-2 rounded-xl shadow-md font-semibold cursor-pointer"
               >
                 {saving ? 'Menghapus...' : 'Hapus Sekarang'}
               </Button>
@@ -2460,7 +2597,7 @@ function PurchaseModule({ coopId, commodities, onRefresh, showToast }: {
   return (
     <Card className="border-slate-200 bg-white">
       <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-        <CardTitle className="text-sm font-black text-slate-900">Catat Pembelian Stok Masuk dari Petani / Supplier</CardTitle>
+        <CardTitle className="text-sm font-semibold text-slate-900">Catat Pembelian Stok Masuk dari Petani / Supplier</CardTitle>
         <CardDescription className="text-xs">Sistem akan secara otomatis mendebit pengadaan dan meningkatkan volume ketersediaan stok produk.</CardDescription>
       </CardHeader>
       <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-normal text-slate-700">
@@ -2511,7 +2648,7 @@ function PurchaseModule({ coopId, commodities, onRefresh, showToast }: {
           <Button
             onClick={handlePurchase}
             disabled={saving || !selectedCommId}
-            className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10 disabled:opacity-50"
+            className="bg-brand-navy hover:bg-brand-navy/95 text-white font-semibold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10 disabled:opacity-50"
           >
             {saving ? 'Mencatat...' : 'Catat Stok Masuk'}
           </Button>
@@ -2530,8 +2667,8 @@ function SalesHistoryModule({ sales, purchases }: {
   return (
     <Card className="border-slate-200 bg-white">
       <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between gap-4 mb-4">
-        <CardTitle className="text-sm font-black text-slate-900">Riwayat Pembukuan Transaksi</CardTitle>
-        <div className="flex bg-slate-100 p-0.5 rounded-lg text-[10px] font-bold shrink-0">
+        <CardTitle className="text-sm font-semibold text-slate-900">Riwayat Pembukuan Transaksi</CardTitle>
+        <div className="flex bg-slate-100 p-0.5 rounded-lg text-[10px] font-semibold shrink-0">
           <button
             onClick={() => setTab('sales')}
             className={`px-3 py-1.5 rounded ${tab === 'sales' ? 'bg-white text-brand-navy shadow-xs' : 'text-slate-500'}`}
@@ -2549,16 +2686,16 @@ function SalesHistoryModule({ sales, purchases }: {
       <CardContent className="max-h-[400px] overflow-y-auto pr-2">
         {tab === 'sales' ? (
           sales.length === 0 ? (
-            <div className="text-center py-12 text-slate-450 font-extrabold uppercase text-xs">Belum ada riwayat transaksi penjualan.</div>
+            <div className="text-center py-12 text-slate-450 font-semibold uppercase text-xs">Belum ada riwayat transaksi penjualan.</div>
           ) : (
             <div className="space-y-2">
               {sales.map(s => (
                 <div key={s.id} className="p-3.5 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center text-xs">
                   <div>
-                    <h5 className="font-extrabold text-slate-800">
+                    <h5 className="font-semibold text-slate-800">
                       Sale #{s.id.split('-')[1] || s.id.substring(0, 8)}
                     </h5>
-                    <span className="text-[9px] text-slate-400 font-extrabold uppercase block mt-0.5">
+                    <span className="text-[9px] text-slate-400 font-semibold uppercase block mt-0.5">
                       {new Date(s.created_at).toLocaleString('id-ID')} &bull; {s.payment_method}
                     </span>
                     <span className="text-[10px] text-slate-600 mt-1 block">
@@ -2566,8 +2703,8 @@ function SalesHistoryModule({ sales, purchases }: {
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="font-black text-slate-900 block">Rp {s.total_amount.toLocaleString('id-ID')}</span>
-                    <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded uppercase mt-1.5 ${s.status === 'synced' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    <span className="font-semibold text-slate-900 block">Rp {s.total_amount.toLocaleString('id-ID')}</span>
+                    <span className={`inline-block text-[9px] font-semibold px-2 py-0.5 rounded uppercase mt-1.5 ${s.status === 'synced' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                       }`}>
                       {s.status === 'synced' ? 'Synced' : 'Local'}
                     </span>
@@ -2578,16 +2715,16 @@ function SalesHistoryModule({ sales, purchases }: {
           )
         ) : (
           purchases.length === 0 ? (
-            <div className="text-center py-12 text-slate-455 font-extrabold uppercase text-xs">Belum ada riwayat pembelian.</div>
+            <div className="text-center py-12 text-slate-455 font-semibold uppercase text-xs">Belum ada riwayat pembelian.</div>
           ) : (
             <div className="space-y-2">
               {purchases.map(p => (
                 <div key={p.id} className="p-3.5 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center text-xs">
                   <div>
-                    <h5 className="font-extrabold text-slate-800">
+                    <h5 className="font-semibold text-slate-800">
                       Pemasok: {p.supplier_name}
                     </h5>
-                    <span className="text-[9px] text-slate-400 font-extrabold uppercase block mt-0.5">
+                    <span className="text-[9px] text-slate-400 font-semibold uppercase block mt-0.5">
                       {new Date(p.created_at).toLocaleString('id-ID')}
                     </span>
                     <span className="text-[10px] text-slate-650 mt-1 block">
@@ -2595,8 +2732,8 @@ function SalesHistoryModule({ sales, purchases }: {
                     </span>
                   </div>
                   <div className="text-right">
-                    <span className="font-black text-slate-900 block">Rp {p.total_amount.toLocaleString('id-ID')}</span>
-                    <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded uppercase mt-1.5 ${p.status === 'synced' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                    <span className="font-semibold text-slate-900 block">Rp {p.total_amount.toLocaleString('id-ID')}</span>
+                    <span className={`inline-block text-[9px] font-semibold px-2 py-0.5 rounded uppercase mt-1.5 ${p.status === 'synced' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                       }`}>
                       {p.status === 'synced' ? 'Synced' : 'Local'}
                     </span>
@@ -2671,7 +2808,7 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
         <Button
           size="sm"
           onClick={() => setShowAdd(!showAdd)}
-          className="bg-brand-navy hover:bg-brand-navy/95 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer rounded-xl h-9"
+          className="bg-brand-navy hover:bg-brand-navy/95 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer rounded-xl h-9"
         >
           {showAdd ? <X className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
           {showAdd ? 'Tutup Formulir' : 'Daftarkan Anggota Baru'}
@@ -2682,7 +2819,7 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
       {showAdd && (
         <Card className="border-slate-200 bg-white">
           <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-            <CardTitle className="text-sm font-black text-brand-navy">Pendaftaran Anggota Koperasi Baru</CardTitle>
+            <CardTitle className="text-sm font-semibold text-brand-navy">Pendaftaran Anggota Koperasi Baru</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-normal text-slate-700">
             <div className="space-y-1">
@@ -2725,7 +2862,7 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
               <Button
                 onClick={handleAddMember}
                 disabled={saving}
-                className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10"
+                className="bg-brand-navy hover:bg-brand-navy/95 text-white font-semibold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10"
               >
                 {saving ? 'Mendaftar...' : 'Daftarkan Anggota'}
               </Button>
@@ -2737,13 +2874,13 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
       {/* Member lists table */}
       <Card className="border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100">
-          <CardTitle className="text-sm font-black text-slate-900">Daftar Keanggotaan Gotong Royong Desa</CardTitle>
+          <CardTitle className="text-sm font-semibold text-slate-900">Daftar Keanggotaan Gotong Royong Desa</CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200 text-[10px] font-black uppercase text-slate-400 bg-slate-50">
+                <tr className="border-b border-slate-200 text-[10px] font-semibold uppercase text-slate-400 bg-slate-50">
                   <th className="py-3 px-4">Nama</th>
                   <th className="py-3 px-4">No. Telepon</th>
                   <th className="py-3 px-4">Alamat Rumah</th>
@@ -2753,10 +2890,10 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {members.map(m => (
                   <tr key={m.id} className="hover:bg-slate-50/50">
-                    <td className="py-3.5 px-4 font-black text-slate-900">{m.name}</td>
-                    <td className="py-3.5 px-4 font-bold text-slate-650">{m.phone}</td>
+                    <td className="py-3.5 px-4 font-semibold text-slate-900">{m.name}</td>
+                    <td className="py-3.5 px-4 font-semibold text-slate-650">{m.phone}</td>
                     <td className="py-3.5 px-4 text-slate-500">{m.address}</td>
-                    <td className="py-3.5 px-4 text-slate-400 font-bold">{new Date(m.joined_at).toLocaleDateString('id-ID')}</td>
+                    <td className="py-3.5 px-4 text-slate-400 font-semibold">{new Date(m.joined_at).toLocaleDateString('id-ID')}</td>
                   </tr>
                 ))}
               </tbody>
@@ -2800,8 +2937,8 @@ function ReportingModule({ sales, purchases, members, commodities }: {
               <TrendingUp className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 font-black block uppercase tracking-wider">Total Penjualan (Omzet)</span>
-              <span className="text-base font-black text-slate-900">Rp {totalOmzet.toLocaleString('id-ID')}</span>
+              <span className="text-[10px] text-slate-400 font-semibold block uppercase tracking-wider">Total Penjualan (Omzet)</span>
+              <span className="text-base font-semibold text-slate-900">Rp {totalOmzet.toLocaleString('id-ID')}</span>
             </div>
           </CardContent>
         </Card>
@@ -2812,8 +2949,8 @@ function ReportingModule({ sales, purchases, members, commodities }: {
               <ArrowDownToLine className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 font-black block uppercase tracking-wider">Total Pembelian (Modal)</span>
-              <span className="text-base font-black text-slate-900">Rp {totalPurchase.toLocaleString('id-ID')}</span>
+              <span className="text-[10px] text-slate-400 font-semibold block uppercase tracking-wider">Total Pembelian (Modal)</span>
+              <span className="text-base font-semibold text-slate-900">Rp {totalPurchase.toLocaleString('id-ID')}</span>
             </div>
           </CardContent>
         </Card>
@@ -2824,8 +2961,8 @@ function ReportingModule({ sales, purchases, members, commodities }: {
               <Coins className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-[10px] text-slate-400 font-black block uppercase tracking-wider">Surplus Operasional</span>
-              <span className={`text-base font-black ${netEarnings >= 0 ? 'text-emerald-700' : 'text-brand-red'}`}>
+              <span className="text-[10px] text-slate-400 font-semibold block uppercase tracking-wider">Surplus Operasional</span>
+              <span className={`text-base font-semibold ${netEarnings >= 0 ? 'text-emerald-700' : 'text-brand-red'}`}>
                 Rp {netEarnings.toLocaleString('id-ID')}
               </span>
             </div>
@@ -2837,7 +2974,7 @@ function ReportingModule({ sales, purchases, members, commodities }: {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border-slate-200 bg-white">
           <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-            <CardTitle className="text-xs font-black text-slate-800 uppercase tracking-wider">Tren Penjualan Harian (Omzet)</CardTitle>
+            <CardTitle className="text-xs font-semibold text-slate-800 uppercase tracking-wider">Tren Penjualan Harian (Omzet)</CardTitle>
           </CardHeader>
           <CardContent className="h-64">
             {chartData.length === 0 ? (
@@ -2846,8 +2983,8 @@ function ReportingModule({ sales, purchases, members, commodities }: {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={10} fontWeight="bold" />
-                  <YAxis stroke="#64748b" fontSize={10} fontWeight="bold" />
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={10} fontWeight={600} />
+                  <YAxis stroke="#64748b" fontSize={10} fontWeight={600} />
                   <Tooltip />
                   <Line type="monotone" dataKey="omzet" stroke="#123042" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
@@ -2858,7 +2995,7 @@ function ReportingModule({ sales, purchases, members, commodities }: {
 
         <Card className="border-slate-200 bg-white">
           <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-            <CardTitle className="text-xs font-black text-slate-800 uppercase tracking-wider">Kapasitas Bulanan vs Tersedia (Inventori)</CardTitle>
+            <CardTitle className="text-xs font-semibold text-slate-800 uppercase tracking-wider">Kapasitas Bulanan vs Tersedia (Inventori)</CardTitle>
           </CardHeader>
           <CardContent className="h-64">
             {commodities.length === 0 ? (
@@ -2867,8 +3004,8 @@ function ReportingModule({ sales, purchases, members, commodities }: {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={commodities.slice(0, 5).map(c => ({ name: c.name, stok: c.available_stock, kapasitas: c.monthly_capacity }))}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={10} fontWeight="bold" />
-                  <YAxis stroke="#64748b" fontSize={10} fontWeight="bold" />
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={10} fontWeight={600} />
+                  <YAxis stroke="#64748b" fontSize={10} fontWeight={600} />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="stok" fill="#ea7a12" radius={[4, 4, 0, 0]} name="Stok Tersedia" />
@@ -2956,7 +3093,7 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
       {/* Stock Connector Trades Recommendations */}
       <Card className="border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-          <CardTitle className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+          <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
             <ArrowRightLeft className="h-4.5 w-4.5 text-brand-orange" /> ARUNA Smart Stock Connector
           </CardTitle>
           <CardDescription className="text-xs">
@@ -2965,17 +3102,17 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
         </CardHeader>
         <CardContent className="space-y-4">
           {trades.length === 0 ? (
-            <div className="text-center py-12 text-slate-400 font-bold">Tidak ada rekomendasi transfer stok saat ini.</div>
+            <div className="text-center py-12 text-slate-400 font-semibold">Tidak ada rekomendasi transfer stok saat ini.</div>
           ) : (
             trades.map(t => (
               <div key={t.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex flex-col justify-between space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className={`inline-block text-[9px] font-black px-2.5 py-0.5 rounded-full ${t.status === 'Rekomendasi' ? 'bg-amber-100 text-brand-orange' : 'bg-blue-100 text-brand-navy'
+                    <span className={`inline-block text-[9px] font-semibold px-2.5 py-0.5 rounded-full ${t.status === 'Rekomendasi' ? 'bg-amber-100 text-brand-orange' : 'bg-blue-100 text-brand-navy'
                       }`}>
                       {t.status}
                     </span>
-                    <h4 className="text-xs font-black text-slate-800 mt-2">
+                    <h4 className="text-xs font-semibold text-slate-800 mt-2">
                       Transfer Komoditas: {t.commodity_name}
                     </h4>
                     <p className="text-[10px] text-slate-500 mt-1">
@@ -2983,8 +3120,8 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
                       <br />Ke: <strong className="text-slate-700">{t.target_name}</strong>
                     </p>
                   </div>
-                  <div className="text-right font-black">
-                    <span className="text-xs text-slate-900 block">{t.quantity} {t.unit}</span>
+                  <div className="text-right font-semibold">
+                    <span className="text-xs text-slate-900 block">{t.quantity.toLocaleString('id-ID')} {t.unit}</span>
                   </div>
                 </div>
 
@@ -2993,14 +3130,14 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
                     <Button
                       size="sm"
                       onClick={() => handleActionTrade(t.id, 'tolak')}
-                      className="bg-transparent border border-slate-300 text-slate-500 hover:bg-slate-100 font-bold text-[10px] h-7 px-3 rounded-lg cursor-pointer"
+                      className="bg-transparent border border-slate-300 text-slate-500 hover:bg-slate-100 font-semibold text-[10px] h-7 px-3 rounded-lg cursor-pointer"
                     >
                       Abaikan
                     </Button>
                     <Button
                       size="sm"
                       onClick={() => handleActionTrade(t.id, 'proses')}
-                      className="bg-brand-orange hover:bg-brand-orange/95 text-white font-bold text-[10px] h-7 px-3 rounded-lg cursor-pointer"
+                      className="bg-brand-orange hover:bg-brand-orange/95 text-white font-semibold text-[10px] h-7 px-3 rounded-lg cursor-pointer"
                     >
                       Setujui Pengiriman
                     </Button>
@@ -3015,7 +3152,7 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
       {/* Collective Procurement module */}
       <Card className="border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-          <CardTitle className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+          <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
             <Gift className="h-4.5 w-4.5 text-brand-red" /> Collective Procurement (Pembelian Bersama)
           </CardTitle>
           <CardDescription className="text-xs">
@@ -3028,14 +3165,14 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
             return (
               <div key={p.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex flex-col space-y-3">
                 <div>
-                  <h4 className="text-xs font-black text-slate-800">{p.title}</h4>
+                  <h4 className="text-xs font-semibold text-slate-800">{p.title}</h4>
                   <p className="text-[10px] text-slate-500 leading-normal mt-1">{p.description}</p>
                 </div>
 
                 {/* Progress bar */}
                 <div className="space-y-1">
-                  <div className="flex justify-between text-[9px] font-bold text-slate-500">
-                    <span>Kuota Terkumpul: {p.current_quantity} / {p.target_quantity} {p.unit}</span>
+                  <div className="flex justify-between text-[9px] font-semibold text-slate-500">
+                    <span>Kuota Terkumpul: {p.current_quantity.toLocaleString('id-ID')} / {p.target_quantity.toLocaleString('id-ID')} {p.unit}</span>
                     <span>{pct}%</span>
                   </div>
                   <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
@@ -3045,14 +3182,14 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
 
                 <div className="pt-2 border-t border-slate-200/50 flex justify-between items-center text-[10px]">
                   <div>
-                    <span className="text-slate-400 block font-bold">Harga Grosir:</span>
-                    <span className="font-black text-brand-navy">Rp {p.price_per_unit.toLocaleString('id-ID')} / {p.unit}</span>
+                    <span className="text-slate-400 block font-semibold">Harga Grosir:</span>
+                    <span className="font-semibold text-brand-navy">Rp {p.price_per_unit.toLocaleString('id-ID')} / {p.unit}</span>
                   </div>
                   <Button
                     size="sm"
                     onClick={() => handleJoinProcurement(p.id)}
                     disabled={p.current_quantity >= p.target_quantity}
-                    className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold text-[10px] h-7.5 px-3 rounded-lg cursor-pointer font-sans"
+                    className="bg-brand-navy hover:bg-brand-navy/95 text-white font-semibold text-[10px] h-7.5 px-3 rounded-lg cursor-pointer font-sans"
                   >
                     Ikut Pengadaan (+10)
                   </Button>
@@ -3130,7 +3267,7 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
       {/* Primary profile parameters */}
       <Card className="md:col-span-2 border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between mb-4">
-          <CardTitle className="text-sm font-black text-slate-900 font-sans">Informasi Dasar Koperasi</CardTitle>
+          <CardTitle className="text-sm font-semibold text-slate-900 font-sans">Informasi Dasar Koperasi</CardTitle>
           <Button
             size="sm"
             variant="outline"
@@ -3143,15 +3280,15 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">ID SimkopDes</span>
-              <span className="text-xs font-black text-slate-700">{coop.simkopdes_id || '-'}</span>
+              <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider block">ID SimkopDes</span>
+              <span className="text-xs font-semibold text-slate-700">{coop.simkopdes_id || '-'}</span>
             </div>
             <div>
-              <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Provinsi / Kota</span>
+              <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider block">Provinsi / Kota</span>
               <span className="text-xs font-semibold text-slate-700">{coop.province} / {coop.city}</span>
             </div>
             <div>
-              <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Nama Ketua Koperasi</span>
+              <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider block">Nama Ketua Koperasi</span>
               {editing ? (
                 <input
                   type="text"
@@ -3164,7 +3301,7 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
               )}
             </div>
             <div>
-              <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">No. Telepon Kontak</span>
+              <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider block">No. Telepon Kontak</span>
               {editing ? (
                 <input
                   type="text"
@@ -3177,7 +3314,7 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
               )}
             </div>
             <div className="col-span-2">
-              <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Alamat Koperasi Utama</span>
+              <span className="text-[9px] text-slate-400 font-semibold uppercase tracking-wider block">Alamat Koperasi Utama</span>
               {editing ? (
                 <input
                   type="text"
@@ -3196,7 +3333,7 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
               <Button
                 onClick={handleSave}
                 disabled={saving}
-                className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer h-10 font-sans"
+                className="bg-brand-navy hover:bg-brand-navy/95 text-white font-semibold text-xs px-5 py-2.5 rounded-xl cursor-pointer h-10 font-sans"
               >
                 {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
               </Button>
@@ -3208,7 +3345,7 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
       {/* Compliance / KYC verification card */}
       <Card className="border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between mb-4">
-          <CardTitle className="text-sm font-black text-slate-900 flex items-center gap-1.5 font-sans">
+          <CardTitle className="text-sm font-semibold text-slate-900 flex items-center gap-1.5 font-sans">
             <FileCheck className="h-4.5 w-4.5 text-brand-orange" /> Legalitas & Kepatuhan
           </CardTitle>
           {!editingKyc && (coop.nib_status !== 'verified' || coop.sk_status !== 'verified') && (
@@ -3242,7 +3379,7 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
           {editingKyc ? (
             <div className="space-y-4 font-sans">
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 block uppercase">Nomor NIB Koperasi</label>
+                <label className="text-[10px] font-semibold text-slate-400 block uppercase">Nomor NIB Koperasi</label>
                 <input
                   type="text"
                   value={kycForm.nib}
@@ -3253,7 +3390,7 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 block uppercase">Nomor SK Kementerian</label>
+                <label className="text-[10px] font-semibold text-slate-400 block uppercase">Nomor SK Kementerian</label>
                 <input
                   type="text"
                   value={kycForm.sk_number}
@@ -3264,13 +3401,13 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
               </div>
 
               <div className="bg-brand-red/5 border border-brand-red/15 text-slate-600 p-3 rounded-lg text-[10px] leading-relaxed">
-                <strong className="text-brand-red font-black">Informasi:</strong> Setelah disimpan, berkas legalitas Anda akan memasuki status <span className="font-extrabold text-amber-600">Pending Review</span> dan akan diverifikasi oleh Admin ARUNA.
+                <strong className="text-brand-red font-semibold">Informasi:</strong> Setelah disimpan, berkas legalitas Anda akan memasuki status <span className="font-semibold text-amber-600">Pending Review</span> dan akan diverifikasi oleh Admin ARUNA.
               </div>
 
               <Button
                 onClick={handleSaveKyc}
                 disabled={kycSaving || (!kycForm.nib && !kycForm.sk_number)}
-                className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-bold text-xs py-2.5 rounded-xl cursor-pointer"
+                className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-semibold text-xs py-2.5 rounded-xl cursor-pointer"
               >
                 {kycSaving ? 'Mengirim Data...' : 'Kirim Berkas Verifikasi'}
               </Button>
@@ -3279,12 +3416,12 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
             <>
               <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2 text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="font-extrabold text-slate-700">Nomor NIB:</span>
-                  <span className="font-bold text-slate-500">{coop.nib || 'Belum Terdaftar'}</span>
+                  <span className="font-semibold text-slate-700">Nomor NIB:</span>
+                  <span className="font-semibold text-slate-500">{coop.nib || 'Belum Terdaftar'}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="font-extrabold text-slate-700">Status KYC NIB:</span>
-                  <span className={`px-2 py-0.5 rounded font-black uppercase text-[9px] ${coop.nib_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                  <span className="font-semibold text-slate-700">Status KYC NIB:</span>
+                  <span className={`px-2 py-0.5 rounded font-semibold uppercase text-[9px] ${coop.nib_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                     coop.nib_status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
                       'bg-slate-100 text-slate-500 border border-slate-200'
                     }`}>
@@ -3295,12 +3432,12 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
 
               <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl space-y-2 text-xs">
                 <div className="flex justify-between items-center">
-                  <span className="font-extrabold text-slate-700">Nomor SK:</span>
-                  <span className="font-bold text-slate-500">{coop.sk_number || 'Belum Terdaftar'}</span>
+                  <span className="font-semibold text-slate-700">Nomor SK:</span>
+                  <span className="font-semibold text-slate-500">{coop.sk_number || 'Belum Terdaftar'}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="font-extrabold text-slate-700">Status KYC SK:</span>
-                  <span className={`px-2 py-0.5 rounded font-black uppercase text-[9px] ${coop.sk_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                  <span className="font-semibold text-slate-700">Status KYC SK:</span>
+                  <span className={`px-2 py-0.5 rounded font-semibold uppercase text-[9px] ${coop.sk_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                     coop.sk_status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
                       'bg-slate-100 text-slate-500 border border-slate-200'
                     }`}>
@@ -3314,7 +3451,7 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
                 <div className="bg-amber-50 border border-amber-250/20 text-amber-950 p-3 rounded-xl text-[10px] leading-relaxed flex items-start gap-2">
                   <span className="h-2 w-2 rounded-full bg-amber-500 animate-ping mt-1 shrink-0"></span>
                   <p>
-                    <strong className="font-black">Verifikasi Diproses:</strong> Admin ARUNA sedang meninjau berkas NIB/SK Anda. Mohon tunggu proses ini selesai.
+                    <strong className="font-semibold">Verifikasi Diproses:</strong> Admin ARUNA sedang meninjau berkas NIB/SK Anda. Mohon tunggu proses ini selesai.
                   </p>
                 </div>
               )}
@@ -3378,20 +3515,20 @@ function PesananTab({ requests, commodities, coopId, onRefresh, showToast }: {
   return (
     <Card className="border-slate-200 bg-white">
       <CardHeader className="pb-3 border-b border-slate-100 mb-4">
-        <CardTitle className="text-sm font-black text-slate-900">Permintaan Of-taker Industri Aktif Nasional</CardTitle>
+        <CardTitle className="text-sm font-semibold text-slate-900">Permintaan Of-taker Industri Aktif Nasional</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {requests.length === 0 ? (
-          <div className="text-center py-12 text-slate-400 font-bold text-xs">Tidak ada permintaan offtaker industri yang cocok.</div>
+          <div className="text-center py-12 text-slate-400 font-semibold text-xs">Tidak ada permintaan offtaker industri yang cocok.</div>
         ) : (
           requests.map(req => {
             const hasStock = commodities.find(c => c.name.toLowerCase() === req.commodity_name.toLowerCase());
             return (
               <div key={req.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 text-xs font-semibold text-slate-700">
                 <div>
-                  <span className="bg-brand-navy text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase">{req.status}</span>
-                  <h4 className="font-extrabold text-slate-800 mt-2 text-sm">
-                    {req.commodity_name} (Kebutuhan: {req.quantity} {req.unit})
+                  <span className="bg-brand-navy text-white text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase">{req.status}</span>
+                  <h4 className="font-semibold text-slate-800 mt-2 text-sm">
+                    {req.commodity_name} (Kebutuhan: {req.quantity.toLocaleString('id-ID')} {req.unit})
                   </h4>
                   <p className="text-[10px] text-slate-500 mt-1 font-semibold flex items-center gap-1">
                     <Building2 className="h-3 w-3 text-slate-450" /> Buyer: {req.buyer?.company_name} ({req.buyer?.city})
@@ -3399,15 +3536,15 @@ function PesananTab({ requests, commodities, coopId, onRefresh, showToast }: {
                 </div>
                 <div className="flex items-center gap-3 w-full sm:w-auto shrink-0 justify-between sm:justify-end">
                   <div className="text-right">
-                    <span className="text-[9px] text-slate-400 font-black block uppercase">Stok Anda:</span>
-                    <span className="font-black text-slate-700">{hasStock ? `${hasStock.available_stock} ${hasStock.unit}` : 'Tidak ada'}</span>
+                    <span className="text-[9px] text-slate-400 font-semibold block uppercase">Stok Anda:</span>
+                    <span className="font-semibold text-slate-700">{hasStock ? `${hasStock.available_stock.toLocaleString('id-ID')} ${hasStock.unit}` : 'Tidak ada'}</span>
                   </div>
                   {req.status !== 'Terpenuhi' && (
                     <Button
                       size="sm"
                       onClick={() => handleProcessOffer(req)}
                       disabled={processingId !== null || !hasStock || hasStock.available_stock <= 0}
-                      className="bg-brand-red hover:bg-brand-red/90 text-white font-black text-[10px] h-9.5 px-4.5 rounded-xl cursor-pointer disabled:opacity-50"
+                      className="bg-brand-red hover:bg-brand-red/90 text-white font-semibold text-[10px] h-9.5 px-4.5 rounded-xl cursor-pointer disabled:opacity-50"
                     >
                       {processingId === req.id ? 'Memproses...' : 'Pasok Kontrak'}
                     </Button>
@@ -3441,8 +3578,8 @@ function SHUTab({ coop, coopId, matches, onRefresh, showToast }: {
               <Coins className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-[10px] text-slate-450 font-black block uppercase tracking-wider">Tabungan Cadangan Kas Desa (40%)</span>
-              <span className="text-base font-black text-slate-900">Rp {reserveFund.toLocaleString('id-ID')}</span>
+              <span className="text-[10px] text-slate-450 font-semibold block uppercase tracking-wider">Tabungan Cadangan Kas Desa (40%)</span>
+              <span className="text-base font-semibold text-slate-900">Rp {reserveFund.toLocaleString('id-ID')}</span>
             </div>
           </CardContent>
         </Card>
@@ -3453,8 +3590,8 @@ function SHUTab({ coop, coopId, matches, onRefresh, showToast }: {
               <Users className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-[10px] text-slate-455 font-black block uppercase tracking-wider">Dana SHU Anggota Tani (60%)</span>
-              <span className="text-base font-black text-emerald-700">Rp {shuFund.toLocaleString('id-ID')}</span>
+              <span className="text-[10px] text-slate-455 font-semibold block uppercase tracking-wider">Dana SHU Anggota Tani (60%)</span>
+              <span className="text-base font-semibold text-emerald-700">Rp {shuFund.toLocaleString('id-ID')}</span>
             </div>
           </CardContent>
         </Card>
@@ -3463,24 +3600,24 @@ function SHUTab({ coop, coopId, matches, onRefresh, showToast }: {
       {/* Allocations History */}
       <Card className="border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100">
-          <CardTitle className="text-sm font-black text-slate-900">Kontribusi Penjualan Gotong Royong Terpasok</CardTitle>
+          <CardTitle className="text-sm font-semibold text-slate-900">Kontribusi Penjualan Gotong Royong Terpasok</CardTitle>
           <CardDescription className="text-xs">Catatan pengiriman pasokan komoditas yang menghasilkan bagi hasil untuk kas desa.</CardDescription>
         </CardHeader>
         <CardContent className="pt-4 space-y-2">
           {matches.length === 0 ? (
-            <div className="text-center py-12 text-slate-400 font-bold">Belum ada penyaluran gotong royong terpasok.</div>
+            <div className="text-center py-12 text-slate-400 font-semibold">Belum ada penyaluran gotong royong terpasok.</div>
           ) : (
             matches.map(m => (
               <div key={m.id} className="p-3.5 border border-slate-100 rounded-xl bg-slate-50 flex justify-between items-center text-xs">
                 <div>
-                  <h5 className="font-extrabold text-slate-800">{m.request?.commodity_name}</h5>
+                  <h5 className="font-semibold text-slate-800">{m.request?.commodity_name}</h5>
                   <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
                     Diperoleh: {new Date(m.matched_at).toLocaleDateString('id-ID')} &bull; Pembeli: {m.request?.buyer?.company_name}
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="font-black text-slate-900 block">{m.allocated_quantity} {m.request?.unit}</span>
-                  <span className="text-[10px] text-emerald-700 font-black block mt-0.5">
+                  <span className="font-semibold text-slate-900 block">{m.allocated_quantity.toLocaleString('id-ID')} {m.request?.unit}</span>
+                  <span className="text-[10px] text-emerald-700 font-semibold block mt-0.5">
                     Rp {(m.allocated_quantity * 12000).toLocaleString('id-ID')}
                   </span>
                 </div>

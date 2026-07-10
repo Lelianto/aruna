@@ -2,7 +2,8 @@
    ARUNA — Command Center Design System
    ============================================= */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+/* Mona Sans (variable) is loaded via Fontsource in app/layout.tsx.
+   The system 'Helvetica Neue' acts as the primary fallback. */
 @import "leaflet/dist/leaflet.css";
 @import "tailwindcss";
 
@@ -23,8 +24,8 @@
   /* Soft warm cream */
 
   /* Surface */
-  --bg-base: #faf9f6;
-  /* Premium warm off-white */
+  --bg-base: #f7f8fa;
+  /* Clean neutral off-white (clean-UI) */
   --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
 
@@ -35,15 +36,15 @@
   /* Slate grey untuk teks sekunder */
   --text-muted: #8fa0b0;
 
-  /* Borders */
-  --border-subtle: rgba(18, 48, 66, 0.06);
-  --border-default: rgba(18, 48, 66, 0.12);
+  /* Borders — hairline, low-contrast neutral (clean-UI) */
+  --border-subtle: rgba(15, 23, 42, 0.05);
+  --border-default: rgba(15, 23, 42, 0.09);
 
-  /* Shadows */
-  --shadow-card: 0 6px 20px rgba(18, 48, 66, 0.025), 0 2px 6px rgba(18, 48, 66, 0.015);
-  --shadow-hover: 0 16px 36px rgba(18, 48, 66, 0.06);
-  --shadow-glow-red: 0 0 24px rgba(217, 56, 58, 0.15);
-  --shadow-glow-orange: 0 0 24px rgba(234, 122, 18, 0.15);
+  /* Shadows — subtle, relying on hairline borders (clean-UI) */
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
+  --shadow-hover: 0 8px 24px rgba(15, 23, 42, 0.06);
+  --shadow-glow-red: 0 0 24px rgba(217, 56, 58, 0.12);
+  --shadow-glow-orange: 0 0 24px rgba(234, 122, 18, 0.12);
 }
 
 /* ── @theme for Tailwind v4 ── */
@@ -62,8 +63,8 @@
   --color-accent: var(--brand-orange);
   --color-accent-hover: #d96e00;
 
-  --font-sans: 'Inter', sans-serif;
-  --font-display: 'Poppins', sans-serif;
+  --font-sans: 'Mona Sans Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-display: 'Mona Sans Variable', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 /* ── Base Reset ── */
@@ -80,11 +81,9 @@ html {
 }
 
 body {
-  background:
-    linear-gradient(180deg, #f7f3e8 0%, #faf9f6 280px),
-    var(--bg-base);
+  background: var(--bg-base);
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   overflow-x: hidden;
   min-height: 100dvh;
 }
@@ -94,8 +93,8 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: 'Poppins', sans-serif;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
   font-weight: 600 !important;
   /* Force all headers to Semibold (600) to avoid excessive thickness */
 }
@@ -106,9 +105,7 @@ h4 {
 
 .page-shell {
   min-height: 100%;
-  background:
-    linear-gradient(180deg, #fcfbf8 0, #faf9f6 280px),
-    var(--bg-base);
+  background: var(--bg-base);
 }
 
 .section-shell {
@@ -140,7 +137,7 @@ h4 {
   border-radius: 999px;
   padding: 0.35rem 0.75rem;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -233,7 +230,7 @@ h4 {
   width: 100% !important;
   height: 100% !important;
   min-height: 400px;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   border-radius: 0;
   background: #dce3ec;
   z-index: 1;
@@ -444,8 +441,8 @@ textarea:focus {
 
 /* ── Stat Number ── */
 .stat-number {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-weight: 900;
+  font-family: var(--font-display);
+  font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1;
 }

@@ -12,7 +12,7 @@ export interface Cooperative {
   head?: string;
   phone?: string;
   created_at?: string;
-  
+
   // Document compliance & SimkopDes fields
   nib?: string;
   nib_document_url?: string;
@@ -137,6 +137,16 @@ export interface POSTransaction {
   created_at: string;
   status: 'pending' | 'synced';
   version: number;
+  // Buyer identity captured at checkout so the digital receipt (struk) can be
+  // sent to the buyer over WhatsApp. Both optional: walk-in buyers may decline.
+  customer_name?: string;
+  customer_wa?: string; // normalized to 62xxxxxxxxxx (see lib/utils/phone)
+  // Public URL of the generated PDF receipt (Firebase Storage) once uploaded.
+  receipt_pdf_url?: string;
+  // Cash handling for the 'Tunai' method: money handed over and change due.
+  // Undefined for non-cash methods (exact amount).
+  amount_paid?: number;
+  change?: number;
 }
 
 export interface PurchaseItem {

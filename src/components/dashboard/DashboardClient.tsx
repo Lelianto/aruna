@@ -6,7 +6,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   Legend, ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
-import { Home, Users, Layers, ShoppingBag, ArrowRight, Building2, MapPin, CheckCircle2 } from 'lucide-react';
+import { Home, Users, Layers, ShoppingBag, ArrowRight, Building2, MapPin, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { MarketRequestWithBuyer } from '@/types';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,7 @@ function MetricCard({ title, value, subtext, icon, trend, trendType = 'positive'
     <Card className="border-slate-200/80 hover:shadow-md transition-shadow">
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             {title}
           </span>
           <div className={`h-9 w-9 rounded-lg ${accentColor}/10 flex items-center justify-center text-current`}>
@@ -37,15 +37,14 @@ function MetricCard({ title, value, subtext, icon, trend, trendType = 'positive'
           </div>
         </div>
         <div className="mt-3 flex items-baseline gap-2">
-          <span className="text-2xl font-black text-slate-900 tracking-tight">
+          <span className="text-2xl font-semibold text-slate-900 tracking-tight">
             {value}
           </span>
           {trend && (
-            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-              trendType === 'positive' ? 'bg-emerald-50 text-emerald-700' :
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${trendType === 'positive' ? 'bg-emerald-50 text-emerald-700' :
               trendType === 'negative' ? 'bg-red-50 text-red-700' :
-              'bg-slate-100 text-slate-600'
-            }`}>
+                'bg-slate-100 text-slate-600'
+              }`}>
               {trend}
             </span>
           )}
@@ -91,10 +90,10 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
 
   if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'pemerintah')) {
     return (
-      <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
+      <div className="flex-1 flex items-center justify-center py-20 bg-[#f7f8fa]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy mx-auto mb-4"></div>
-          <p className="text-xs text-slate-500 font-bold">Memuat...</p>
+          <p className="text-xs text-slate-500 font-semibold">Memuat...</p>
         </div>
       </div>
     );
@@ -109,18 +108,41 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
         {/* Dashboard Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900">
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
               Pusat Analitik Koperasi Nasional
             </h1>
             <p className="text-sm text-slate-500 mt-1">
               Monitoring real-time komoditas desa, agregasi gotong royong, dan kesiapan kemitraan industri.
             </p>
           </div>
-          <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold shadow-sm">
+          <div className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold shadow-sm">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="text-slate-600">Sistem Terhubung</span>
           </div>
         </div>
+
+        {/* Tautan ke Pusat Kendali Admin — hanya untuk peran admin */}
+        {userData.role === 'admin' && (
+          <Link
+            href="/admin"
+            className="group mb-8 flex items-center justify-between gap-4 rounded-2xl border border-brand-navy/15 bg-brand-navy/[0.03] p-5 hover:border-brand-navy/40 hover:shadow-md transition-all"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <span className="h-10 w-10 rounded-xl bg-brand-navy text-white flex items-center justify-center shrink-0">
+                <ShieldAlert className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <h2 className="text-sm font-semibold text-slate-900 leading-tight">Pusat Kendali Admin</h2>
+                <p className="text-[11px] text-slate-500 leading-tight">
+                  Kelola data koperasi, buyer & pengguna, validasi dokumen KYC, dan setujui pembayaran gotong royong.
+                </p>
+              </div>
+            </div>
+            <span className="flex items-center gap-1 text-xs font-semibold text-brand-navy shrink-0">
+              Buka <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </Link>
+        )}
 
         {/* 4 Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
@@ -164,7 +186,7 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
           {/* Chart 1: Top Commodities */}
           <Card className="min-w-0 lg:col-span-2 border-slate-200/80">
             <CardHeader>
-              <CardTitle className="text-base font-bold text-slate-900">
+              <CardTitle className="text-base font-semibold text-slate-900">
                 Kapasitas vs Stok Komoditas Utama
               </CardTitle>
               <CardDescription>
@@ -179,7 +201,7 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
                   <YAxis tick={{ fontSize: 11, fill: '#64748b' }} stroke="#cbd5e1" />
                   <Tooltip
                     contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff' }}
-                    labelStyle={{ fontWeight: 'bold', color: '#1e293b' }}
+                    labelStyle={{ fontWeight: 600, color: '#1e293b' }}
                   />
                   <Legend wrapperStyle={{ fontSize: '12px' }} />
                   <Bar dataKey="capacity" name="Kapasitas Bulanan" fill="#003049" radius={[4, 4, 0, 0]} />
@@ -192,7 +214,7 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
           {/* Chart 2: Category Requests Pie */}
           <Card className="min-w-0 border-slate-200/80">
             <CardHeader>
-              <CardTitle className="text-base font-bold text-slate-900">
+              <CardTitle className="text-base font-semibold text-slate-900">
                 Permintaan per Kategori
               </CardTitle>
               <CardDescription>
@@ -218,7 +240,7 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
                     </Pie>
                     <Tooltip
                       contentStyle={{ fontSize: '12px', borderRadius: '8px', background: '#fff' }}
-                      formatter={(value) => [`${value} Ton`, 'Total Volume']}
+                      formatter={(value) => [`${Number(value).toLocaleString('id-ID')} Ton`, 'Total Volume']}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -244,7 +266,7 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
           {/* Chart 3: Province Production */}
           <Card className="min-w-0 lg:col-span-2 border-slate-200/80">
             <CardHeader>
-              <CardTitle className="text-base font-bold text-slate-900">
+              <CardTitle className="text-base font-semibold text-slate-900">
                 Kapasitas Produksi Per Provinsi
               </CardTitle>
               <CardDescription>
@@ -271,7 +293,7 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
           {/* Quick Highlight Panel */}
           <Card className="border-slate-200/80 flex flex-col justify-between">
             <CardHeader>
-              <CardTitle className="text-base font-bold text-slate-900">
+              <CardTitle className="text-base font-semibold text-slate-900">
                 Kesiapan Nasional
               </CardTitle>
               <CardDescription>
@@ -280,29 +302,28 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
             </CardHeader>
             <CardContent className="space-y-5 flex-1 justify-between flex flex-col">
               <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
-                <div className={`h-12 w-12 rounded-xl flex items-center justify-center font-black text-xl text-white ${
-                  stats.averageScore >= 80 ? 'bg-emerald-500' : stats.averageScore >= 70 ? 'bg-blue-500' : 'bg-amber-500'
-                }`}>
+                <div className={`h-12 w-12 rounded-xl flex items-center justify-center font-semibold text-xl text-white ${stats.averageScore >= 80 ? 'bg-emerald-500' : stats.averageScore >= 70 ? 'bg-blue-500' : 'bg-amber-500'
+                  }`}>
                   {stats.averageScore >= 80 ? 'A' : stats.averageScore >= 70 ? 'B' : 'C'}
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Rata-Rata Nilai Nasional</span>
-                  <span className="font-bold text-slate-900 text-lg">
+                  <span className="text-[10px] text-slate-400 block font-semibold uppercase">Rata-Rata Nilai Nasional</span>
+                  <span className="font-semibold text-slate-900 text-lg">
                     {stats.averageScore}/100
                   </span>
                 </div>
               </div>
 
               <div className="space-y-3 flex-1 pt-3">
-                <span className="text-xs text-slate-500 block font-bold uppercase">Sorotan Kemitraan</span>
+                <span className="text-xs text-slate-500 block font-semibold uppercase">Sorotan Kemitraan</span>
                 <div className="flex gap-3 items-start">
-                  <div className="h-6 w-6 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
+                  <div className="h-6 w-6 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center text-xs font-semibold flex-shrink-0">1</div>
                   <p className="text-xs text-slate-600">
                     <strong className="text-slate-800">Gotong Royong:</strong> 100% permintaan jagung 500 ton PT Indofood terpenuhi dengan kolaborasi 3 koperasi.
                   </p>
                 </div>
                 <div className="flex gap-3 items-start">
-                  <div className="h-6 w-6 rounded-full bg-brand-red/10 text-brand-red flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
+                  <div className="h-6 w-6 rounded-full bg-brand-red/10 text-brand-red flex items-center justify-center text-xs font-semibold flex-shrink-0">2</div>
                   <p className="text-xs text-slate-600">
                     <strong className="text-slate-800">Partisipasi:</strong> 85% anggota aktif berpartisipasi dalam pemenuhan rantai pasok nasional.
                   </p>
@@ -315,10 +336,10 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
         {/* Fourth Row: Active Gotong Royong Demands Hub */}
         <div className="space-y-4">
           <div className="flex justify-between items-baseline">
-            <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+            <h2 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
               <ShoppingBag className="h-5.5 w-5.5 text-brand-red" /> Pusat Agregasi Permintaan (Kebutuhan Pasar Aktif)
             </h2>
-            <Link href="/marketplace" className="text-xs font-bold text-brand-navy hover:text-brand-red hover:underline transition-colors flex items-center gap-1">
+            <Link href="/marketplace" className="text-xs font-semibold text-brand-navy hover:text-brand-red hover:underline transition-colors flex items-center gap-1">
               Buka Semua Permintaan <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -333,10 +354,10 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
                         <Building2 className="h-5 w-5" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-sm text-slate-900 truncate max-w-[150px]">
+                        <h4 className="font-semibold text-sm text-slate-900 truncate max-w-[150px]">
                           {req.buyer.company_name}
                         </h4>
-                        <span className="text-[10px] text-slate-400 font-bold uppercase block mt-0.5">
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase block mt-0.5">
                           {req.buyer.industry}
                         </span>
                       </div>
@@ -355,18 +376,18 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
 
                     <div className="p-3 bg-slate-50 border rounded-lg flex items-center justify-between">
                       <div>
-                        <span className="text-[9px] text-slate-400 block font-bold uppercase">Komoditas</span>
-                        <span className="text-xs font-bold text-slate-800">{req.commodity_name}</span>
+                        <span className="text-[9px] text-slate-400 block font-semibold uppercase">Komoditas</span>
+                        <span className="text-xs font-semibold text-slate-800">{req.commodity_name}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[9px] text-slate-400 block font-bold">Kebutuhan</span>
-                        <span className="text-sm font-black text-brand-red">{req.quantity} {req.unit}</span>
+                        <span className="text-[9px] text-slate-400 block font-semibold">Kebutuhan</span>
+                        <span className="text-sm font-semibold text-brand-red">{req.quantity} {req.unit}</span>
                       </div>
                     </div>
                   </div>
 
                   <Link href={`/marketplace/${req.id}`} className="mt-4 block w-full">
-                    <Button size="sm" className="w-full bg-brand-navy hover:bg-brand-navy/90 text-white font-bold text-xs flex items-center justify-center gap-1.5 py-2">
+                    <Button size="sm" className="w-full bg-brand-navy hover:bg-brand-navy/90 text-white font-semibold text-xs flex items-center justify-center gap-1.5 py-2">
                       Mulai Gotong Royong <ArrowRight className="h-3.5 w-3.5 text-brand-cream" />
                     </Button>
                   </Link>

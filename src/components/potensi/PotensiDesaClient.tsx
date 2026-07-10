@@ -146,10 +146,10 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
   // Show loading/redirect placeholder
   if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'pemerintah')) {
     return (
-      <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
+      <div className="flex-1 flex items-center justify-center py-20 bg-[#f7f8fa]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy mx-auto mb-4"></div>
-          <p className="text-xs text-slate-500 font-bold">Memuat...</p>
+          <p className="text-xs text-slate-500 font-semibold">Memuat...</p>
         </div>
       </div>
     );
@@ -297,13 +297,13 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
   };
 
   return (
-    <div className="page-shell flex-1 py-8 bg-[#faf9f6]">
+    <div className="page-shell flex-1 py-8 bg-[#f7f8fa]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
+            <h1 className="text-3xl font-semibold text-slate-900 flex items-center gap-3">
               <Landmark className="h-8 w-8 text-brand-navy" /> Peta Potensi &amp; AI Business Matching
             </h1>
             <p className="text-sm font-semibold text-slate-500 mt-1">
@@ -318,8 +318,8 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
             <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-navy"></div>
             <CardContent className="p-5 flex items-center justify-between">
               <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Potensi Ekonomi Terpetakan</p>
-                <h3 className="text-lg font-black text-slate-800 mt-1">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Potensi Ekonomi Terpetakan</p>
+                <h3 className="text-lg font-semibold text-slate-800 mt-1">
                   Rp {filteredStats.total_economic_value.toLocaleString('id-ID')}
                 </h3>
               </div>
@@ -333,8 +333,8 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
             <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
             <CardContent className="p-5 flex items-center justify-between">
               <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Estimasi Volume</p>
-                <h3 className="text-lg font-black text-slate-800 mt-1">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Estimasi Volume</p>
+                <h3 className="text-lg font-semibold text-slate-800 mt-1">
                   {filteredStats.total_volume.toLocaleString('id-ID')} Ton
                 </h3>
               </div>
@@ -348,8 +348,8 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
             <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-500"></div>
             <CardContent className="p-5 flex items-center justify-between">
               <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Petani/SDM Terlibat</p>
-                <h3 className="text-lg font-black text-slate-800 mt-1">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Petani/SDM Terlibat</p>
+                <h3 className="text-lg font-semibold text-slate-800 mt-1">
                   {filteredStats.total_farmers.toLocaleString('id-ID')} Orang
                 </h3>
               </div>
@@ -363,8 +363,8 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
             <div className="absolute top-0 left-0 w-1.5 h-full bg-brand-red"></div>
             <CardContent className="p-5 flex items-center justify-between">
               <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-wider">Hotspot Desa Unggulan</p>
-                <h3 className="text-lg font-black text-slate-800 mt-1">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Hotspot Desa Unggulan</p>
+                <h3 className="text-lg font-semibold text-slate-800 mt-1">
                   {filteredStats.hotspot_count} Desa
                 </h3>
               </div>
@@ -379,7 +379,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
         <div className="flex border-b border-slate-200 mb-6 bg-slate-100/50 p-1.5 rounded-xl w-fit">
           <button
             onClick={() => setActiveTab('map')}
-            className={`px-5 py-2.5 rounded-lg text-xs font-black flex items-center gap-2 transition-all ${activeTab === 'map'
+            className={`px-5 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${activeTab === 'map'
               ? 'bg-white text-slate-900 shadow-sm'
               : 'text-slate-500 hover:text-slate-800'
               }`}
@@ -389,7 +389,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
 
           <button
             onClick={() => setActiveTab('koperasi')}
-            className={`px-5 py-2.5 rounded-lg text-xs font-black flex items-center gap-2 transition-all ${activeTab === 'koperasi'
+            className={`px-5 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${activeTab === 'koperasi'
               ? 'bg-white text-slate-900 shadow-sm'
               : 'text-slate-500 hover:text-slate-800'
               }`}
@@ -399,7 +399,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
 
           <button
             onClick={() => setActiveTab('matching')}
-            className={`px-5 py-2.5 rounded-lg text-xs font-black flex items-center gap-2 transition-all relative ${activeTab === 'matching'
+            className={`px-5 py-2.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all relative ${activeTab === 'matching'
               ? 'bg-white text-slate-900 shadow-sm'
               : 'text-slate-500 hover:text-slate-800'
               }`}
@@ -428,7 +428,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
             <div className="space-y-4">
               <Card className="border-slate-200/80 bg-white shadow-sm">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-black text-slate-800">Cari &amp; Filter Komoditas</CardTitle>
+                  <CardTitle className="text-sm font-semibold text-slate-800">Cari &amp; Filter Komoditas</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {/* Search input */}
@@ -457,8 +457,8 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
               <Card className="border-slate-200/80 bg-white shadow-sm flex flex-col h-[300px]">
                 <CardHeader className="pb-3 border-b border-slate-100 flex-shrink-0">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs font-black text-slate-800">Daftar Wilayah Potensi</span>
-                    <span className="text-[10px] font-black text-brand-navy bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-full">
+                    <span className="text-xs font-semibold text-slate-800">Daftar Wilayah Potensi</span>
+                    <span className="text-[10px] font-semibold text-brand-navy bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-full">
                       {filteredPotentials.length} Ditemukan
                     </span>
                   </div>
@@ -467,7 +467,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
                 {/* Scrollable list */}
                 <div className="flex-1 overflow-y-auto divide-y divide-slate-100">
                   {filteredPotentials.length === 0 ? (
-                    <div className="py-12 text-center text-xs font-bold text-slate-400">
+                    <div className="py-12 text-center text-xs font-semibold text-slate-400">
                       Tidak ada potensi daerah yang cocok.
                     </div>
                   ) : (
@@ -480,19 +480,19 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[9px] font-extrabold uppercase text-slate-500">{item.category}</span>
-                            <span className="text-[10px] font-black text-slate-800">• Desa {item.village}</span>
+                            <span className="text-[9px] font-semibold uppercase text-slate-500">{item.category}</span>
+                            <span className="text-[10px] font-semibold text-slate-800">• Desa {item.village}</span>
                           </div>
-                          <h4 className="text-xs font-black text-slate-800">{item.name}</h4>
+                          <h4 className="text-xs font-semibold text-slate-800">{item.name}</h4>
                           <p className="text-[10px] text-slate-400 flex items-center gap-0.5">
                             <MapPin className="h-3 w-3 text-slate-400" /> {item.district}, {item.city}
                           </p>
                         </div>
                         <div className="text-right flex-shrink-0">
-                          <span className="text-xs font-extrabold text-emerald-600 block">
-                            Rp {item.value >= 1e9 ? `${(item.value / 1e9).toFixed(1)}M` : `${(item.value / 1e6).toFixed(0)}Jt`}
+                          <span className="text-xs font-semibold text-emerald-600 block tabular-nums">
+                            Rp {item.value.toLocaleString('id-ID')}
                           </span>
-                          <span className="text-[10px] text-slate-400 font-bold block">{item.volume} Ton</span>
+                          <span className="text-[10px] text-slate-400 font-semibold block">{item.volume.toLocaleString('id-ID')} Ton</span>
                         </div>
                       </div>
                     ))
@@ -521,7 +521,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
               <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl pointer-events-none"></div>
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="max-w-2xl">
-                  <h3 className="text-md font-black text-slate-800 flex items-center gap-2 mb-1.5">
+                  <h3 className="text-md font-semibold text-slate-800 flex items-center gap-2 mb-1.5">
                     <BrainCircuit className="h-5 w-5 text-amber-500" /> AI Supply-Demand Matching Engine
                   </h3>
                   <p className="text-xs text-slate-500 leading-relaxed font-semibold">
@@ -532,7 +532,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
                 <Button
                   onClick={runAiMatching}
                   disabled={loadingMatches || (perspective === 'industry' && !selectedBuyerId) || (perspective === 'cooperative' && !selectedCooperativeId)}
-                  className="bg-brand-navy hover:bg-brand-navy/95 text-white text-xs font-black py-3 px-6 rounded-xl gap-2 active:scale-95 transition-transform flex-shrink-0 cursor-pointer shadow-md"
+                  className="bg-brand-navy hover:bg-brand-navy/95 text-white text-xs font-semibold py-3 px-6 rounded-xl gap-2 active:scale-95 transition-transform flex-shrink-0 cursor-pointer shadow-md"
                 >
                   {loadingMatches ? (
                     <>
@@ -549,7 +549,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
             </Card>
 
             {/* Perspective selector tabs bar */}
-            <div className="flex bg-slate-100 p-1 rounded-xl w-fit text-xs font-bold gap-1 shadow-sm border border-slate-200">
+            <div className="flex bg-slate-100 p-1 rounded-xl w-fit text-xs font-semibold gap-1 shadow-sm border border-slate-200">
               <button
                 onClick={() => {
                   setPerspective('general');
@@ -597,7 +597,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
                 <div className="flex flex-col md:flex-row md:items-center gap-4">
                   {perspective === 'industry' && (
                     <div className="flex-1 space-y-1.5">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Pilih Perusahaan Industri / Buyer</label>
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Pilih Perusahaan Industri / Buyer</label>
                       {buyers.length > 0 ? (
                         <CustomSelect
                           options={buyers.map(b => ({ value: b.id, label: `${b.company_name} (${b.city})` }))}
@@ -616,7 +616,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
                   )}
                   {perspective === 'cooperative' && (
                     <div className="flex-1 space-y-1.5">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider block">Pilih Koperasi Desa Merah Putih</label>
+                      <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">Pilih Koperasi Desa Merah Putih</label>
                       {cooperatives.length > 0 ? (
                         <CustomSelect
                           options={cooperatives.map(c => ({ value: c.id, label: `${c.name} (${c.city})` }))}
@@ -648,7 +648,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
             {/* Match Results */}
             {matchingTriggered && (
               <div className="space-y-4">
-                <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-brand-navy" /> Hasil Analisis AI Matcher
                 </h3>
 
@@ -671,7 +671,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
                     ))}
                   </div>
                 ) : matches.length === 0 ? (
-                  <div className="text-center py-12 text-xs font-bold text-slate-400 bg-white border border-slate-200/80 rounded-xl">
+                  <div className="text-center py-12 text-xs font-semibold text-slate-400 bg-white border border-slate-200/80 rounded-xl">
                     Tidak ada komoditas demand yang cocok dengan kriteria saat ini.
                   </div>
                 ) : (
@@ -687,29 +687,29 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
                             <>
                               <div className="flex justify-between items-start gap-4 mb-2.5">
                                 <div>
-                                  <span className="text-[10px] font-black uppercase text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-0.5 rounded-full">
+                                  <span className="text-[10px] font-semibold uppercase text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-0.5 rounded-full">
                                     {item.commodity_name}
                                   </span>
-                                  <h4 className="text-md font-black text-slate-900 mt-2 leading-tight">
+                                  <h4 className="text-md font-semibold text-slate-900 mt-2 leading-tight">
                                     {item.cooperative_name}
                                   </h4>
                                 </div>
-                                <div className={`text-xs font-black border px-2.5 py-1 rounded-full flex items-center gap-1 ${getScoreColor(item.match_score)}`}>
+                                <div className={`text-xs font-semibold border px-2.5 py-1 rounded-full flex items-center gap-1 ${getScoreColor(item.match_score)}`}>
                                   <BrainCircuit className="h-3.5 w-3.5" /> {item.match_score}% Match
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-1 text-[11px] text-slate-400 font-bold mb-3">
+                              <div className="flex items-center gap-1 text-[11px] text-slate-400 font-semibold mb-3">
                                 <MapPin className="h-3.5 w-3.5 text-slate-400" />
                                 <span>{item.city}, {item.province}</span>
                               </div>
 
                               {/* ARUNA Score badge info */}
                               <div className="mb-4 flex items-center gap-2">
-                                <span className="text-[10px] font-extrabold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                <span className="text-[10px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                                   ARUNA Score: {item.aruna_score || 80}
                                 </span>
-                                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded border ${item.aruna_grade === 'A' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${item.aruna_grade === 'A' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                   item.aruna_grade === 'B' ? 'bg-blue-50 text-blue-700 border-blue-200' :
                                     'bg-amber-50 text-amber-700 border-amber-200'
                                   }`}>
@@ -719,12 +719,12 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
 
                               <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs mb-4">
                                 <div>
-                                  <span className="text-slate-400 font-bold block text-[10px] uppercase">Kebutuhan Anda</span>
-                                  <span className="text-slate-800 font-black mt-0.5 block">{item.quantity_demanded} {item.unit}</span>
+                                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">Kebutuhan Anda</span>
+                                  <span className="text-slate-800 font-semibold mt-0.5 block">{item.quantity_demanded} {item.unit}</span>
                                 </div>
                                 <div>
-                                  <span className="text-slate-400 font-bold block text-[10px] uppercase">Stok Tersedia</span>
-                                  <span className="text-emerald-600 font-black mt-0.5 block">{item.available_stock} {item.coop_unit || 'ton'}</span>
+                                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">Stok Tersedia</span>
+                                  <span className="text-emerald-600 font-semibold mt-0.5 block">{item.available_stock} {item.coop_unit || 'ton'}</span>
                                 </div>
                               </div>
                             </>
@@ -733,31 +733,31 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
                             <>
                               <div className="flex justify-between items-start gap-4 mb-2.5">
                                 <div>
-                                  <span className="text-[10px] font-black uppercase text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-0.5 rounded-full">
+                                  <span className="text-[10px] font-semibold uppercase text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-0.5 rounded-full">
                                     {item.commodity_name}
                                   </span>
-                                  <h4 className="text-md font-black text-slate-900 mt-2 leading-tight">
+                                  <h4 className="text-md font-semibold text-slate-900 mt-2 leading-tight">
                                     {item.buyer_name}
                                   </h4>
                                 </div>
-                                <div className={`text-xs font-black border px-2.5 py-1 rounded-full flex items-center gap-1 ${getScoreColor(item.match_score)}`}>
+                                <div className={`text-xs font-semibold border px-2.5 py-1 rounded-full flex items-center gap-1 ${getScoreColor(item.match_score)}`}>
                                   <BrainCircuit className="h-3.5 w-3.5" /> {item.match_score}% Match
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-1 text-[11px] text-slate-400 font-bold mb-4">
+                              <div className="flex items-center gap-1 text-[11px] text-slate-400 font-semibold mb-4">
                                 <MapPin className="h-3.5 w-3.5 text-slate-400" />
                                 <span>{item.buyer_city || 'Nasional'}</span>
                               </div>
 
                               <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs mb-4">
                                 <div>
-                                  <span className="text-slate-400 font-bold block text-[10px] uppercase">Stok Koperasi Anda</span>
-                                  <span className="text-emerald-600 font-black mt-0.5 block">{item.cooperative_available_stock} {item.cooperative_unit}</span>
+                                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">Stok Koperasi Anda</span>
+                                  <span className="text-emerald-600 font-semibold mt-0.5 block">{item.cooperative_available_stock} {item.cooperative_unit}</span>
                                 </div>
                                 <div>
-                                  <span className="text-slate-400 font-bold block text-[10px] uppercase">Permintaan Industri</span>
-                                  <span className="text-slate-800 font-black mt-0.5 block">{item.quantity_demanded} {item.unit}</span>
+                                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">Permintaan Industri</span>
+                                  <span className="text-slate-800 font-semibold mt-0.5 block">{item.quantity_demanded} {item.unit}</span>
                                 </div>
                               </div>
                             </>
@@ -766,33 +766,33 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
                             <>
                               <div className="flex justify-between items-start gap-4 mb-2.5">
                                 <div>
-                                  <span className="text-[10px] font-black uppercase text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-0.5 rounded-full">
+                                  <span className="text-[10px] font-semibold uppercase text-amber-600 bg-amber-50 border border-amber-100 px-2.5 py-0.5 rounded-full">
                                     {item.commodity_name}
                                   </span>
-                                  <h4 className="text-md font-black text-slate-900 mt-2 leading-tight">
+                                  <h4 className="text-md font-semibold text-slate-900 mt-2 leading-tight">
                                     {item.buyer_name}
                                   </h4>
                                 </div>
-                                <div className={`text-xs font-black border px-2.5 py-1 rounded-full flex items-center gap-1 ${getScoreColor(item.match_score)}`}>
+                                <div className={`text-xs font-semibold border px-2.5 py-1 rounded-full flex items-center gap-1 ${getScoreColor(item.match_score)}`}>
                                   <BrainCircuit className="h-3.5 w-3.5" /> {item.match_score}% Match
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-1 text-[11px] text-slate-400 font-bold mb-4">
+                              <div className="flex items-center gap-1 text-[11px] text-slate-400 font-semibold mb-4">
                                 <MapPin className="h-3.5 w-3.5 text-slate-400" />
                                 <span>Desa {item.village_name}, {item.city}, {item.province}</span>
                               </div>
 
                               <div className="grid grid-cols-2 gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl text-xs mb-4">
                                 <div>
-                                  <span className="text-slate-400 font-bold block text-[10px] uppercase">Permintaan Pasar</span>
-                                  <span className="text-slate-800 font-black mt-0.5 block">{item.quantity_demanded} {item.unit}</span>
+                                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">Permintaan Pasar</span>
+                                  <span className="text-slate-800 font-semibold mt-0.5 block">{item.quantity_demanded} {item.unit}</span>
                                   <span className="text-[10px] text-slate-400 font-medium">Offtaker B2B</span>
                                 </div>
                                 <div>
-                                  <span className="text-slate-400 font-bold block text-[10px] uppercase">Potensi Desa</span>
-                                  <span className="text-emerald-600 font-black mt-0.5 block">{item.potential_volume} {item.unit}</span>
-                                  <span className="text-[10px] text-emerald-600 font-black">Nilai: Rp {item.economic_value.toLocaleString('id-ID')}</span>
+                                  <span className="text-slate-400 font-semibold block text-[10px] uppercase">Potensi Desa</span>
+                                  <span className="text-emerald-600 font-semibold mt-0.5 block">{item.potential_volume} {item.unit}</span>
+                                  <span className="text-[10px] text-emerald-600 font-semibold">Nilai: Rp {item.economic_value.toLocaleString('id-ID')}</span>
                                 </div>
                               </div>
                             </>
@@ -809,10 +809,10 @@ export default function PotensiDesaClient({ initialStats, initialPotentials, det
 
                         {/* Action CTA */}
                         <div className="bg-slate-50/50 border-t border-slate-100 p-4 flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-slate-400">ID: {item.match_id}</span>
+                          <span className="text-[10px] font-semibold text-slate-400">ID: {item.match_id}</span>
                           <Link
                             href={`/marketplace`}
-                            className="text-xs font-black text-brand-navy hover:text-brand-navy/80 flex items-center gap-1 active:scale-95 transition-transform"
+                            className="text-xs font-semibold text-brand-navy hover:text-brand-navy/80 flex items-center gap-1 active:scale-95 transition-transform"
                           >
                             {perspective === 'cooperative' ? 'Tawarkan Pasokan' : 'Hubungkan Koperasi'} <ArrowRight className="h-4 w-4" />
                           </Link>

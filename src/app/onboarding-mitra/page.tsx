@@ -52,7 +52,8 @@ export default function OnboardingMitraPage() {
       if (!user) {
         router.push('/');
       } else if (userData && userData.role !== 'admin') {
-        router.push('/dashboard');
+        // Halaman ini eksklusif admin; peran lain langsung dipulangkan ke beranda.
+        router.push('/');
       }
     }
   }, [user, userData, loading, router]);
@@ -215,10 +216,10 @@ export default function OnboardingMitraPage() {
 
   if (loading || (userData && userData.role !== 'admin')) {
     return (
-      <div className="flex h-[calc(100vh-68px)] items-center justify-center bg-[#faf9f6]">
+      <div className="flex h-[calc(100vh-68px)] items-center justify-center bg-[#f7f8fa]">
         <div className="text-center space-y-2">
           <div className="h-10 w-10 border-4 border-brand-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider animate-pulse">Memeriksa hak akses admin...</p>
+          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider animate-pulse">Memeriksa hak akses admin...</p>
         </div>
       </div>
     );
@@ -226,13 +227,13 @@ export default function OnboardingMitraPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      
+
       {/* Header */}
       <div className="space-y-1">
-        <span className="text-[10px] bg-brand-navy text-white px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
+        <span className="text-[10px] bg-brand-navy text-white px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider">
           Panel Administrator
         </span>
-        <h1 className="text-2xl font-black text-slate-900 leading-tight">
+        <h1 className="text-2xl font-semibold text-slate-900 leading-tight">
           Onboarding Kemitraan Gotong Royong
         </h1>
         <p className="text-xs text-slate-505">
@@ -244,25 +245,22 @@ export default function OnboardingMitraPage() {
       <div className="flex border-b border-slate-200">
         <button
           onClick={() => setActiveTab('koperasi')}
-          className={`px-4 py-2.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${
-            activeTab === 'koperasi' ? 'border-brand-orange text-brand-orange' : 'border-transparent text-slate-500 hover:text-slate-900'
-          }`}
+          className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all ${activeTab === 'koperasi' ? 'border-brand-orange text-brand-orange' : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
         >
           Koperasi Baru
         </button>
         <button
           onClick={() => setActiveTab('buyer')}
-          className={`px-4 py-2.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${
-            activeTab === 'buyer' ? 'border-brand-red text-brand-red' : 'border-transparent text-slate-500 hover:text-slate-900'
-          }`}
+          className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all ${activeTab === 'buyer' ? 'border-brand-red text-brand-red' : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
         >
           Buyer Baru
         </button>
         <button
           onClick={() => setActiveTab('list')}
-          className={`px-4 py-2.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${
-            activeTab === 'list' ? 'border-brand-navy text-brand-navy' : 'border-transparent text-slate-500 hover:text-slate-900'
-          }`}
+          className={`px-4 py-2.5 text-xs font-semibold uppercase tracking-wider border-b-2 transition-all ${activeTab === 'list' ? 'border-brand-navy text-brand-navy' : 'border-transparent text-slate-500 hover:text-slate-900'
+            }`}
         >
           Daftar Mitra ({coops.length + buyers.length})
         </button>
@@ -272,7 +270,7 @@ export default function OnboardingMitraPage() {
       {activeTab === 'koperasi' && (
         <Card className="bg-white border-slate-200/80 shadow-xs">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xs font-black flex items-center gap-1.5 text-slate-900 uppercase tracking-wider">
+            <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900 uppercase tracking-wider">
               <Users className="h-4.5 w-4.5 text-brand-orange" /> Tambah Koperasi Tani Desa Baru
             </CardTitle>
             <CardDescription className="text-[11px]">
@@ -281,7 +279,7 @@ export default function OnboardingMitraPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleCoopSubmit} className="space-y-4">
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[9px] font-semibold text-slate-500">Nama Koperasi <span className="text-red-500">*</span>:</label>
@@ -365,7 +363,7 @@ export default function OnboardingMitraPage() {
                   />
                 </div>
                 {coopCoords && (
-                  <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                  <p className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1 mt-1">
                     <Check className="h-3.5 w-3.5" /> Koordinat Terkunci: {coopCoords.lat.toFixed(6)}, {coopCoords.lng.toFixed(6)}
                   </p>
                 )}
@@ -374,7 +372,7 @@ export default function OnboardingMitraPage() {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3 bg-brand-orange hover:bg-brand-orange/90 text-white font-black text-sm flex items-center justify-center gap-2 rounded-xl shadow-md transition-all duration-200 cursor-pointer"
+                className="w-full py-3 bg-brand-orange hover:bg-brand-orange/90 text-white font-semibold text-sm flex items-center justify-center gap-2 rounded-xl shadow-md transition-all duration-200 cursor-pointer"
               >
                 {submitting ? 'Menyimpan Koperasi...' : 'Daftarkan Koperasi Desa'}
                 <Plus className="h-4.5 w-4.5 text-brand-cream" />
@@ -388,7 +386,7 @@ export default function OnboardingMitraPage() {
       {activeTab === 'buyer' && (
         <Card className="bg-white border-slate-200/80 shadow-xs">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xs font-black flex items-center gap-1.5 text-slate-900 uppercase tracking-wider">
+            <CardTitle className="text-xs font-semibold flex items-center gap-1.5 text-slate-900 uppercase tracking-wider">
               <Building2 className="h-4.5 w-4.5 text-brand-red" /> Tambah Perusahaan Buyer Baru
             </CardTitle>
             <CardDescription className="text-[11px]">
@@ -397,7 +395,7 @@ export default function OnboardingMitraPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleBuyerSubmit} className="space-y-4">
-              
+
               <div className="space-y-1">
                 <label className="text-[9px] font-semibold text-slate-500">Nama Perusahaan / Pabrik <span className="text-red-500">*</span>:</label>
                 <input
@@ -477,7 +475,7 @@ export default function OnboardingMitraPage() {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3 bg-brand-red hover:bg-brand-red/90 text-white font-black text-sm flex items-center justify-center gap-2 rounded-xl shadow-md transition-all duration-200 cursor-pointer"
+                className="w-full py-3 bg-brand-red hover:bg-brand-red/90 text-white font-semibold text-sm flex items-center justify-center gap-2 rounded-xl shadow-md transition-all duration-200 cursor-pointer"
               >
                 {submitting ? 'Menyimpan Buyer...' : 'Daftarkan Buyer Industri'}
                 <Plus className="h-4.5 w-4.5 text-brand-cream" />
@@ -490,12 +488,12 @@ export default function OnboardingMitraPage() {
 
       {activeTab === 'list' && (
         <div className="space-y-6">
-          
+
           {/* Cooperatives List */}
           <Card className="bg-white border-slate-200/80 shadow-xs">
             <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-xs font-black uppercase text-brand-orange tracking-wider">Daftar Koperasi Desa Terdaftar</CardTitle>
+                <CardTitle className="text-xs font-semibold uppercase text-brand-orange tracking-wider">Daftar Koperasi Desa Terdaftar</CardTitle>
                 <CardDescription className="text-[10px] mt-0.5">Total: {coops.length} Koperasi Desa</CardDescription>
               </div>
             </CardHeader>
@@ -507,28 +505,28 @@ export default function OnboardingMitraPage() {
                   <div key={coop.id} className="p-4 flex items-start justify-between hover:bg-slate-50/50 transition-colors gap-4">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="font-extrabold text-xs text-slate-800">{coop.name}</h4>
+                        <h4 className="font-semibold text-xs text-slate-800">{coop.name}</h4>
                         {coop.simkopdes_id ? (
-                          <span className="text-[9px] font-black bg-emerald-50 border border-emerald-200 text-emerald-700 px-1.5 py-0.2 rounded-full uppercase">SimkopDes</span>
+                          <span className="text-[9px] font-semibold bg-emerald-50 border border-emerald-200 text-emerald-700 px-1.5 py-0.2 rounded-full uppercase">SimkopDes</span>
                         ) : (
-                          <span className="text-[9px] font-black bg-slate-55 border border-slate-250 text-slate-400 px-1.5 py-0.2 rounded-full uppercase">Offline</span>
+                          <span className="text-[9px] font-semibold bg-slate-55 border border-slate-250 text-slate-400 px-1.5 py-0.2 rounded-full uppercase">Offline</span>
                         )}
                       </div>
                       <p className="text-[10px] text-slate-400 font-semibold">{coop.address} — {coop.city}, {coop.province}</p>
                       <p className="text-[9px] text-slate-400 mt-1">Ketua: <strong className="text-slate-600">{coop.head || '-'}</strong> | Kontak: <strong className="text-slate-650">{coop.phone || '-'}</strong></p>
-                      
+
                       {/* Document Compliance Verification Action Panel */}
                       {(coop.nib_status === 'pending' || coop.sk_status === 'pending') && (
                         <div className="mt-3 p-3 bg-orange-50/30 rounded-xl border border-brand-orange/20 space-y-2 max-w-lg">
-                          <span className="text-[9px] font-black text-brand-orange uppercase tracking-wider block">Verifikasi Dokumen Kepatuhan (KYC)</span>
-                          
+                          <span className="text-[9px] font-semibold text-brand-orange uppercase tracking-wider block">Verifikasi Dokumen Kepatuhan (KYC)</span>
+
                           {/* NIB Verification */}
                           {coop.nib_status === 'pending' && (
                             <div className="flex items-center justify-between gap-3 text-[11px] bg-white p-2 rounded-lg border border-slate-200">
                               <div>
-                                <span className="font-bold text-slate-700 block">NIB: {coop.nib}</span>
+                                <span className="font-semibold text-slate-700 block">NIB: {coop.nib}</span>
                                 {coop.nib_document_url && (
-                                  <a href={coop.nib_document_url} target="_blank" rel="noreferrer" className="text-[9px] text-brand-orange font-black hover:underline block mt-0.5">
+                                  <a href={coop.nib_document_url} target="_blank" rel="noreferrer" className="text-[9px] text-brand-orange font-semibold hover:underline block mt-0.5">
                                     Lihat Dokumen NIB &rarr;
                                   </a>
                                 )}
@@ -539,7 +537,7 @@ export default function OnboardingMitraPage() {
                                     await cooperativeRepository.verifyCooperativeDocs(coop.id, 'nib', 'verified');
                                     alert('Dokumen NIB terverifikasi. Nilai ARUNA Score koperasi diperbarui!');
                                   }}
-                                  className="p-1 px-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                  className="p-1 px-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                                 >
                                   <Check className="h-3 w-3" /> Setujui
                                 </button>
@@ -548,7 +546,7 @@ export default function OnboardingMitraPage() {
                                     await cooperativeRepository.verifyCooperativeDocs(coop.id, 'nib', 'rejected');
                                     alert('Dokumen NIB ditolak.');
                                   }}
-                                  className="p-1 px-2 bg-rose-500 hover:bg-rose-600 text-white rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                  className="p-1 px-2 bg-rose-500 hover:bg-rose-600 text-white rounded text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                                 >
                                   <XCircle className="h-3 w-3" /> Tolak
                                 </button>
@@ -560,9 +558,9 @@ export default function OnboardingMitraPage() {
                           {coop.sk_status === 'pending' && (
                             <div className="flex items-center justify-between gap-3 text-[11px] bg-white p-2 rounded-lg border border-slate-200">
                               <div>
-                                <span className="font-bold text-slate-700 block">SK Pendirian: {coop.sk_number}</span>
+                                <span className="font-semibold text-slate-700 block">SK Pendirian: {coop.sk_number}</span>
                                 {coop.sk_document_url && (
-                                  <a href={coop.sk_document_url} target="_blank" rel="noreferrer" className="text-[9px] text-brand-orange font-black hover:underline block mt-0.5">
+                                  <a href={coop.sk_document_url} target="_blank" rel="noreferrer" className="text-[9px] text-brand-orange font-semibold hover:underline block mt-0.5">
                                     Lihat Dokumen SK &rarr;
                                   </a>
                                 )}
@@ -573,7 +571,7 @@ export default function OnboardingMitraPage() {
                                     await cooperativeRepository.verifyCooperativeDocs(coop.id, 'sk', 'verified');
                                     alert('Dokumen SK Pendirian terverifikasi. Nilai ARUNA Score koperasi diperbarui!');
                                   }}
-                                  className="p-1 px-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                  className="p-1 px-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                                 >
                                   <Check className="h-3 w-3" /> Setujui
                                 </button>
@@ -582,7 +580,7 @@ export default function OnboardingMitraPage() {
                                     await cooperativeRepository.verifyCooperativeDocs(coop.id, 'sk', 'rejected');
                                     alert('Dokumen SK Pendirian ditolak.');
                                   }}
-                                  className="p-1 px-2 bg-rose-500 hover:bg-rose-600 text-white rounded text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                  className="p-1 px-2 bg-rose-500 hover:bg-rose-600 text-white rounded text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                                 >
                                   <XCircle className="h-3 w-3" /> Tolak
                                 </button>
@@ -605,12 +603,12 @@ export default function OnboardingMitraPage() {
               )}
             </CardContent>
           </Card>
- 
+
           {/* Buyers List */}
           <Card className="bg-white border-slate-200/80 shadow-xs">
             <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-xs font-black uppercase text-brand-red tracking-wider">Daftar Buyer Terdaftar</CardTitle>
+                <CardTitle className="text-xs font-semibold uppercase text-brand-red tracking-wider">Daftar Buyer Terdaftar</CardTitle>
                 <CardDescription className="text-[10px] mt-0.5">Total: {buyers.length} Buyer Terdaftar</CardDescription>
               </div>
             </CardHeader>
@@ -622,16 +620,16 @@ export default function OnboardingMitraPage() {
                   <div key={b.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className="font-extrabold text-xs text-slate-800">{b.company_name}</h4>
+                        <h4 className="font-semibold text-xs text-slate-800">{b.company_name}</h4>
                         {b.buyer_type === 'umkm' ? (
-                          <span className="text-[9px] font-black bg-orange-50 border border-orange-200 text-orange-700 px-1.5 py-0.2 rounded-full uppercase">Mitra UMKM</span>
+                          <span className="text-[9px] font-semibold bg-orange-50 border border-orange-200 text-orange-700 px-1.5 py-0.2 rounded-full uppercase">Mitra UMKM</span>
                         ) : (
-                          <span className="text-[9px] font-black bg-red-50 border border-red-200 text-brand-red px-1.5 py-0.2 rounded-full uppercase">Offtaker Industri</span>
+                          <span className="text-[9px] font-semibold bg-red-50 border border-red-200 text-brand-red px-1.5 py-0.2 rounded-full uppercase">Offtaker Industri</span>
                         )}
                         {b.verified ? (
-                          <span className="text-[9px] font-black bg-emerald-50 border border-emerald-250 text-emerald-700 px-1.5 py-0.2 rounded-full uppercase">Verified</span>
+                          <span className="text-[9px] font-semibold bg-emerald-50 border border-emerald-250 text-emerald-700 px-1.5 py-0.2 rounded-full uppercase">Verified</span>
                         ) : (
-                          <span className="text-[9px] font-black bg-slate-100 border border-slate-200 text-slate-400 px-1.5 py-0.2 rounded-full uppercase">Unverified</span>
+                          <span className="text-[9px] font-semibold bg-slate-100 border border-slate-200 text-slate-400 px-1.5 py-0.2 rounded-full uppercase">Unverified</span>
                         )}
                       </div>
                       <p className="text-[10px] text-slate-400 font-semibold">{b.industry} — {b.city}</p>
@@ -652,7 +650,7 @@ export default function OnboardingMitraPage() {
               )}
             </CardContent>
           </Card>
- 
+
         </div>
       )}
 

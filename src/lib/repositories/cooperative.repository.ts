@@ -1,4 +1,4 @@
-import { Cooperative, CooperativeScore, Insight, CooperativeWithCommodities } from '@/types';
+import { Cooperative, CooperativeScore, Insight, CooperativeWithCommodities, Commodity } from '@/types';
 import { db } from '../firebase/config';
 import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import { calculateCooperativeScore } from '../services/score-engine';
@@ -188,22 +188,47 @@ export class HybridCooperativeRepository implements CooperativeRepository {
   }
 
   async getAllWithDetails(): Promise<CooperativeWithCommodities[]> {
-    const coops = await this.getAll();
-    const maxRev = await this.getMaxRevenue();
-    
-    return Promise.all(
-      coops.map(async (coop) => {
-        const commodities = await commodityRepository.getByCooperativeId(coop.id);
-        const score = await this.getScore(coop.id) || calculateCooperativeScore(coop, commodities, maxRev);
-        const insights = await this.getInsights(coop.id);
-        return {
-          ...coop,
-          commodities,
-          score,
-          insights
-        };
-      })
-    );
+    // Bulk-load everything in parallel (3 round-trips total) instead of a
+    // per-cooperative fan-out. The previous version called getByCooperativeId()
+    // (a full ~14k-row commodity fetch) and getScore() (a Firestore read) for
+    // EACH of the 1000+ cooperatives — thousands of redundant fetches that made
+    // dashboard/insights/scoring/potensi-desa pages extremely slow.
+    const [coops, allCommodities, scoresSnap] = await Promise.all([
+      this.getAll(),
+      commodityRepository.getAll(),
+      getDocs(collection(db, 'scores')),
+    ]);
+
+    // Group commodities by cooperative_id in a single pass (O(n)).
+    const commoditiesByCoop = new Map<string, Commodity[]>();
+    for (const com of allCommodities) {
+      const list = commoditiesByCoop.get(com.cooperative_id);
+      if (list) {
+        list.push(com);
+      } else {
+        commoditiesByCoop.set(com.cooperative_id, [com]);
+      }
+    }
+
+    // Index precomputed scores from Firestore for O(1) lookup.
+    const scoresMap: Record<string, CooperativeScore> = {};
+    scoresSnap.forEach((docSnap) => {
+      scoresMap[docSnap.id] = { id: docSnap.id, ...docSnap.data() } as CooperativeScore;
+    });
+
+    const maxRev = coops.length > 0 ? Math.max(...coops.map(c => c.annual_revenue || 0), 1) : 1;
+
+    return coops.map((coop) => {
+      const commodities = commoditiesByCoop.get(coop.id) || [];
+      const score = scoresMap[coop.id] || calculateCooperativeScore(coop, commodities, maxRev);
+      const insights = generateCooperativeInsights(coop, commodities, score);
+      return {
+        ...coop,
+        commodities,
+        score,
+        insights
+      };
+    });
   }
 
   async getByIdWithDetails(id: string): Promise<CooperativeWithCommodities | null> {
