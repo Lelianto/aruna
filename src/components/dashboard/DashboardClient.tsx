@@ -83,13 +83,13 @@ export default function DashboardClient({ stats, charts, requests }: DashboardCl
 
   useEffect(() => {
     if (!loading) {
-      if (!user || (userData && userData.role !== 'admin')) {
+      if (!user || (userData && userData.role !== 'admin' && userData.role !== 'pemerintah')) {
         router.push('/');
       }
     }
   }, [user, userData, loading, router]);
 
-  if (loading || !user || !userData || userData.role !== 'admin') {
+  if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'pemerintah')) {
     return (
       <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
         <div className="text-center">

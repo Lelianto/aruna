@@ -16,7 +16,7 @@ interface UserData {
   uid: string;
   name: string;
   email: string;
-  role: 'admin' | 'buyer' | 'koperasi' | 'customer' | null;
+  role: 'admin' | 'buyer' | 'koperasi' | 'customer' | 'pemerintah' | null;
   associatedId?: string; // id of buyer or cooperative
   address?: string; // primary delivery address for customer
 }
@@ -28,7 +28,7 @@ interface AuthContextType {
   needsRoleSelection: boolean;
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
-  setRoleForUser: (role: 'admin' | 'buyer' | 'koperasi' | 'customer', associatedId?: string) => Promise<void>;
+  setRoleForUser: (role: 'admin' | 'buyer' | 'koperasi' | 'customer' | 'pemerintah', associatedId?: string) => Promise<void>;
   updateUserAddress: (address: string) => Promise<void>;
 }
 
@@ -101,6 +101,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setNeedsRoleSelection(false);
         if (data.role === 'koperasi' || data.role === 'admin') {
           router.push('/mitra-dashboard');
+        } else if (data.role === 'pemerintah') {
+          router.push('/potensi-desa');
         } else {
           router.push('/');
         }
@@ -131,7 +133,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const setRoleForUser = async (role: 'admin' | 'buyer' | 'koperasi' | 'customer', associatedId?: string) => {
+  const setRoleForUser = async (role: 'admin' | 'buyer' | 'koperasi' | 'customer' | 'pemerintah', associatedId?: string) => {
     if (!user) return;
     
     const userDocRef = doc(db, 'users', user.uid);

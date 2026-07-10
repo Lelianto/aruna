@@ -65,7 +65,7 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
 
   useEffect(() => {
     if (!loading) {
-      if (!user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi')) {
+      if (!user || !userData || (userData.role !== 'admin' && userData.role !== 'pemerintah')) {
         router.push('/');
       }
     }
@@ -156,7 +156,7 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
     return cooperatives.find(c => c.id === selectedCoopId) || null;
   }, [selectedCoopId, cooperatives]);
 
-  if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi')) {
+  if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'pemerintah')) {
     return (
       <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
         <div className="text-center">
