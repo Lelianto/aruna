@@ -35,21 +35,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const mockFirebaseUser = {
-    uid: 'mock-user-123',
-    displayName: 'Admin Koperasi Lampung Makmur',
-    email: 'admin.lampung@koperasi.id',
-    emailVerified: true,
-  } as any;
-
-  const mockUserData: UserData = {
-    uid: 'mock-user-123',
-    name: 'Admin Koperasi Lampung Makmur',
-    email: 'admin.lampung@koperasi.id',
-    role: 'koperasi',
-    associatedId: 'coop-lampung-tani'
-  };
-
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);

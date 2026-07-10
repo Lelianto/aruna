@@ -24,7 +24,6 @@ function LocationMarker({
   useEffect(() => {
     if (initialLocation) {
       const latlng = L.latLng(initialLocation[0], initialLocation[1]);
-      setPosition(latlng);
       map.setView(latlng, 12);
     }
   }, [initialLocation, map]);
