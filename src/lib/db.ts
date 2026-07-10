@@ -10,6 +10,12 @@ const password = process.env.DB_PASSWORD;
 // We store the pool globally in development to prevent connection leaks.
 let pool: Pool;
 
+// The shared hackathon Postgres instance can have highly variable network
+// latency (connection setup has been observed to take anywhere from ~700ms
+// to over 2.5s), so a short timeout here causes frequent, transient
+// "Connection terminated due to connection timeout" failures.
+const CONNECTION_TIMEOUT_MS = 10000;
+
 if (process.env.NODE_ENV === 'production') {
   pool = new Pool({
     host,
@@ -22,7 +28,7 @@ if (process.env.NODE_ENV === 'production') {
     },
     max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
   });
 } else {
   const globalPool = global as any;
@@ -38,7 +44,7 @@ if (process.env.NODE_ENV === 'production') {
       },
       max: 5,
       idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: 2000,
+      connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
     });
   }
   pool = globalPool.pgPool;

@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Users, ShieldAlert, CheckCircle2, ArrowRight, Check, Loader2, ShoppingCart } from 'lucide-react';
+import { Building2, Users, ShieldAlert, CheckCircle2, ArrowRight, Check, Loader2, ShoppingCart, Landmark, Lock } from 'lucide-react';
 import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
 import { buyerRepository } from '@/lib/repositories/buyer.repository';
 import { Cooperative, Buyer } from '@/types';
@@ -19,7 +19,7 @@ export default function SelectRolePage() {
   const { user, userData, setRoleForUser, loading } = useAuth();
   const router = useRouter();
 
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'buyer' | 'koperasi' | 'customer' | null>(null);
+  const [selectedRole, setSelectedRole] = useState<'admin' | 'buyer' | 'koperasi' | 'customer' | 'pemerintah' | null>(null);
   const [associatedId, setAssociatedId] = useState<string>('');
   
   const [coops, setCoops] = useState<Cooperative[]>([]);
@@ -287,7 +287,13 @@ export default function SelectRolePage() {
       }
 
       await setRoleForUser(selectedRole, finalAssociatedId || undefined);
-      router.push('/dashboard');
+      if (selectedRole === 'koperasi') {
+        router.push('/mitra-dashboard');
+      } else if (selectedRole === 'pemerintah') {
+        router.push('/potensi-desa');
+      } else {
+        router.push('/');
+      }
     } catch (err) {
       console.error("Error setting role:", err);
       setSubmitting(false);
@@ -326,26 +332,45 @@ export default function SelectRolePage() {
         <div className="space-y-4">
           
           {/* 1. Admin Role */}
-          <div 
-            onClick={() => setSelectedRole('admin')}
-            className={`cursor-pointer p-4 bg-white border rounded-2xl transition-all duration-200 flex gap-4 items-start ${
-              selectedRole === 'admin' 
-                ? 'border-brand-navy ring-1 ring-brand-navy/20 shadow-md bg-brand-cream/5' 
-                : 'border-slate-200 hover:border-slate-300'
-            }`}
-          >
-            <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
-              selectedRole === 'admin' ? 'bg-brand-navy text-white' : 'bg-slate-100 text-slate-500'
-            }`}>
-              <ShieldAlert className="h-5 w-5" />
+          {userData?.role === 'admin' ? (
+            <div 
+              onClick={() => setSelectedRole('admin')}
+              className={`cursor-pointer p-4 bg-white border rounded-2xl transition-all duration-200 flex gap-4 items-start ${
+                selectedRole === 'admin' 
+                  ? 'border-brand-navy ring-1 ring-brand-navy/20 shadow-md bg-brand-cream/5' 
+                  : 'border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                selectedRole === 'admin' ? 'bg-brand-navy text-white' : 'bg-slate-100 text-slate-500'
+              }`}>
+                <ShieldAlert className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-black text-sm text-slate-900">Administrator ARUNA (Admin)</h3>
+                <p className="text-[11px] text-slate-500 leading-normal">
+                  Akses penuh untuk mengelola Command Center, membagi kuota logsitik secara gotong royong, dan memantau analitik nasional.
+                </p>
+              </div>
             </div>
-            <div className="space-y-1">
-              <h3 className="font-black text-sm text-slate-900">Administrator ARUNA (Admin)</h3>
-              <p className="text-[11px] text-slate-500 leading-normal">
-                Akses penuh untuk mengelola Command Center, membagi kuota logsitik secara gotong royong, dan memantau analitik nasional.
-              </p>
+          ) : (
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex gap-4 items-start opacity-60 cursor-not-allowed">
+              <div className="h-10 w-10 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center shrink-0">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-black text-sm text-slate-400">Administrator ARUNA (Admin)</h3>
+                  <span className="text-[9px] bg-slate-200 text-slate-500 font-extrabold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                    🔒 Terkunci
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-normal">
+                  Peran ini hanya dapat disematkan secara manual oleh Pengelola/Admin Platform.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 2. Buyer Role */}
           <div 
@@ -716,6 +741,47 @@ export default function SelectRolePage() {
               </p>
             </div>
           </div>
+
+          {/* 5. Pemerintah Role */}
+          {(userData?.role === 'admin' || userData?.role === 'pemerintah') ? (
+            <div 
+              onClick={() => setSelectedRole('pemerintah')}
+              className={`cursor-pointer p-4 bg-white border rounded-2xl transition-all duration-200 flex gap-4 items-start ${
+                selectedRole === 'pemerintah' 
+                  ? 'border-brand-navy ring-1 ring-brand-navy/20 shadow-md bg-brand-cream/5' 
+                  : 'border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              <div className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${
+                selectedRole === 'pemerintah' ? 'bg-brand-navy text-white' : 'bg-slate-100 text-slate-500'
+              }`}>
+                <Landmark className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-black text-sm text-slate-900">Pemerintah / Instansi Dinas (Government)</h3>
+                <p className="text-[11px] text-slate-500 leading-normal">
+                  Akses penuh ke peta potensi strategis, dashboard komoditas nasional, evaluasi kelayakan, dan analisis AI kebijakan.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex gap-4 items-start opacity-60 cursor-not-allowed">
+              <div className="h-10 w-10 rounded-xl bg-slate-200 text-slate-400 flex items-center justify-center shrink-0">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <h3 className="font-black text-sm text-slate-400">Pemerintah / Instansi Dinas (Government)</h3>
+                  <span className="text-[9px] bg-slate-200 text-slate-500 font-extrabold px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                    🔒 Terkunci
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-normal">
+                  Peran ini hanya dapat disematkan secara manual oleh Pengelola/Admin Platform.
+                </p>
+              </div>
+            </div>
+          )}
 
 
         </div>
