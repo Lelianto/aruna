@@ -96,7 +96,7 @@ export default function PwaRegistration() {
   if (!showBanner && !showIosHint) return null;
 
   return (
-    <div className="fixed bottom-4 inset-x-4 z-[9998] flex justify-center pointer-events-none">
+    <div className="fixed bottom-20 lg:bottom-4 inset-x-4 z-[9998] flex justify-center pointer-events-none">
       <div className="pointer-events-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl p-4 flex items-start gap-3 animate-fade-in">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-navy text-white font-black">
           A

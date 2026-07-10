@@ -8,18 +8,18 @@ import {
   collection, query, where, getDocs, doc, getDoc,
   addDoc, updateDoc, deleteDoc, setDoc
 } from 'firebase/firestore';
-import { 
-  Cooperative, 
-  Commodity, 
-  MarketRequest, 
+import {
+  Cooperative,
+  Commodity,
+  MarketRequest,
   MarketRequestWithBuyer,
-  Buyer, 
-  Member, 
-  POSTransaction, 
-  PurchaseTransaction, 
-  StockOpname, 
-  CollaborativeProcurement, 
-  CooperativeConnectorTrade 
+  Buyer,
+  Member,
+  POSTransaction,
+  PurchaseTransaction,
+  StockOpname,
+  CollaborativeProcurement,
+  CooperativeConnectorTrade
 } from '@/types';
 
 const INVENTORY_CATEGORIES = ['Pangan', 'Perikanan', 'Peternakan', 'Perkebunan', 'Pupuk/Pakan'];
@@ -34,12 +34,12 @@ function generateSKU(name: string): string {
 }
 
 
-import { 
+import {
   Building2, PackagePlus, ShoppingCart, Pencil, Trash2, CreditCard,
   Plus, Save, X, CheckCircle2, AlertCircle, Loader2,
   MapPin, Users, TrendingUp, Phone, Warehouse, ChevronRight,
   Coins, Award, Scale, Check, FileCheck, ArrowUpRight, ArrowRight,
-  Mic, MicOff, Send, Database, RefreshCw, BarChart3, 
+  Mic, MicOff, Send, Database, RefreshCw, BarChart3,
   History, UserPlus, FileText, ArrowRightLeft, Gift, ShieldAlert,
   Search, ArrowDownToLine, Tag, Menu, LayoutDashboard, ChevronLeft, LogOut
 } from 'lucide-react';
@@ -78,9 +78,8 @@ function Toast({ message, type, onClose }: { message: string; type: 'success' | 
   }, [onClose]);
 
   return (
-    <div className={`fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-sm font-semibold animate-fade-in-up ${
-      type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
-    }`}>
+    <div className={`fixed bottom-20 lg:bottom-6 right-6 z-[9999] flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border text-sm font-semibold animate-fade-in-up ${type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
+      }`}>
       {type === 'success' ? <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0" /> : <AlertCircle className="h-5 w-5 text-red-500 shrink-0" />}
       {message}
       <button onClick={onClose} className="ml-2 opacity-60 hover:opacity-100"><X className="h-4 w-4" /></button>
@@ -118,7 +117,7 @@ export default function MitraDashboardClient() {
   const [members, setMembers] = useState<Member[]>([]);
   const [salesHistory, setSalesHistory] = useState<POSTransaction[]>([]);
   const [purchaseHistory, setPurchaseHistory] = useState<PurchaseTransaction[]>([]);
-  
+
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -163,7 +162,7 @@ export default function MitraDashboardClient() {
         const comQ = query(collection(db, 'commodities'), where('cooperative_id', '==', coopId));
         const comSnap = await getDocs(comQ);
         comSnap.forEach(d => comList.push({ id: d.id, ...d.data() } as Commodity));
-        
+
         // Sync local commodities cache
         if (localDb) {
           // Keep ONLY local unsynced commodities whose IDs start with 'new-prod-'
@@ -239,15 +238,15 @@ export default function MitraDashboardClient() {
         const commodityNames = new Set(comList.map(c => c.name.toLowerCase()));
         const reqList: MarketRequestWithBuyer[] = [];
         const reqListAll: MarketRequest[] = [];
-        
+
         reqSnap.forEach(d => {
           const req = { id: d.id, ...d.data() } as MarketRequest;
           reqListAll.push(req);
           if (commodityNames.has(req.commodity_name.toLowerCase())) {
             const buyer = buyers.find(b => b.id === req.buyer_id);
-            reqList.push({ 
-              ...req, 
-              buyer: buyer || { id: req.buyer_id, company_name: 'Industri Nasional', city: 'Indonesia', industry: 'Pangan' } 
+            reqList.push({
+              ...req,
+              buyer: buyer || { id: req.buyer_id, company_name: 'Industri Nasional', city: 'Indonesia', industry: 'Pangan' }
             });
           }
         });
@@ -265,9 +264,9 @@ export default function MitraDashboardClient() {
             matchesList.push({
               id: d.id,
               ...matchData,
-              request: { 
-                ...req, 
-                buyer: buyer || { id: req.buyer_id, company_name: 'Industri Nasional', city: 'Indonesia', industry: 'Pangan' } 
+              request: {
+                ...req,
+                buyer: buyer || { id: req.buyer_id, company_name: 'Industri Nasional', city: 'Indonesia', industry: 'Pangan' }
               }
             });
           }
@@ -370,20 +369,18 @@ export default function MitraDashboardClient() {
                         setActiveTab(item.key);
                         setIsMobileMenuOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                        isActive 
-                          ? 'bg-brand-navy text-white shadow-xs' 
-                          : 'text-slate-650 hover:bg-slate-100 hover:text-slate-900'
-                      }`}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${isActive
+                        ? 'bg-brand-navy text-white shadow-xs'
+                        : 'text-slate-650 hover:bg-slate-100 hover:text-slate-900'
+                        }`}
                     >
                       <span className="flex items-center gap-2.5">
                         <Icon className={`h-4.5 w-4.5 ${isActive ? 'text-white' : 'text-slate-450'}`} />
                         {item.label}
                       </span>
                       {item.badge !== undefined && item.badge > 0 && (
-                        <span className={`text-[9px] font-black h-4.5 min-w-4.5 px-1.5 rounded-full flex items-center justify-center ${
-                          isActive ? 'bg-brand-red text-white' : 'bg-slate-200 text-slate-600'
-                        }`}>
+                        <span className={`text-[9px] font-black h-4.5 min-w-4.5 px-1.5 rounded-full flex items-center justify-center ${isActive ? 'bg-brand-red text-white' : 'bg-slate-200 text-slate-600'
+                          }`}>
                           {item.badge}
                         </span>
                       )}
@@ -401,7 +398,7 @@ export default function MitraDashboardClient() {
   return (
     <div className="flex-1 bg-[#faf9f6] min-h-screen relative font-sans py-6">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row gap-6">
-        
+
         {/* 1. SIDEBAR (DESKTOP) */}
         <aside className="hidden md:flex flex-col w-72 bg-white border border-slate-200/80 rounded-2xl p-5 space-y-6 shrink-0 h-[calc(100vh-140px)] sticky top-24 z-30 shadow-3xs">
           {/* Brand Header */}
@@ -425,7 +422,7 @@ export default function MitraDashboardClient() {
                 <span className="font-black text-slate-900 block truncate">{coop.name}</span>
                 <span className="text-[10px] text-slate-500 font-bold block truncate">{coop.city}</span>
               </div>
-              <button 
+              <button
                 onClick={() => logout()}
                 className="p-2 hover:bg-red-50 text-slate-400 hover:text-brand-red rounded-xl transition-colors cursor-pointer"
                 title="Keluar Akun"
@@ -440,8 +437,8 @@ export default function MitraDashboardClient() {
         {isMobileMenuOpen && (
           <div className="fixed inset-0 z-50 md:hidden flex">
             {/* Backdrop overlay */}
-            <div 
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs" 
+            <div
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs"
               onClick={() => setIsMobileMenuOpen(false)}
             />
             {/* Laci Geser content */}
@@ -451,7 +448,7 @@ export default function MitraDashboardClient() {
                   <div className="h-8 w-8 rounded-lg bg-brand-navy text-white flex items-center justify-center font-black text-xs">A</div>
                   <span className="text-xs font-black text-brand-navy block leading-tight">Coop OS</span>
                 </div>
-                <button 
+                <button
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
                 >
@@ -478,12 +475,12 @@ export default function MitraDashboardClient() {
 
         {/* 3. MAIN WORKSPACE */}
         <main className="flex-1 flex flex-col min-w-0 space-y-6">
-          
+
           {/* TOP BAR / HEADER CARD */}
           <header className="w-full bg-white border border-slate-200/80 rounded-2xl px-5 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-3xs">
             <div className="flex items-center gap-3">
               {/* Hamburger trigger on mobile */}
-              <button 
+              <button
                 onClick={() => setIsMobileMenuOpen(true)}
                 className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
               >
@@ -507,8 +504,8 @@ export default function MitraDashboardClient() {
               <span className={`h-2 w-2 rounded-full shrink-0 ${online ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`}></span>
               <span className="truncate">{statusText}</span>
               {queueCount > 0 && (
-                <button 
-                  onClick={() => triggerSync()} 
+                <button
+                  onClick={() => triggerSync()}
                   disabled={syncing}
                   className="ml-1 text-[9px] text-brand-navy font-black hover:underline shrink-0"
                 >
@@ -520,107 +517,107 @@ export default function MitraDashboardClient() {
 
           {/* MAIN BODY AREA */}
           <div className="flex-1 space-y-6">
-          
-          {/* Document compliance alert */}
-          {coop && (coop.nib_status === 'pending' || coop.sk_status === 'pending') && (
-            <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 flex items-start gap-3 shadow-3xs">
-              <ShieldAlert className="h-5 w-5 text-brand-orange shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-xs font-extrabold text-amber-950 uppercase tracking-wider">Verifikasi NIB/SK Sedang Diproses</h4>
-                <p className="text-xs text-amber-800 mt-0.5 leading-relaxed">
-                  Dokumen legalitas koperasi Anda sedang dalam peninjauan kepatuhan ARUNA. Bonus skor +15 poin ARUNA akan langsung aktif setelah dokumen terverifikasi.
-                </p>
-              </div>
-            </div>
-          )}
 
-          {/* Operational Module router */}
-          <div className="animate-fade-in-up">
-            {activeTab === 'kasir' && (
-              <POSModule 
-                coopId={coopId} 
-                commodities={commodities} 
-                members={members} 
-                onRefresh={fetchData} 
-                showToast={showToast} 
-              />
+            {/* Document compliance alert */}
+            {coop && (coop.nib_status === 'pending' || coop.sk_status === 'pending') && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl p-4 flex items-start gap-3 shadow-3xs">
+                <ShieldAlert className="h-5 w-5 text-brand-orange shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-xs font-extrabold text-amber-950 uppercase tracking-wider">Verifikasi NIB/SK Sedang Diproses</h4>
+                  <p className="text-xs text-amber-800 mt-0.5 leading-relaxed">
+                    Dokumen legalitas koperasi Anda sedang dalam peninjauan kepatuhan ARUNA. Bonus skor +15 poin ARUNA akan langsung aktif setelah dokumen terverifikasi.
+                  </p>
+                </div>
+              </div>
             )}
-            {activeTab === 'stok' && (
-              <InventoryModule 
-                coopId={coopId} 
-                commodities={commodities} 
-                onRefresh={fetchData} 
-                showToast={showToast} 
-              />
-            )}
-            {activeTab === 'pembelian' && (
-              <PurchaseModule 
-                coopId={coopId} 
-                commodities={commodities} 
-                onRefresh={fetchData} 
-                showToast={showToast} 
-              />
-            )}
-            {activeTab === 'penjualan' && (
-              <SalesHistoryModule 
-                sales={salesHistory} 
-                purchases={purchaseHistory} 
-              />
-            )}
-            {activeTab === 'anggota' && (
-              <MemberModule 
-                coopId={coopId} 
-                members={members} 
-                onRefresh={fetchData} 
-                showToast={showToast} 
-              />
-            )}
-            {activeTab === 'laporan' && (
-              <ReportingModule 
-                sales={salesHistory} 
-                purchases={purchaseHistory} 
-                members={members} 
-                commodities={commodities}
-              />
-            )}
-            {activeTab === 'connector' && (
-              <ConnectorModule coopId={coopId} showToast={showToast} />
-            )}
-            {activeTab === 'pesanan' && (
-              <PesananTab 
-                requests={requests} 
-                commodities={commodities} 
-                coopId={coopId} 
-                onRefresh={fetchData} 
-                showToast={showToast} 
-              />
-            )}
-            {activeTab === 'shu' && coop && (
-              <SHUTab 
-                coop={coop} 
-                coopId={coopId} 
-                matches={coopMatches} 
-                onRefresh={fetchData} 
-                showToast={showToast} 
-              />
-            )}
-            {activeTab === 'profil' && coop && (
-              <ProfilTab 
-                coop={coop} 
-                coopId={coopId} 
-                onSave={fetchData} 
-                showToast={showToast} 
-              />
-            )}
+
+            {/* Operational Module router */}
+            <div className="animate-fade-in-up">
+              {activeTab === 'kasir' && (
+                <POSModule
+                  coopId={coopId}
+                  commodities={commodities}
+                  members={members}
+                  onRefresh={fetchData}
+                  showToast={showToast}
+                />
+              )}
+              {activeTab === 'stok' && (
+                <InventoryModule
+                  coopId={coopId}
+                  commodities={commodities}
+                  onRefresh={fetchData}
+                  showToast={showToast}
+                />
+              )}
+              {activeTab === 'pembelian' && (
+                <PurchaseModule
+                  coopId={coopId}
+                  commodities={commodities}
+                  onRefresh={fetchData}
+                  showToast={showToast}
+                />
+              )}
+              {activeTab === 'penjualan' && (
+                <SalesHistoryModule
+                  sales={salesHistory}
+                  purchases={purchaseHistory}
+                />
+              )}
+              {activeTab === 'anggota' && (
+                <MemberModule
+                  coopId={coopId}
+                  members={members}
+                  onRefresh={fetchData}
+                  showToast={showToast}
+                />
+              )}
+              {activeTab === 'laporan' && (
+                <ReportingModule
+                  sales={salesHistory}
+                  purchases={purchaseHistory}
+                  members={members}
+                  commodities={commodities}
+                />
+              )}
+              {activeTab === 'connector' && (
+                <ConnectorModule coopId={coopId} showToast={showToast} />
+              )}
+              {activeTab === 'pesanan' && (
+                <PesananTab
+                  requests={requests}
+                  commodities={commodities}
+                  coopId={coopId}
+                  onRefresh={fetchData}
+                  showToast={showToast}
+                />
+              )}
+              {activeTab === 'shu' && coop && (
+                <SHUTab
+                  coop={coop}
+                  coopId={coopId}
+                  matches={coopMatches}
+                  onRefresh={fetchData}
+                  showToast={showToast}
+                />
+              )}
+              {activeTab === 'profil' && coop && (
+                <ProfilTab
+                  coop={coop}
+                  coopId={coopId}
+                  onSave={fetchData}
+                  showToast={showToast}
+                />
+              )}
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
 
       {/* 4. FLOATING AI MIC ACTION BUBBLE */}
-      <button 
+      <button
         onClick={() => setIsAIConsoleOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-brand-navy hover:bg-brand-navy/95 text-white shadow-2xl flex items-center justify-center cursor-pointer z-40 transition-transform active:scale-95 group"
+        className="fixed bottom-20 lg:bottom-6 right-6 h-14 w-14 rounded-full bg-brand-navy hover:bg-brand-navy/95 text-white shadow-2xl flex items-center justify-center cursor-pointer z-40 transition-transform active:scale-95 group"
         title="Buka AI Command Center"
       >
         <Mic className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
@@ -632,8 +629,8 @@ export default function MitraDashboardClient() {
       {isAIConsoleOpen && (
         <div className="fixed inset-0 z-50 flex justify-end">
           {/* Backdrop overlay */}
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs" 
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setIsAIConsoleOpen(false)}
           />
           {/* Chat Drawer sliding from right */}
@@ -643,7 +640,7 @@ export default function MitraDashboardClient() {
                 <Mic className="h-4.5 w-4.5 text-brand-orange animate-pulse" />
                 <span className="text-xs font-black uppercase tracking-wider text-slate-350">AI Command Center</span>
               </div>
-              <button 
+              <button
                 onClick={() => setIsAIConsoleOpen(false)}
                 className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg"
               >
@@ -651,10 +648,10 @@ export default function MitraDashboardClient() {
               </button>
             </div>
 
-            <AIConsolePanel 
-              coopId={coopId} 
-              commodities={commodities} 
-              members={members} 
+            <AIConsolePanel
+              coopId={coopId}
+              commodities={commodities}
+              members={members}
               onClose={() => setIsAIConsoleOpen(false)}
               onActionTriggered={fetchData}
               showToast={showToast}
@@ -1022,7 +1019,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
 
   return (
     <div className="flex-1 flex flex-col justify-between py-2 text-xs font-semibold text-slate-300">
-      
+
       {/* Drawer content chat body */}
       <div className="flex-1 overflow-y-auto space-y-4 pr-1 py-3 text-center">
         {/* Visual prompt guidelines */}
@@ -1062,7 +1059,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
             </div>
             {assistantResponse.action !== 'query_stock' && assistantResponse.action !== 'reporting' ? (
               <div className="flex gap-2 justify-end pt-1">
-                <Button 
+                <Button
                   size="sm"
                   onClick={() => setAssistantResponse(null)}
                   className="bg-transparent border border-slate-700 hover:bg-slate-800 text-slate-300 font-bold text-xs h-8 px-3 rounded-lg cursor-pointer"
@@ -1070,7 +1067,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
                   Batal
                 </Button>
                 {assistantResponse.action !== 'need_clarification' && (
-                  <Button 
+                  <Button
                     size="sm"
                     onClick={handleConfirmAction}
                     className="bg-brand-orange hover:bg-brand-orange/90 text-white font-black text-xs h-8 px-3 rounded-lg cursor-pointer flex items-center gap-1"
@@ -1081,7 +1078,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
               </div>
             ) : (
               <div className="flex justify-end pt-1">
-                <Button 
+                <Button
                   size="sm"
                   onClick={() => {
                     setAssistantResponse(null);
@@ -1102,15 +1099,14 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
         <div className="flex items-center gap-2">
           <button
             onClick={handleMicToggle}
-            className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
-              isListening ? 'bg-brand-red text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
+            className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-colors cursor-pointer ${isListening ? 'bg-brand-red text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
           >
             {isListening ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
           </button>
-          
-          <input 
-            type="text" 
+
+          <input
+            type="text"
             placeholder={isListening ? "Mendengarkan..." : "Ketik instruksi di sini..."}
             value={queryText}
             onChange={e => setQueryText(e.target.value)}
@@ -1121,7 +1117,7 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
             disabled={loading}
           />
 
-          <button 
+          <button
             onClick={handleSendText}
             disabled={!queryText.trim() || loading}
             className="h-10 w-10 bg-brand-navy hover:bg-brand-navy/90 text-white rounded-xl flex items-center justify-center cursor-pointer disabled:opacity-40"
@@ -1148,7 +1144,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
   const [saving, setSaving] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
 
-  const filteredCommodities = commodities.filter(c => 
+  const filteredCommodities = commodities.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) && c.available_stock > 0
   );
 
@@ -1320,8 +1316,8 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
                 <span className="text-[10px] text-slate-400 block font-bold">Rp {item.price.toLocaleString('id-ID')} / {item.commodity.unit}</span>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   min={0}
                   step="any"
                   value={item.qty}
@@ -1366,8 +1362,8 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
           <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Total Tagihan</span>
           <span className="text-base font-black text-brand-navy">Rp {totalAmount.toLocaleString('id-ID')}</span>
         </div>
-        <Button 
-          onClick={handleCheckout} 
+        <Button
+          onClick={handleCheckout}
           disabled={cart.length === 0 || saving}
           className="bg-brand-red hover:bg-brand-red/90 text-white font-black px-5 py-2.5 rounded-xl shadow-md cursor-pointer flex items-center gap-1"
         >
@@ -1379,7 +1375,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start">
-      
+
       {/* 1. Commodities Picker list */}
       <Card className="border-slate-200/80 bg-white">
         <CardHeader className="pb-3 flex flex-row items-center justify-between gap-4">
@@ -1389,9 +1385,9 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
           </div>
           <div className="relative w-48 shrink-0">
             <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Cari..." 
+            <input
+              type="text"
+              placeholder="Cari..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
@@ -1408,8 +1404,8 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
               {filteredCommodities.map(c => {
                 const inCart = cart.find(item => item.commodity.id === c.id);
                 return (
-                  <div 
-                    key={c.id} 
+                  <div
+                    key={c.id}
                     onClick={() => addToCart(c)}
                     className="p-3.5 border border-slate-100 rounded-xl bg-slate-50 hover:bg-slate-100/50 hover:border-slate-200 transition-all cursor-pointer flex justify-between items-center relative overflow-hidden group active:scale-[0.98]"
                   >
@@ -1454,7 +1450,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
             <span className="text-[10px] text-slate-400 font-black block uppercase tracking-wider">Total</span>
             <span className="text-base font-black text-brand-orange">Rp {totalAmount.toLocaleString('id-ID')}</span>
           </div>
-          <Button 
+          <Button
             onClick={() => setIsMobileCartOpen(true)}
             className="bg-brand-red hover:bg-brand-red/90 text-white font-black text-xs px-5 py-2.5 rounded-xl cursor-pointer flex items-center gap-1"
           >
@@ -1467,8 +1463,8 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
       {isMobileCartOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
           {/* Backdrop overlay */}
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs" 
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setIsMobileCartOpen(false)}
           />
           {/* Bottom Sheet drawer panel */}
@@ -1477,14 +1473,14 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
               <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
                 <ShoppingCart className="h-4.5 w-4.5 text-brand-red" /> Detail Keranjang
               </h3>
-              <button 
+              <button
                 onClick={() => setIsMobileCartOpen(false)}
                 className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
-            
+
             {renderCartContent()}
           </div>
         </div>
@@ -1512,15 +1508,15 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
                 <span>QRIS</span>
                 <span className="text-[7px] font-medium opacity-80">GPN</span>
               </div>
-              
+
               <div className="p-3 bg-white rounded-xl shadow-xs border border-slate-100">
-                <img 
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=003049&data=aruna-pos-qris-${totalAmount}`} 
-                  alt="QRIS QR Code" 
-                  className="w-40 h-40 rounded-lg object-contain" 
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=003049&data=aruna-pos-qris-${totalAmount}`}
+                  alt="QRIS QR Code"
+                  className="w-40 h-40 rounded-lg object-contain"
                 />
               </div>
-              
+
               <div className="text-center space-y-0.5">
                 <span className="text-[9px] text-slate-400 block font-black uppercase">Sisa Waktu Pembayaran</span>
                 <span className="text-xs font-black text-brand-navy font-mono animate-pulse">02:59</span>
@@ -1537,7 +1533,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
 
             {/* Actions */}
             <div className="flex gap-2">
-              <Button 
+              <Button
                 onClick={() => setShowQrisModal(false)}
                 disabled={qrisVerifying}
                 variant="outline"
@@ -1545,7 +1541,7 @@ function POSModule({ coopId, commodities, members, onRefresh, showToast }: {
               >
                 Batal
               </Button>
-              <Button 
+              <Button
                 onClick={confirmQrisCheckout}
                 disabled={qrisVerifying}
                 className="flex-2 bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
@@ -1577,21 +1573,21 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
   const [saving, setSaving] = useState(false);
 
   // New commodity form state
-  const [form, setForm] = useState({ 
-    name: '', 
+  const [form, setForm] = useState({
+    name: '',
     sku: '',
-    category: 'Pangan', 
-    monthly_capacity: 0, 
-    available_stock: 0, 
+    category: 'Pangan',
+    monthly_capacity: 0,
+    available_stock: 0,
     minimum_stock: 0,
     price_per_unit: 0,
-    unit: 'Ton', 
+    unit: 'Ton',
     harvest_period: '',
     description: ''
   });
   const [productImage, setProductImage] = useState<File | null>(null);
   const [editProductImage, setEditProductImage] = useState<File | null>(null);
-  
+
   // Stock opname audit state
   const [selectedCommId, setSelectedCommId] = useState('');
   const [actualStock, setActualStock] = useState(0);
@@ -1640,7 +1636,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
     setSaving(true);
     try {
       const normalizedName = normalizeProductName(editForm.name);
-      
+
       let imageUrl = editingComm.image_url || '';
       if (editProductImage) {
         imageUrl = await uploadDocument(editProductImage, `products/${coopId}/${Date.now()}_${editProductImage.name}`);
@@ -1729,7 +1725,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
     try {
       const normalizedName = normalizeProductName(form.name);
       const generatedSku = form.sku.trim() || generateSKU(normalizedName);
-      
+
       let imageUrl = '';
       if (productImage) {
         imageUrl = await uploadDocument(productImage, `products/${coopId}/${Date.now()}_${productImage.name}`);
@@ -1784,15 +1780,15 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
         showToast('Komoditas baru ditambahkan lokal!');
       }
 
-      setForm({ 
-        name: '', 
+      setForm({
+        name: '',
         sku: '',
-        category: 'Pangan', 
-        monthly_capacity: 0, 
-        available_stock: 0, 
+        category: 'Pangan',
+        monthly_capacity: 0,
+        available_stock: 0,
         minimum_stock: 0,
         price_per_unit: 0,
-        unit: 'Ton', 
+        unit: 'Ton',
         harvest_period: '',
         description: ''
       });
@@ -1860,7 +1856,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
 
   return (
     <div className="space-y-6">
-      
+
       {/* Top action triggers */}
       <div className="flex gap-2 justify-end">
         <Button
@@ -1892,11 +1888,11 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Nama Komoditas <span className="text-red-500">*</span>:
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="cth: Jagung Hibrida Pioneer"
                 value={form.name}
-                onChange={e => setForm({...form, name: e.target.value})}
+                onChange={e => setForm({ ...form, name: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
@@ -1904,11 +1900,11 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 SKU (Stock Keeping Unit) <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="cth: BRS-PMR-001 (Kosongkan untuk auto-generate)"
                 value={form.sku}
-                onChange={e => setForm({...form, sku: e.target.value})}
+                onChange={e => setForm({ ...form, sku: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
@@ -1920,7 +1916,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               }
               options={INVENTORY_CATEGORIES.map(cat => ({ value: cat, label: cat }))}
               value={form.category}
-              onChange={val => setForm({...form, category: val})}
+              onChange={val => setForm({ ...form, category: val })}
             />
             <CustomSelect
               label={
@@ -1930,16 +1926,16 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               }
               options={INVENTORY_UNITS.map(un => ({ value: un, label: un }))}
               value={form.unit}
-              onChange={val => setForm({...form, unit: val})}
+              onChange={val => setForm({ ...form, unit: val })}
             />
             <div className="space-y-1">
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Kapasitas Bulanan ({form.unit}) <span className="text-red-500">*</span>:
               </label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 value={form.monthly_capacity}
-                onChange={e => setForm({...form, monthly_capacity: parseInt(e.target.value) || 0})}
+                onChange={e => setForm({ ...form, monthly_capacity: parseInt(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
@@ -1947,10 +1943,10 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Stok Awal ({form.unit}) <span className="text-red-500">*</span>:
               </label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 value={form.available_stock}
-                onChange={e => setForm({...form, available_stock: parseInt(e.target.value) || 0})}
+                onChange={e => setForm({ ...form, available_stock: parseInt(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
@@ -1958,11 +1954,11 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Harga Satuan Standar (Rp) <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
               </label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 placeholder="cth: 12000"
                 value={form.price_per_unit || ''}
-                onChange={e => setForm({...form, price_per_unit: parseInt(e.target.value) || 0})}
+                onChange={e => setForm({ ...form, price_per_unit: parseInt(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
@@ -1970,11 +1966,11 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Ambang Batas Stok Minimum <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
               </label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 placeholder="cth: 5"
                 value={form.minimum_stock || ''}
-                onChange={e => setForm({...form, minimum_stock: parseInt(e.target.value) || 0})}
+                onChange={e => setForm({ ...form, minimum_stock: parseInt(e.target.value) || 0 })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
@@ -1982,11 +1978,11 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Musim Panen / Keterangan <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="cth: April - Juni"
                 value={form.harvest_period}
-                onChange={e => setForm({...form, harvest_period: e.target.value})}
+                onChange={e => setForm({ ...form, harvest_period: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
@@ -1994,11 +1990,11 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Deskripsi / Spesifikasi Produk <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="cth: Beras organik lokal premium, kadar air < 14%"
                 value={form.description}
-                onChange={e => setForm({...form, description: e.target.value})}
+                onChange={e => setForm({ ...form, description: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
@@ -2006,8 +2002,8 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Foto Produk <span className="text-slate-400 font-medium lowercase">(opsional)</span>:
               </label>
-              <input 
-                type="file" 
+              <input
+                type="file"
                 accept="image/*"
                 onChange={e => {
                   if (e.target.files && e.target.files[0]) {
@@ -2018,8 +2014,8 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               />
             </div>
             <div className="sm:col-span-2 flex justify-end">
-              <Button 
-                onClick={handleAddProduct} 
+              <Button
+                onClick={handleAddProduct}
                 disabled={saving}
                 className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10"
               >
@@ -2060,8 +2056,8 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Jumlah Fisik Aktual <span className="text-red-500">*</span>:
               </label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 value={actualStock}
                 onChange={e => setActualStock(parseInt(e.target.value) || 0)}
                 disabled={!selectedCommId}
@@ -2073,8 +2069,8 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Alasan Penyesuaian (Audit Log) <span className="text-red-500">*</span>:
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="cth: Penyusutan berat beras karena kadar air menyusut"
                 value={opnameReason}
                 onChange={e => setOpnameReason(e.target.value)}
@@ -2094,8 +2090,8 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
             )}
 
             <div className="sm:col-span-2 flex justify-end">
-              <Button 
-                onClick={handleStockOpname} 
+              <Button
+                onClick={handleStockOpname}
                 disabled={saving || !selectedCommId}
                 className="bg-brand-orange hover:bg-brand-orange/95 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10 disabled:opacity-50"
               >
@@ -2116,15 +2112,14 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
             {commodities.map(c => {
               const isLowStock = c.minimum_stock !== undefined && c.available_stock <= c.minimum_stock;
               return (
-                <div key={c.id} className={`p-4 rounded-xl border flex flex-col justify-between space-y-3 transition-all ${
-                  isLowStock ? 'border-red-200 bg-red-50/10' : 'border-slate-100 bg-slate-50'
-                }`}>
+                <div key={c.id} className={`p-4 rounded-xl border flex flex-col justify-between space-y-3 transition-all ${isLowStock ? 'border-red-200 bg-red-50/10' : 'border-slate-100 bg-slate-50'
+                  }`}>
                   <div className="flex justify-between items-start gap-3">
                     {c.image_url && (
-                      <img 
-                        src={c.image_url} 
-                        alt={c.name} 
-                        className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0" 
+                      <img
+                        src={c.image_url}
+                        alt={c.name}
+                        className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
                       />
                     )}
                     <div className="space-y-1 flex-1 min-w-0">
@@ -2145,7 +2140,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                       )}
                     </div>
                   </div>
-                  
+
                   {isLowStock && (
                     <div className="text-[9.5px] font-black text-brand-red bg-red-50 border border-red-100 px-2.5 py-1 rounded-lg flex items-center gap-1 shrink-0 animate-pulse">
                       <ShieldAlert className="h-3.5 w-3.5" /> Stok Menipis (Batas: {c.minimum_stock} {c.unit})
@@ -2155,14 +2150,14 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                   <div className="pt-2 border-t border-slate-200/50 flex items-center justify-between text-[10px] font-extrabold text-slate-500 shrink-0">
                     <span>Panen: {c.harvest_period}</span>
                     <div className="flex items-center gap-2">
-                      <button 
+                      <button
                         onClick={() => startEdit(c)}
                         className="text-slate-450 hover:text-brand-navy transition-colors p-0.5 rounded cursor-pointer"
                         title="Edit Detail Produk"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDeleteProduct(c.id, c.name)}
                         className="text-slate-450 hover:text-brand-red transition-colors p-0.5 rounded cursor-pointer"
                         title="Hapus Produk"
@@ -2184,8 +2179,8 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
       {/* Modal Edit Produk */}
       {editingComm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs" 
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
             onClick={() => setEditingComm(null)}
           />
           <div className="relative bg-white rounded-2xl p-6 shadow-2xl space-y-4 max-w-lg w-full z-50 max-h-[90vh] overflow-y-auto">
@@ -2193,7 +2188,7 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
               <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
                 <Pencil className="h-4.5 w-4.5 text-brand-navy" /> Edit Komoditas: {editingComm.name}
               </h3>
-              <button 
+              <button
                 onClick={() => setEditingComm(null)}
                 className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg"
               >
@@ -2206,10 +2201,10 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 <label className="text-[10px] font-semibold text-slate-400 block font-bold">
                   Nama Komoditas <span className="text-red-500">*</span>:
                 </label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={editForm.name}
-                  onChange={e => setEditForm({...editForm, name: e.target.value})}
+                  onChange={e => setEditForm({ ...editForm, name: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
                 />
               </div>
@@ -2218,11 +2213,11 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 <label className="text-[10px] font-semibold text-slate-400 block font-bold">
                   SKU / Kode Unik:
                 </label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="Opsional (Otomatis jika kosong)"
                   value={editForm.sku}
-                  onChange={e => setEditForm({...editForm, sku: e.target.value})}
+                  onChange={e => setEditForm({ ...editForm, sku: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
                 />
               </div>
@@ -2231,24 +2226,24 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 label="Kategori Produk *:"
                 options={INVENTORY_CATEGORIES.map(cat => ({ value: cat, label: cat }))}
                 value={editForm.category}
-                onChange={val => setEditForm({...editForm, category: val})}
+                onChange={val => setEditForm({ ...editForm, category: val })}
               />
 
               <CustomSelect
                 label="Satuan Ukur *:"
                 options={INVENTORY_UNITS.map(un => ({ value: un, label: un }))}
                 value={editForm.unit}
-                onChange={val => setEditForm({...editForm, unit: val})}
+                onChange={val => setEditForm({ ...editForm, unit: val })}
               />
 
               <div className="space-y-1">
                 <label className="text-[10px] font-semibold text-slate-400 block font-bold">
                   Kapasitas Bulanan ({editForm.unit}) *:
                 </label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   value={editForm.monthly_capacity}
-                  onChange={e => setEditForm({...editForm, monthly_capacity: parseInt(e.target.value) || 0})}
+                  onChange={e => setEditForm({ ...editForm, monthly_capacity: parseInt(e.target.value) || 0 })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
                 />
               </div>
@@ -2257,10 +2252,10 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 <label className="text-[10px] font-semibold text-slate-400 block font-bold">
                   Stok Tersedia ({editForm.unit}) *:
                 </label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   value={editForm.available_stock}
-                  onChange={e => setEditForm({...editForm, available_stock: parseInt(e.target.value) || 0})}
+                  onChange={e => setEditForm({ ...editForm, available_stock: parseInt(e.target.value) || 0 })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
                 />
               </div>
@@ -2269,11 +2264,11 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 <label className="text-[10px] font-semibold text-slate-400 block font-bold">
                   Harga Satuan Standar (Rp) (opsional):
                 </label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   placeholder="cth: 12000"
                   value={editForm.price_per_unit || ''}
-                  onChange={e => setEditForm({...editForm, price_per_unit: parseInt(e.target.value) || 0})}
+                  onChange={e => setEditForm({ ...editForm, price_per_unit: parseInt(e.target.value) || 0 })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
                 />
               </div>
@@ -2282,11 +2277,11 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 <label className="text-[10px] font-semibold text-slate-400 block font-bold">
                   Batas Stok Minimum (opsional):
                 </label>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   placeholder="cth: 5"
                   value={editForm.minimum_stock || ''}
-                  onChange={e => setEditForm({...editForm, minimum_stock: parseInt(e.target.value) || 0})}
+                  onChange={e => setEditForm({ ...editForm, minimum_stock: parseInt(e.target.value) || 0 })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
                 />
               </div>
@@ -2295,11 +2290,11 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 <label className="text-[10px] font-semibold text-slate-400 block font-bold">
                   Musim Panen / Keterangan (opsional):
                 </label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   placeholder="cth: April - Juni"
                   value={editForm.harvest_period}
-                  onChange={e => setEditForm({...editForm, harvest_period: e.target.value})}
+                  onChange={e => setEditForm({ ...editForm, harvest_period: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none focus:ring-1 focus:ring-brand-navy"
                 />
               </div>
@@ -2308,9 +2303,9 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 <label className="text-[10px] font-semibold text-slate-400 block font-bold">
                   Deskripsi Singkat (opsional):
                 </label>
-                <textarea 
+                <textarea
                   value={editForm.description}
-                  onChange={e => setEditForm({...editForm, description: e.target.value})}
+                  onChange={e => setEditForm({ ...editForm, description: e.target.value })}
                   rows={2}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none resize-none focus:ring-1 focus:ring-brand-navy"
                 />
@@ -2319,8 +2314,8 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 <label className="text-[10px] font-semibold text-slate-400 block font-bold">
                   Ganti Foto Produk (opsional):
                 </label>
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   accept="image/*"
                   onChange={e => {
                     if (e.target.files && e.target.files[0]) {
@@ -2333,14 +2328,14 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
             </div>
 
             <div className="pt-3 border-t border-slate-100 flex justify-end gap-3">
-              <Button 
+              <Button
                 onClick={() => setEditingComm(null)}
                 variant="outline"
                 className="text-xs px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-bold"
               >
                 Batal
               </Button>
-              <Button 
+              <Button
                 onClick={handleEditProduct}
                 disabled={saving}
                 className="bg-brand-navy hover:bg-brand-navy/90 text-white text-xs px-5 py-2 rounded-xl shadow-md font-bold"
@@ -2355,8 +2350,8 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
       {/* Modal Konfirmasi Hapus Produk */}
       {deletingComm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-fade-in" 
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs animate-fade-in"
             onClick={() => setDeletingComm(null)}
           />
           <div className="relative bg-white rounded-2xl p-6 shadow-2xl space-y-4 max-w-sm w-full z-50 border border-slate-200 animate-scale-up">
@@ -2366,20 +2361,20 @@ function InventoryModule({ coopId, commodities, onRefresh, showToast }: {
                 Konfirmasi Hapus Produk
               </h3>
             </div>
-            
+
             <p className="text-xs text-slate-500 font-semibold leading-relaxed">
               Apakah Anda yakin ingin menghapus komoditas <span className="font-extrabold text-slate-800">"{deletingComm.name}"</span>? Tindakan ini tidak dapat dibatalkan.
             </p>
 
             <div className="pt-3 border-t border-slate-100 flex justify-end gap-2.5">
-              <Button 
+              <Button
                 onClick={() => setDeletingComm(null)}
                 variant="outline"
                 className="text-xs px-4 py-2 border border-slate-200 rounded-xl text-slate-600 font-bold cursor-pointer hover:bg-slate-50"
               >
                 Batal
               </Button>
-              <Button 
+              <Button
                 onClick={confirmDeleteProduct}
                 disabled={saving}
                 className="bg-brand-red hover:bg-brand-red/90 text-white text-xs px-5 py-2 rounded-xl shadow-md font-bold cursor-pointer"
@@ -2487,8 +2482,8 @@ function PurchaseModule({ coopId, commodities, onRefresh, showToast }: {
           <label className="text-[10px] font-semibold text-slate-400 block">
             Kuantitas Masuk <span className="text-red-500">*</span>:
           </label>
-          <input 
-            type="number" 
+          <input
+            type="number"
             min={0}
             step="any"
             value={purchaseQty}
@@ -2502,8 +2497,8 @@ function PurchaseModule({ coopId, commodities, onRefresh, showToast }: {
           <label className="text-[10px] font-semibold text-slate-400 block">
             Nama Petani / Supplier <span className="text-red-500">*</span>:
           </label>
-          <input 
-            type="text" 
+          <input
+            type="text"
             placeholder="cth: Kelompok Tani Budi"
             value={supplierName}
             onChange={e => setSupplierName(e.target.value)}
@@ -2513,8 +2508,8 @@ function PurchaseModule({ coopId, commodities, onRefresh, showToast }: {
         </div>
 
         <div className="sm:col-span-3 flex justify-end">
-          <Button 
-            onClick={handlePurchase} 
+          <Button
+            onClick={handlePurchase}
             disabled={saving || !selectedCommId}
             className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10 disabled:opacity-50"
           >
@@ -2537,13 +2532,13 @@ function SalesHistoryModule({ sales, purchases }: {
       <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between gap-4 mb-4">
         <CardTitle className="text-sm font-black text-slate-900">Riwayat Pembukuan Transaksi</CardTitle>
         <div className="flex bg-slate-100 p-0.5 rounded-lg text-[10px] font-bold shrink-0">
-          <button 
+          <button
             onClick={() => setTab('sales')}
             className={`px-3 py-1.5 rounded ${tab === 'sales' ? 'bg-white text-brand-navy shadow-xs' : 'text-slate-500'}`}
           >
             Penjualan (Kasir)
           </button>
-          <button 
+          <button
             onClick={() => setTab('purchases')}
             className={`px-3 py-1.5 rounded ${tab === 'purchases' ? 'bg-white text-brand-navy shadow-xs' : 'text-slate-500'}`}
           >
@@ -2572,9 +2567,8 @@ function SalesHistoryModule({ sales, purchases }: {
                   </div>
                   <div className="text-right">
                     <span className="font-black text-slate-900 block">Rp {s.total_amount.toLocaleString('id-ID')}</span>
-                    <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded uppercase mt-1.5 ${
-                      s.status === 'synced' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}>
+                    <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded uppercase mt-1.5 ${s.status === 'synced' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}>
                       {s.status === 'synced' ? 'Synced' : 'Local'}
                     </span>
                   </div>
@@ -2602,9 +2596,8 @@ function SalesHistoryModule({ sales, purchases }: {
                   </div>
                   <div className="text-right">
                     <span className="font-black text-slate-900 block">Rp {p.total_amount.toLocaleString('id-ID')}</span>
-                    <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded uppercase mt-1.5 ${
-                      p.status === 'synced' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-                    }`}>
+                    <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded uppercase mt-1.5 ${p.status === 'synced' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}>
                       {p.status === 'synced' ? 'Synced' : 'Local'}
                     </span>
                   </div>
@@ -2628,7 +2621,7 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
 
   const handleAddMember = async () => {
     if (!form.name.trim() || !form.phone.trim() || !form.address.trim()) return showToast('Nama, telepon, dan alamat anggota wajib diisi', 'error');
-    
+
     setSaving(true);
     try {
       const newMember: Member = {
@@ -2672,11 +2665,11 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
 
   return (
     <div className="space-y-6">
-      
+
       {/* Top action trigger */}
       <div className="flex justify-end">
-        <Button 
-          size="sm" 
+        <Button
+          size="sm"
           onClick={() => setShowAdd(!showAdd)}
           className="bg-brand-navy hover:bg-brand-navy/95 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer rounded-xl h-9"
         >
@@ -2696,11 +2689,11 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Nama Lengkap Anggota Tani <span className="text-red-500">*</span>:
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="cth: Pak Subarjo"
                 value={form.name}
-                onChange={e => setForm({...form, name: e.target.value})}
+                onChange={e => setForm({ ...form, name: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
@@ -2708,11 +2701,11 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 No. Telepon / WA <span className="text-red-500">*</span>:
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="cth: 08123456789"
                 value={form.phone}
-                onChange={e => setForm({...form, phone: e.target.value})}
+                onChange={e => setForm({ ...form, phone: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
@@ -2720,17 +2713,17 @@ function MemberModule({ coopId, members, onRefresh, showToast }: {
               <label className="text-[10px] font-semibold text-slate-400 block">
                 Alamat Rumah <span className="text-red-500">*</span>:
               </label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="cth: RT 03 Dusun Tani Makmur"
                 value={form.address}
-                onChange={e => setForm({...form, address: e.target.value})}
+                onChange={e => setForm({ ...form, address: e.target.value })}
                 className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs bg-white focus:outline-none"
               />
             </div>
             <div className="sm:col-span-3 flex justify-end">
-              <Button 
-                onClick={handleAddMember} 
+              <Button
+                onClick={handleAddMember}
                 disabled={saving}
                 className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold px-6 py-2.5 rounded-xl text-xs cursor-pointer h-10"
               >
@@ -2798,7 +2791,7 @@ function ReportingModule({ sales, purchases, members, commodities }: {
 
   return (
     <div className="space-y-6">
-      
+
       {/* Visual financial metrics cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <Card className="border-slate-200 bg-white">
@@ -2959,7 +2952,7 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start text-xs font-semibold text-slate-700">
-      
+
       {/* Stock Connector Trades Recommendations */}
       <Card className="border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100 mb-4">
@@ -2978,16 +2971,15 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
               <div key={t.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50 flex flex-col justify-between space-y-3">
                 <div className="flex justify-between items-start">
                   <div>
-                    <span className={`inline-block text-[9px] font-black px-2.5 py-0.5 rounded-full ${
-                      t.status === 'Rekomendasi' ? 'bg-amber-100 text-brand-orange' : 'bg-blue-100 text-brand-navy'
-                    }`}>
+                    <span className={`inline-block text-[9px] font-black px-2.5 py-0.5 rounded-full ${t.status === 'Rekomendasi' ? 'bg-amber-100 text-brand-orange' : 'bg-blue-100 text-brand-navy'
+                      }`}>
                       {t.status}
                     </span>
                     <h4 className="text-xs font-black text-slate-800 mt-2">
                       Transfer Komoditas: {t.commodity_name}
                     </h4>
                     <p className="text-[10px] text-slate-500 mt-1">
-                      Dari: <strong className="text-slate-700">{t.source_name}</strong>  
+                      Dari: <strong className="text-slate-700">{t.source_name}</strong>
                       <br />Ke: <strong className="text-slate-700">{t.target_name}</strong>
                     </p>
                   </div>
@@ -2998,14 +2990,14 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
 
                 {t.status === 'Rekomendasi' && (
                   <div className="pt-2 border-t border-slate-200/60 flex justify-end gap-2">
-                    <Button 
+                    <Button
                       size="sm"
                       onClick={() => handleActionTrade(t.id, 'tolak')}
                       className="bg-transparent border border-slate-300 text-slate-500 hover:bg-slate-100 font-bold text-[10px] h-7 px-3 rounded-lg cursor-pointer"
                     >
                       Abaikan
                     </Button>
-                    <Button 
+                    <Button
                       size="sm"
                       onClick={() => handleActionTrade(t.id, 'proses')}
                       className="bg-brand-orange hover:bg-brand-orange/95 text-white font-bold text-[10px] h-7 px-3 rounded-lg cursor-pointer"
@@ -3056,7 +3048,7 @@ function ConnectorModule({ coopId, showToast }: { coopId: string; showToast: (m:
                     <span className="text-slate-400 block font-bold">Harga Grosir:</span>
                     <span className="font-black text-brand-navy">Rp {p.price_per_unit.toLocaleString('id-ID')} / {p.unit}</span>
                   </div>
-                  <Button 
+                  <Button
                     size="sm"
                     onClick={() => handleJoinProcurement(p.id)}
                     disabled={p.current_quantity >= p.target_quantity}
@@ -3134,14 +3126,14 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs font-semibold text-slate-700">
-      
+
       {/* Primary profile parameters */}
       <Card className="md:col-span-2 border-slate-200 bg-white">
         <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between mb-4">
           <CardTitle className="text-sm font-black text-slate-900 font-sans">Informasi Dasar Koperasi</CardTitle>
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => setEditing(!editing)}
             className="text-xs h-8 cursor-pointer rounded-xl font-sans"
           >
@@ -3161,10 +3153,10 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
             <div>
               <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Nama Ketua Koperasi</span>
               {editing ? (
-                <input 
-                  type="text" 
-                  value={form.head} 
-                  onChange={e => setForm({...form, head: e.target.value})}
+                <input
+                  type="text"
+                  value={form.head}
+                  onChange={e => setForm({ ...form, head: e.target.value })}
                   className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800 font-sans"
                 />
               ) : (
@@ -3174,10 +3166,10 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
             <div>
               <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">No. Telepon Kontak</span>
               {editing ? (
-                <input 
-                  type="text" 
-                  value={form.phone} 
-                  onChange={e => setForm({...form, phone: e.target.value})}
+                <input
+                  type="text"
+                  value={form.phone}
+                  onChange={e => setForm({ ...form, phone: e.target.value })}
                   className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800 font-sans"
                 />
               ) : (
@@ -3187,10 +3179,10 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
             <div className="col-span-2">
               <span className="text-[9px] text-slate-400 font-black uppercase tracking-wider block">Alamat Koperasi Utama</span>
               {editing ? (
-                <input 
-                  type="text" 
-                  value={form.address} 
-                  onChange={e => setForm({...form, address: e.target.value})}
+                <input
+                  type="text"
+                  value={form.address}
+                  onChange={e => setForm({ ...form, address: e.target.value })}
                   className="w-full p-2 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800 font-sans"
                 />
               ) : (
@@ -3201,8 +3193,8 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
 
           {editing && (
             <div className="flex justify-end pt-3">
-              <Button 
-                onClick={handleSave} 
+              <Button
+                onClick={handleSave}
                 disabled={saving}
                 className="bg-brand-navy hover:bg-brand-navy/95 text-white font-bold text-xs px-5 py-2.5 rounded-xl cursor-pointer h-10 font-sans"
               >
@@ -3220,9 +3212,9 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
             <FileCheck className="h-4.5 w-4.5 text-brand-orange" /> Legalitas & Kepatuhan
           </CardTitle>
           {!editingKyc && (coop.nib_status !== 'verified' || coop.sk_status !== 'verified') && (
-            <Button 
-              size="sm" 
-              variant="outline" 
+            <Button
+              size="sm"
+              variant="outline"
               onClick={() => {
                 setKycForm({
                   nib: coop.nib || '',
@@ -3236,9 +3228,9 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
             </Button>
           )}
           {editingKyc && (
-            <Button 
-              size="sm" 
-              variant="outline" 
+            <Button
+              size="sm"
+              variant="outline"
               onClick={() => setEditingKyc(false)}
               className="text-xs h-8 cursor-pointer rounded-xl font-sans"
             >
@@ -3251,10 +3243,10 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
             <div className="space-y-4 font-sans">
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 block uppercase">Nomor NIB Koperasi</label>
-                <input 
-                  type="text" 
-                  value={kycForm.nib} 
-                  onChange={e => setKycForm({...kycForm, nib: e.target.value})}
+                <input
+                  type="text"
+                  value={kycForm.nib}
+                  onChange={e => setKycForm({ ...kycForm, nib: e.target.value })}
                   placeholder="Masukkan 13 digit nomor NIB..."
                   className="w-full p-2.5 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800 font-semibold"
                 />
@@ -3262,10 +3254,10 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 block uppercase">Nomor SK Kementerian</label>
-                <input 
-                  type="text" 
-                  value={kycForm.sk_number} 
-                  onChange={e => setKycForm({...kycForm, sk_number: e.target.value})}
+                <input
+                  type="text"
+                  value={kycForm.sk_number}
+                  onChange={e => setKycForm({ ...kycForm, sk_number: e.target.value })}
                   placeholder="Masukkan nomor SK Koperasi..."
                   className="w-full p-2.5 border border-slate-200 rounded-lg text-xs focus:outline-none bg-white text-slate-800 font-semibold"
                 />
@@ -3275,8 +3267,8 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
                 <strong className="text-brand-red font-black">Informasi:</strong> Setelah disimpan, berkas legalitas Anda akan memasuki status <span className="font-extrabold text-amber-600">Pending Review</span> dan akan diverifikasi oleh Admin ARUNA.
               </div>
 
-              <Button 
-                onClick={handleSaveKyc} 
+              <Button
+                onClick={handleSaveKyc}
                 disabled={kycSaving || (!kycForm.nib && !kycForm.sk_number)}
                 className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-bold text-xs py-2.5 rounded-xl cursor-pointer"
               >
@@ -3292,11 +3284,10 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-extrabold text-slate-700">Status KYC NIB:</span>
-                  <span className={`px-2 py-0.5 rounded font-black uppercase text-[9px] ${
-                    coop.nib_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                  <span className={`px-2 py-0.5 rounded font-black uppercase text-[9px] ${coop.nib_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                     coop.nib_status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
-                    'bg-slate-100 text-slate-500 border border-slate-200'
-                  }`}>
+                      'bg-slate-100 text-slate-500 border border-slate-200'
+                    }`}>
                     {coop.nib_status || 'unsubmitted'}
                   </span>
                 </div>
@@ -3309,11 +3300,10 @@ function ProfilTab({ coop, coopId, onSave, showToast }: {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="font-extrabold text-slate-700">Status KYC SK:</span>
-                  <span className={`px-2 py-0.5 rounded font-black uppercase text-[9px] ${
-                    coop.sk_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                  <span className={`px-2 py-0.5 rounded font-black uppercase text-[9px] ${coop.sk_status === 'verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                     coop.sk_status === 'pending' ? 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse' :
-                    'bg-slate-100 text-slate-500 border border-slate-200'
-                  }`}>
+                      'bg-slate-100 text-slate-500 border border-slate-200'
+                    }`}>
                     {coop.sk_status || 'unsubmitted'}
                   </span>
                 </div>
@@ -3413,7 +3403,7 @@ function PesananTab({ requests, commodities, coopId, onRefresh, showToast }: {
                     <span className="font-black text-slate-700">{hasStock ? `${hasStock.available_stock} ${hasStock.unit}` : 'Tidak ada'}</span>
                   </div>
                   {req.status !== 'Terpenuhi' && (
-                    <Button 
+                    <Button
                       size="sm"
                       onClick={() => handleProcessOffer(req)}
                       disabled={processingId !== null || !hasStock || hasStock.available_stock <= 0}
@@ -3442,7 +3432,7 @@ function SHUTab({ coop, coopId, matches, onRefresh, showToast }: {
 
   return (
     <div className="space-y-6 text-xs font-semibold text-slate-700">
-      
+
       {/* SHU Summary Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Card className="border-slate-200 bg-white">
