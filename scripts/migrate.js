@@ -24,7 +24,7 @@ envContent.split('\n').forEach(line => {
   }
 });
 
-const prefix = env['DB_PREFIX'] || 'group5_';
+const prefix = env['DB_PREFIX'];
 console.log(`Using table prefix: "${prefix}"`);
 
 // 2. Initialize pg pool
