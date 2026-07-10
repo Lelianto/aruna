@@ -42,11 +42,22 @@ export default function Navbar() {
     // Koperasi
     if (userData.role === 'koperasi') {
       return (
-        item.href === '/peta' ||
         item.href === '/komoditas' ||
         item.href === '/marketplace' ||
         item.href === '/potensi-desa' ||
         item.href === '/mitra-dashboard'
+      );
+    }
+    // Pemerintah
+    if (userData.role === 'pemerintah') {
+      return (
+        item.href === '/potensi-desa' ||
+        item.href === '/peta' ||
+        item.href === '/dashboard' ||
+        item.href === '/scoring' ||
+        item.href === '/insights' ||
+        item.href === '/komoditas' ||
+        item.href === '/marketplace'
       );
     }
     // Admin has access to all
@@ -105,7 +116,8 @@ export default function Navbar() {
                       {userData?.role === 'admin' ? 'Admin Platform' :
                         userData?.role === 'buyer' ? 'Buyer Industri' :
                           userData?.role === 'koperasi' ? 'Ketua Koperasi' :
-                            userData?.role === 'customer' ? 'Customer Umum' : 'Registrasi Peran'}
+                            userData?.role === 'customer' ? 'Customer Umum' :
+                              userData?.role === 'pemerintah' ? 'Perwakilan Pemerintah' : 'Registrasi Peran'}
                     </span>
                     <span className="text-slate-200 text-[9px]">|</span>
                     <Link href="/select-role" className="text-[9px] text-brand-red hover:underline font-extrabold block">
@@ -189,7 +201,8 @@ export default function Navbar() {
                       {userData?.role === 'admin' ? 'Admin Platform' :
                         userData?.role === 'buyer' ? 'Buyer Industri' :
                           userData?.role === 'koperasi' ? 'Ketua Koperasi' :
-                            userData?.role === 'customer' ? 'Customer Umum' : 'Registrasi Peran'}
+                            userData?.role === 'customer' ? 'Customer Umum' :
+                              userData?.role === 'pemerintah' ? 'Perwakilan Pemerintah' : 'Registrasi Peran'}
                     </span>
                     <span className="text-slate-300 text-[10px]">|</span>
                     <Link

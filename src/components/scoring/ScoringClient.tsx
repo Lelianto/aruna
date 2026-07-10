@@ -70,7 +70,7 @@ export default function ScoringClient({ cooperatives, initialCoopId }: ScoringCl
 
   useEffect(() => {
     if (!loading) {
-      if (!user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi')) {
+      if (!user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi' && userData.role !== 'pemerintah')) {
         router.push('/');
       }
     }
@@ -98,7 +98,7 @@ export default function ScoringClient({ cooperatives, initialCoopId }: ScoringCl
     );
   }, [rankedCoops, searchQuery]);
 
-  if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi')) {
+  if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi' && userData.role !== 'pemerintah')) {
     return (
       <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
         <div className="text-center">
