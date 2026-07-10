@@ -49,6 +49,7 @@ import { Button } from '@/components/ui/button';
 import { uploadDocument } from '@/lib/firebase/upload';
 import { CustomSelect } from '@/components/ui/CustomSelect';
 import ReceiptModal from '@/components/pos/ReceiptModal';
+import ArunaHelpWidget from '@/components/help/ArunaHelpWidget';
 import { normalizeWhatsappNumber, isValidWhatsappNumber } from '@/lib/utils/phone';
 
 // Import Offline Services
@@ -669,6 +670,9 @@ export default function MitraDashboardClient() {
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
+
+      {/* 6. Floating "Aruna Help" product-knowledge chatbot (chat + voice) */}
+      <ArunaHelpWidget activeTab={activeTab} />
     </div>
   );
 }

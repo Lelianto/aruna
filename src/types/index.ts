@@ -223,3 +223,21 @@ export interface CooperativeConnectorTrade {
   created_at: string;
 }
 
+// Product knowledge entry for the "Aruna Help" cooperative-dashboard chatbot.
+// Stored in a Firestore collection separate from operational data
+// (see src/lib/firebase/seeder.ts -> HELP_KNOWLEDGE_COLLECTION).
+export interface HelpKnowledgeEntry {
+  id: string;
+  title: string;
+  group: 'umum' | 'operasional' | 'jejaring' | 'profil';
+  tab_key: string | null; // matches ActiveTabKey in MitraDashboardClient, or null for cross-cutting topics
+  summary: string;
+  steps: string[];
+  tips: string[];
+}
+
+export interface HelpChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+

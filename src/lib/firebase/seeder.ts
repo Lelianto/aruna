@@ -1,6 +1,13 @@
 import { db } from './config';
 import { collection, getDocs, doc, setDoc, writeBatch } from 'firebase/firestore';
 import mockData from '../mock/data.json';
+import helpKnowledgeData from '../mock/help-knowledge.json';
+
+// Collection Firestore terpisah, khusus untuk basis pengetahuan (product
+// knowledge) chatbot "Aruna Help". Terisolasi dari data operasional koperasi
+// (commodities, sales, dll) sehingga aman diberi aturan akses Firestore yang
+// berbeda di masa depan jika diperlukan.
+export const HELP_KNOWLEDGE_COLLECTION = 'help_knowledge_base';
 
 export async function seedDatabaseIfEmpty() {
   try {
@@ -11,7 +18,7 @@ export async function seedDatabaseIfEmpty() {
     }
 
     console.log('Firestore is empty. Starting seeding process...');
-    
+
     // 1. Seed Buyers
     console.log('Seeding buyers...');
     for (const buyer of mockData.buyers as any[]) {
@@ -82,5 +89,28 @@ export async function seedDatabaseIfEmpty() {
     console.log('Seeding completed successfully!');
   } catch (error) {
     console.error('Error seeding Firestore database:', error);
+  }
+}
+
+/**
+ * Seeds the "help_knowledge_base" collection — a Firestore collection
+ * dedicated to the ARUNA Help chatbot's product knowledge. Kept separate
+ * from operational collections (commodities, sales, purchases, etc.) and
+ * only ever seeded/read, never mutated by regular cooperative operations.
+ */
+export async function seedHelpKnowledgeIfEmpty() {
+  try {
+    const snap = await getDocs(collection(db, HELP_KNOWLEDGE_COLLECTION));
+    if (!snap.empty) {
+      return;
+    }
+
+    console.log('Seeding Aruna Help knowledge base...');
+    for (const entry of helpKnowledgeData as any[]) {
+      await setDoc(doc(db, HELP_KNOWLEDGE_COLLECTION, entry.id), entry);
+    }
+    console.log('Aruna Help knowledge base seeded successfully!');
+  } catch (error) {
+    console.error('Error seeding Aruna Help knowledge base:', error);
   }
 }

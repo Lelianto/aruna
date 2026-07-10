@@ -14,8 +14,23 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  const { request } = event;
+
+  // Only handle simple, same-origin GET requests. Next.js dev/HMR traffic
+  // (webpack-hmr, RSC data requests) and cross-origin/non-http(s) requests
+  // are left alone so the SW never intercepts them.
+  if (request.method !== 'GET') return;
+  if (!request.url.startsWith(self.location.origin)) return;
+  if (request.url.includes('/_next/webpack-hmr')) return;
+
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    caches.match(request).then((cached) => {
+      if (cached) return cached;
+      // Fall back to network, but never let a rejected fetch (offline,
+      // aborted navigation, etc.) become an unhandled promise rejection.
+      return fetch(request).catch(() => {
+        return cached || Response.error();
+      });
+    })
   );
 });
