@@ -215,6 +215,10 @@ export default function MatchDetailsClient({
     result.matches[0]?.cooperative.id || undefined
   );
 
+  // Hardcoded buyer detail maps are keyed by the buyer's stable slug
+  // (aruna_buyers.slug), not the numeric Postgres id.
+  const buyerSlug = request.buyer.slug ?? '';
+
   // 4. Modal and Release states
   const [isSpkOpen, setIsSpkOpen] = useState(false);
   const [isSpkReleased, setIsSpkReleased] = useState(false);
@@ -385,12 +389,12 @@ export default function MatchDetailsClient({
                 <MapPin className="h-4 w-4 text-brand-red/70 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-semibold text-slate-700 block">Alamat Pabrik Penerima:</span>
-                  <span className="text-slate-600 block leading-relaxed">{buyerDetailsMap[request.buyer_id]?.address || `${request.buyer.city}, Indonesia`}</span>
+                  <span className="text-slate-600 block leading-relaxed">{buyerDetailsMap[buyerSlug]?.address || `${request.buyer.city}, Indonesia`}</span>
                 </div>
               </div>
               <div className="pl-6 border-l-2 border-slate-100 flex flex-col gap-0.5 text-[11px] text-slate-500 font-semibold">
-                <span>Persona Penerima: <strong className="text-slate-700">{buyerDetailsMap[request.buyer_id]?.persona || 'Bpk. Logistik Manager'}</strong></span>
-                <span>Kontak: <strong className="text-slate-700">{buyerDetailsMap[request.buyer_id]?.phone || '+62 8xx'}</strong></span>
+                <span>Persona Penerima: <strong className="text-slate-700">{buyerDetailsMap[buyerSlug]?.persona || 'Bpk. Logistik Manager'}</strong></span>
+                <span>Kontak: <strong className="text-slate-700">{buyerDetailsMap[buyerSlug]?.phone || '+62 8xx'}</strong></span>
               </div>
             </div>
           </div>
@@ -968,10 +972,10 @@ export default function MatchDetailsClient({
                     <span className="text-slate-400 font-semibold block uppercase tracking-wider text-[9px]">Penerima & Alamat Pengiriman (Buyer)</span>
                     <span className="font-semibold text-brand-navy text-sm block">{request.buyer.company_name}</span>
                     <p className="text-slate-650 leading-relaxed font-semibold">
-                      {buyerDetailsMap[request.buyer_id]?.address || `${request.buyer.city}, Indonesia`}
+                      {buyerDetailsMap[buyerSlug]?.address || `${request.buyer.city}, Indonesia`}
                     </p>
                     <span className="text-slate-500 block text-[11px] font-semibold mt-1">
-                      UP: {buyerDetailsMap[request.buyer_id]?.persona || 'Bpk. Logistik Manager'} ({buyerDetailsMap[request.buyer_id]?.phone || '+62 8xx'})
+                      UP: {buyerDetailsMap[buyerSlug]?.persona || 'Bpk. Logistik Manager'} ({buyerDetailsMap[buyerSlug]?.phone || '+62 8xx'})
                     </span>
                   </div>
                   <div className="space-y-1.5 md:border-l md:pl-4">
@@ -1042,9 +1046,9 @@ export default function MatchDetailsClient({
                 <div className="space-y-1.5 text-[11px] text-slate-550 leading-relaxed border-t pt-3">
                   <span className="font-semibold text-slate-700 uppercase tracking-wider block text-[10px]">Syarat & Ketentuan Logistik Gotong Royong:</span>
                   <ul className="list-disc pl-4 space-y-1">
-                    <li>Pengiriman komoditas dari masing-masing koperasi mitra akan ditujukan langsung ke alamat pabrik penerima: <strong>{buyerDetailsMap[request.buyer_id]?.address || `${request.buyer.city}`}</strong>.</li>
+                    <li>Pengiriman komoditas dari masing-masing koperasi mitra akan ditujukan langsung ke alamat pabrik penerima: <strong>{buyerDetailsMap[buyerSlug]?.address || `${request.buyer.city}`}</strong>.</li>
                     <li>Pihak pengirim dari masing-masing koperasi dipimpin oleh Ketua Koperasi masing-masing yang bertindak sebagai Narahubung Pengiriman Utama.</li>
-                    <li>Pembayaran termin pertama (50%) akan otomatis cair setelah kargo tiba di gerbang pabrik dan lolos Verifikasi Kualitas oleh <strong>{buyerDetailsMap[request.buyer_id]?.persona.split(' (')[0] || 'Representatif Buyer'}</strong>.</li>
+                    <li>Pembayaran termin pertama (50%) akan otomatis cair setelah kargo tiba di gerbang pabrik dan lolos Verifikasi Kualitas oleh <strong>{buyerDetailsMap[buyerSlug]?.persona.split(' (')[0] || 'Representatif Buyer'}</strong>.</li>
                   </ul>
                 </div>
               </div>
@@ -1059,7 +1063,7 @@ export default function MatchDetailsClient({
                         TANDATANGAN DIGITAL
                       </div>
                       <span className="block font-semibold text-slate-800">
-                        {buyerDetailsMap[request.buyer_id]?.persona.split(' (')[0] || 'Representatif Buyer'}
+                        {buyerDetailsMap[buyerSlug]?.persona.split(' (')[0] || 'Representatif Buyer'}
                       </span>
                     </div>
                   ) : (

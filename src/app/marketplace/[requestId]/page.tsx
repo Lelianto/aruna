@@ -37,7 +37,9 @@ export default async function MatchDetailsPage({ params }: PageProps) {
     'buyer-charoen': { lat: -6.2088, lng: 106.8456 } // Jakarta
   };
 
-  const buyerCoords = buyerCoordsMap[request.buyer_id] || { lat: -6.2088, lng: 106.8456 };
+  // Key the hardcoded coordinate map by the buyer's stable slug (aruna_buyers.slug),
+  // not the numeric Postgres id, so the lookup keeps matching after migration.
+  const buyerCoords = buyerCoordsMap[request.buyer.slug ?? ''] || { lat: -6.2088, lng: 106.8456 };
 
   // 4. Run Greedy Gotong Royong Matching
   const result = performGotongRoyongMatch(request, cooperatives, commodities);

@@ -10,7 +10,7 @@ import { cooperativeRepository } from '@/lib/repositories/cooperative.repository
 import { buyerRepository } from '@/lib/repositories/buyer.repository';
 import { Cooperative, Buyer } from '@/types';
 import { db } from '@/lib/firebase/config';
-import { collection, addDoc, doc, setDoc } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import { CustomSelect } from '@/components/ui/CustomSelect';
 import PinpointMapWrapper from '@/components/map/PinpointMapWrapper';
 import { uploadDocument } from '@/lib/firebase/upload';
@@ -269,9 +269,8 @@ export default function SelectRolePage() {
           ? !!newBuyerData.nib
           : !!(newBuyerData.nib && newBuyerData.siup);
 
-        // Create buyer in Firestore
-        const buyerCol = collection(db, 'buyers');
-        const newBuyerDoc = await addDoc(buyerCol, {
+        // Create buyer in Postgres (Prisma-backed repository)
+        finalAssociatedId = await buyerRepository.create({
           company_name: newBuyerData.company_name,
           city: newBuyerData.city,
           industry: newBuyerData.industry,
@@ -279,9 +278,8 @@ export default function SelectRolePage() {
           nib: newBuyerData.nib || '',
           siup: newBuyerData.siup || '',
           buyer_type: newBuyerData.buyer_type,
-          verified: isVerified
+          verified: isVerified,
         });
-        finalAssociatedId = newBuyerDoc.id;
       }
 
       await setRoleForUser(selectedRole, finalAssociatedId || undefined);

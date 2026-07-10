@@ -43,6 +43,9 @@ export interface Commodity {
 
 export interface Buyer {
   id: string;
+  // Stable human-readable key (e.g. "buyer-indofood") used by hardcoded UI
+  // lookup maps. Backed by aruna_buyers.slug in Postgres.
+  slug?: string;
   company_name: string;
   city: string;
   industry: string;
@@ -64,6 +67,8 @@ export interface MarketRequest {
   created_at?: string;
   shipping_address?: string;
   invoice_number?: string;
+  coop_name?: string;
+  total_price?: number;
 }
 
 export interface SupplyMatch {

@@ -8,10 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import Toast from '@/components/ui/Toast';
 import { Building2, Users, MapPin, Compass, ShieldAlert, Check, Plus, Trash2, ArrowRight, FileText, XCircle, Loader2 } from 'lucide-react';
 import { db } from '@/lib/firebase/config';
-import { collection, addDoc, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, doc, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import PinpointMapWrapper from '@/components/map/PinpointMapWrapper';
 import { Cooperative, Buyer } from '@/types';
 import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
+import { buyerRepository } from '@/lib/repositories/buyer.repository';
 
 export default function OnboardingMitraPage() {
   const { userData, user, loading } = useAuth();
@@ -20,9 +22,14 @@ export default function OnboardingMitraPage() {
   // Active tab state
   const [activeTab, setActiveTab] = useState<'koperasi' | 'buyer' | 'list'>('koperasi');
 
-  // List of cooperatives and buyers loaded in real-time
+  // List of cooperatives (Firestore real-time) and buyers (Prisma via polling)
   const [coops, setCoops] = useState<Cooperative[]>([]);
-  const [buyers, setBuyers] = useState<Buyer[]>([]);
+  const queryClient = useQueryClient();
+  const { data: buyers = [] } = useQuery<Buyer[]>({
+    queryKey: ['buyers'],
+    queryFn: () => buyerRepository.getAll(),
+    refetchInterval: 4000,
+  });
 
   // Cooperative Form State
   const [coopData, setCoopData] = useState({
@@ -60,7 +67,8 @@ export default function OnboardingMitraPage() {
     }
   }, [user, userData, loading, router]);
 
-  // Load real-time cooperatives and buyers list
+  // Load real-time cooperatives list (Firestore — cooperatives domain).
+  // Buyers are loaded via react-query polling above (Prisma-backed).
   useEffect(() => {
     const unsubCoops = onSnapshot(collection(db, 'cooperatives'), (snapshot) => {
       const list: Cooperative[] = [];
@@ -70,17 +78,8 @@ export default function OnboardingMitraPage() {
       setCoops(list);
     });
 
-    const unsubBuyers = onSnapshot(collection(db, 'buyers'), (snapshot) => {
-      const list: Buyer[] = [];
-      snapshot.forEach(doc => {
-        list.push({ id: doc.id, ...doc.data() } as Buyer);
-      });
-      setBuyers(list);
-    });
-
     return () => {
       unsubCoops();
-      unsubBuyers();
     };
   }, []);
 
@@ -171,15 +170,16 @@ export default function OnboardingMitraPage() {
     try {
       const isVerified = !!(buyerData.nib && buyerData.siup);
 
-      await addDoc(collection(db, 'buyers'), {
+      await buyerRepository.create({
         company_name: buyerData.company_name,
         city: buyerData.city,
         industry: buyerData.industry,
         address: buyerData.address,
         nib: buyerData.nib || '',
         siup: buyerData.siup || '',
-        verified: isVerified
+        verified: isVerified,
       });
+      queryClient.invalidateQueries({ queryKey: ['buyers'] });
 
       // Reset
       setBuyerData({ company_name: '', city: '', industry: '', address: '', nib: '', siup: '' });
@@ -209,7 +209,8 @@ export default function OnboardingMitraPage() {
   const handleDeleteBuyer = async (id: string) => {
     if (confirm("Apakah Anda yakin ingin menghapus buyer ini?")) {
       try {
-        await deleteDoc(doc(db, 'buyers', id));
+        await buyerRepository.delete(id);
+        queryClient.invalidateQueries({ queryKey: ['buyers'] });
       } catch (err) {
         console.error(err);
       }
