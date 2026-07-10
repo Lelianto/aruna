@@ -29,21 +29,22 @@ export default function Navbar() {
   const filteredNavItems = navItems.filter(item => {
     // Tamu tanpa login / belum pilih peran
     if (!user || !userData?.role) {
-      return item.href === '/marketplace' || item.href === '/komoditas';
+      return item.href === '/marketplace' || item.href === '/komoditas' || item.href === '/potensi-desa';
     }
     // Buyer
     if (userData.role === 'buyer') {
-      return item.href === '/marketplace' || item.href === '/komoditas';
+      return item.href === '/marketplace' || item.href === '/komoditas' || item.href === '/potensi-desa';
     }
     // Customer
     if (userData.role === 'customer') {
-      return item.href === '/marketplace' || item.href === '/komoditas';
+      return item.href === '/marketplace' || item.href === '/komoditas' || item.href === '/potensi-desa';
     }
     // Koperasi
     if (userData.role === 'koperasi') {
       return (
         item.href === '/komoditas' ||
         item.href === '/marketplace' ||
+        item.href === '/potensi-desa' ||
         item.href === '/mitra-dashboard'
       );
     }

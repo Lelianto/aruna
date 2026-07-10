@@ -153,6 +153,7 @@ async function getCooperativesWithDetailsInternal() {
 
 export async function POST(request: NextRequest) {
   let body: any = {};
+
   try {
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -387,7 +388,7 @@ export async function POST(request: NextRequest) {
       });
 
     } else {
-      // --- PERSPECTIVE: GENERAL (System-wide Village Potential to Buyer Requests - Old Fallback) ---
+      // --- PERSPECTIVE: GENERAL (System-wide Village Potential to Buyer Requests) ---
       const requestsSnap = await getDocs(collection(db, 'market_requests'));
       const buyersSnap = await getDocs(collection(db, 'buyers'));
 
@@ -502,10 +503,10 @@ export async function POST(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Error generating AI business matching:', error);
-    
-    // Fallbacks
+
+    // Fallbacks per perspective
     let fallbackMatches: any[] = [];
-    
+
     if (body.perspective === 'industry') {
       fallbackMatches = [
         {
@@ -584,7 +585,7 @@ export async function POST(request: NextRequest) {
           potential_volume: 850,
           economic_value: 1200000000,
           match_score: 92,
-          recommendation: 'Koperasi Kelurahan Sidodadi disarankan mengonsolidasikan kelompok tani singkong setempat untuk diolah menjadi tepung tapioka curah berkualitas tinggi sebelum dikirim.'
+          recommendation: 'Koperasi Kelurahan Sidodadi disarankan mengonsolidasikan kelompok tani singkong setempat untuk diolah menjadi tepung tapioka curah berkualitas tinggi sebelum dikirim ke PT Indofood CBP guna mendapatkan nilai tambah.'
         },
         {
           match_id: 'MATCH-002',
@@ -598,7 +599,7 @@ export async function POST(request: NextRequest) {
           potential_volume: 120,
           economic_value: 2400000000,
           match_score: 84,
-          recommendation: 'Koperasi Kampung Lestari disarankan memfasilitasi sertifikasi organik bagi para petani kopi lokal untuk menjaga kualitas kadar air.'
+          recommendation: 'Koperasi Kampung Lestari disarankan memfasilitasi sertifikasi organik bagi para petani kopi lokal dan menyediakan fasilitas penjemuran modern untuk menjaga kualitas kadar air biji kopi kering di bawah 12%.'
         }
       ];
     }
