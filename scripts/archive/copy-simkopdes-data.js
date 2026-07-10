@@ -1,6 +1,9 @@
 /**
+ * ONE-TIME USE — already run, competition DB connection no longer available/needed,
+ * kept for reference only.
+ *
  * One-off: copy 27 SIMKOPDES tables from competition DB (read-only) to local DB.
- * Usage: node scripts/copy-simkopdes-data.js
+ * Usage: node scripts/archive/copy-simkopdes-data.js
  *
  * Requires DATABASE_URL_COMPETITION and DATABASE_URL in the environment
  * (loaded from .env.local / .env via dotenv).

@@ -1,4 +1,8 @@
+import dotenv from 'dotenv';
+import path from 'path';
 import { defineConfig, env } from 'prisma/config';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 const SIMKOPDES_TABLES = [
   'akun_bank_koperasi',
@@ -32,6 +36,9 @@ const SIMKOPDES_TABLES = [
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
+  migrations: {
+    seed: 'tsx prisma/seed.ts',
+  },
   // Competition shared DB only — externalTables keeps SIMKOPDES tables read-only
   // during db push. Not needed for local Postgres (all tables managed by migrate).
   // experimental: {

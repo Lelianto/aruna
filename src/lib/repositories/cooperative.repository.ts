@@ -101,7 +101,7 @@ export class HybridCooperativeRepository implements CooperativeRepository {
     return calculateCooperativeScore(coop, commodities, maxRev);
   }
 
-  async getInsights(cooperativeId: string): Promise<Insight[]> {
+  private async generateInsightsForCooperative(cooperativeId: string): Promise<Insight[]> {
     const coop = await this.getById(cooperativeId);
     if (!coop) return [];
 
@@ -112,6 +112,28 @@ export class HybridCooperativeRepository implements CooperativeRepository {
     return generateCooperativeInsights(coop, commodities, score);
   }
 
+  async getInsights(cooperativeId: string): Promise<Insight[]> {
+    const generate = () => this.generateInsightsForCooperative(cooperativeId);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const baseUrl = getBaseUrl();
+        const res = await fetch(
+          `${baseUrl}/api/insights?cooperativeId=${encodeURIComponent(cooperativeId)}`,
+          { cache: 'no-store' },
+        );
+        if (!res.ok) return [];
+        return res.json();
+      } catch (error) {
+        console.error(`Error in cooperativeRepository.getInsights for ${cooperativeId}:`, error);
+        return [];
+      }
+    }
+
+    const { loadOrGenerateCooperativeInsights } = await import('../services/insight-persistence');
+    return loadOrGenerateCooperativeInsights(cooperativeId, generate);
+  }
+
   async getAllWithDetails(): Promise<CooperativeWithCommodities[]> {
     const coops = await this.getAll();
     const maxRev = await this.getMaxRevenue();
@@ -120,7 +142,7 @@ export class HybridCooperativeRepository implements CooperativeRepository {
       coops.map(async (coop) => {
         const commodities = await commodityRepository.getByCooperativeId(coop.id);
         const score = await this.getScore(coop.id) || calculateCooperativeScore(coop, commodities, maxRev);
-        const insights = generateCooperativeInsights(coop, commodities, score);
+        const insights = await this.getInsights(coop.id);
         return {
           ...coop,
           commodities,
