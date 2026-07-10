@@ -124,13 +124,12 @@ export default function OnboardingMitraPage() {
       });
 
       // 2. Add Scorecard
-      await setDoc(doc(db, 'scores', coopRef.id), {
-        cooperative_id: coopRef.id,
+      await cooperativeRepository.upsertCooperativeScore(coopRef.id, {
         final_score: 75,
         health_score: 80,
         growth_score: 70,
         supply_score: 75,
-        grade: 'B'
+        grade: 'B',
       });
 
       // 3. Add default Jagung commodity
@@ -196,7 +195,7 @@ export default function OnboardingMitraPage() {
     if (confirm("Apakah Anda yakin ingin menghapus koperasi ini? Seluruh data stok dan skor juga akan dihapus.")) {
       try {
         await deleteDoc(doc(db, 'cooperatives', id));
-        await deleteDoc(doc(db, 'scores', id));
+        await cooperativeRepository.deleteCooperativeScore(id);
       } catch (err) {
         console.error(err);
       }

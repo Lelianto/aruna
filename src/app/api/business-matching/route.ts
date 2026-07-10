@@ -4,6 +4,7 @@ import { query } from '@/lib/db';
 import { db } from '@/lib/firebase/config';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { calculateCooperativeScore } from '@/lib/services/score-engine';
+import { loadAllCooperativeScores } from '@/lib/services/score-persistence';
 
 function getProductCategory(name: string): string {
   const cleanName = (name || '').toLowerCase();
@@ -125,12 +126,7 @@ async function getCommoditiesInternal() {
 }
 
 async function getScoresInternal() {
-  const scoresSnap = await getDocs(collection(db, 'scores'));
-  const scoresMap: Record<string, any> = {};
-  scoresSnap.forEach((docSnap) => {
-    scoresMap[docSnap.id] = docSnap.data();
-  });
-  return scoresMap;
+  return loadAllCooperativeScores();
 }
 
 async function getCooperativesWithDetailsInternal() {

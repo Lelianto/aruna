@@ -229,14 +229,12 @@ export default function SelectRolePage() {
         finalAssociatedId = newCoopDoc.id;
 
         // 2. Create ARUNA Score document
-        const scoreDocRef = doc(db, 'scores', finalAssociatedId);
-        await setDoc(scoreDocRef, {
-          cooperative_id: finalAssociatedId,
+        await cooperativeRepository.upsertCooperativeScore(finalAssociatedId, {
           final_score: 75,
           health_score: 80,
           growth_score: 70,
           supply_score: 75,
-          grade: 'B'
+          grade: 'B',
         });
 
         // 3. Create default Jagung commodity

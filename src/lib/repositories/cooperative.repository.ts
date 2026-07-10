@@ -1,9 +1,10 @@
 import { Cooperative, CooperativeScore, Insight, CooperativeWithCommodities } from '@/types';
 import { db } from '../firebase/config';
-import { collection, getDocs, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import { calculateCooperativeScore } from '../services/score-engine';
 import { generateCooperativeInsights } from '../services/insight-engine';
 import { commodityRepository } from './commodity.repository';
+import type { CooperativeScoreInput } from '../services/score-persistence';
 
 function getBaseUrl() {
   if (typeof window !== 'undefined') {
@@ -19,6 +20,8 @@ export interface CooperativeRepository {
   getAll(): Promise<Cooperative[]>;
   getById(id: string): Promise<Cooperative | null>;
   getScore(cooperativeId: string): Promise<CooperativeScore | null>;
+  upsertCooperativeScore(cooperativeId: string, scoreData: CooperativeScoreInput): Promise<void>;
+  deleteCooperativeScore(cooperativeId: string): Promise<void>;
   getInsights(cooperativeId: string): Promise<Insight[]>;
   getAllWithDetails(): Promise<CooperativeWithCommodities[]>;
   getByIdWithDetails(id: string): Promise<CooperativeWithCommodities | null>;
@@ -86,19 +89,69 @@ export class HybridCooperativeRepository implements CooperativeRepository {
   }
 
   async getScore(cooperativeId: string): Promise<CooperativeScore | null> {
-    // 1. Check if score already exists in Firestore
-    const scoreSnap = await getDoc(doc(db, 'scores', cooperativeId));
-    if (scoreSnap.exists()) {
-      return { id: scoreSnap.id, ...scoreSnap.data() } as CooperativeScore;
+    let stored: CooperativeScore | null = null;
+
+    if (typeof window !== 'undefined') {
+      try {
+        const baseUrl = getBaseUrl();
+        const res = await fetch(
+          `${baseUrl}/api/cooperative-scores?cooperativeId=${encodeURIComponent(cooperativeId)}`,
+          { cache: 'no-store' },
+        );
+        if (res.ok) {
+          stored = await res.json();
+        }
+      } catch (error) {
+        console.error(`Error in cooperativeRepository.getScore for ${cooperativeId}:`, error);
+      }
+    } else {
+      const { loadCooperativeScore } = await import('../services/score-persistence');
+      stored = await loadCooperativeScore(cooperativeId);
     }
 
-    // 2. Otherwise calculate dynamic score
+    if (stored) return stored;
+
     const coop = await this.getById(cooperativeId);
     if (!coop) return null;
 
     const maxRev = await this.getMaxRevenue();
     const commodities = await commodityRepository.getByCooperativeId(cooperativeId);
     return calculateCooperativeScore(coop, commodities, maxRev);
+  }
+
+  async upsertCooperativeScore(cooperativeId: string, scoreData: CooperativeScoreInput): Promise<void> {
+    if (typeof window !== 'undefined') {
+      const baseUrl = getBaseUrl();
+      const res = await fetch(`${baseUrl}/api/cooperative-scores`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cooperativeId, ...scoreData }),
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to upsert cooperative score: ${res.status}`);
+      }
+      return;
+    }
+
+    const { upsertCooperativeScore } = await import('../services/score-persistence');
+    await upsertCooperativeScore(cooperativeId, scoreData);
+  }
+
+  async deleteCooperativeScore(cooperativeId: string): Promise<void> {
+    if (typeof window !== 'undefined') {
+      const baseUrl = getBaseUrl();
+      const res = await fetch(
+        `${baseUrl}/api/cooperative-scores?cooperativeId=${encodeURIComponent(cooperativeId)}`,
+        { method: 'DELETE' },
+      );
+      if (!res.ok) {
+        throw new Error(`Failed to delete cooperative score: ${res.status}`);
+      }
+      return;
+    }
+
+    const { deleteCooperativeScore } = await import('../services/score-persistence');
+    await deleteCooperativeScore(cooperativeId);
   }
 
   private async generateInsightsForCooperative(cooperativeId: string): Promise<Insight[]> {
@@ -202,16 +255,13 @@ export class HybridCooperativeRepository implements CooperativeRepository {
       const maxRev = await this.getMaxRevenue();
       const newScore = calculateCooperativeScore(updatedCoop, commodities, maxRev);
 
-      // Save updated score to Firestore
-      const scoreRef = doc(db, 'scores', coopId);
-      await setDoc(scoreRef, {
-        cooperative_id: coopId,
+      await this.upsertCooperativeScore(coopId, {
         health_score: newScore.health_score,
         growth_score: newScore.growth_score,
         supply_score: newScore.supply_score,
         final_score: newScore.final_score,
         grade: newScore.grade,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
     }
   }
