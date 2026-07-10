@@ -41,7 +41,8 @@ import {
   Coins, Award, Scale, Check, FileCheck, ArrowUpRight, ArrowRight,
   Mic, MicOff, Send, Database, RefreshCw, BarChart3,
   History, UserPlus, FileText, ArrowRightLeft, Gift, ShieldAlert,
-  Search, ArrowDownToLine, Tag, Menu, LayoutDashboard, ChevronLeft, LogOut
+  Search, ArrowDownToLine, Tag, Menu, LayoutDashboard, ChevronLeft, LogOut,
+  Bot, User as UserIcon
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +50,7 @@ import { Button } from '@/components/ui/button';
 import { uploadDocument } from '@/lib/firebase/upload';
 import { CustomSelect } from '@/components/ui/CustomSelect';
 import ReceiptModal from '@/components/pos/ReceiptModal';
+import ArunaHelpWidget from '@/components/help/ArunaHelpWidget';
 import { normalizeWhatsappNumber, isValidWhatsappNumber } from '@/lib/utils/phone';
 
 // Import Offline Services
@@ -127,6 +129,160 @@ export default function MitraDashboardClient() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => setToast({ message, type });
+
+  // ── Selective refresh functions ─────────────────────────────────────────────────
+  const refreshCommodities = useCallback(async () => {
+    if (!coopId) return;
+    try {
+      let comList: Commodity[] = [];
+      if (online) {
+        const comQ = query(collection(db, 'commodities'), where('cooperative_id', '==', coopId));
+        const comSnap = await getDocs(comQ);
+        comSnap.forEach(d => comList.push({ id: d.id, ...d.data() } as Commodity));
+
+        if (localDb) {
+          const localUnsynced = (await localDb.commodities.toArray()).filter((c: any) => c.id.startsWith('new-prod-'));
+          await localDb.commodities.clear();
+          await localDb.commodities.bulkPut(localUnsynced);
+          comList = [...comList, ...localUnsynced];
+        }
+      } else {
+        if (localDb) {
+          comList = await localDb.commodities.toArray();
+        }
+      }
+      setCommodities(comList);
+    } catch (e) {
+      console.error('Error refreshing commodities:', e);
+    }
+  }, [coopId, online]);
+
+  const refreshMembers = useCallback(async () => {
+    if (!coopId) return;
+    try {
+      let memList: Member[] = [];
+      if (online) {
+        const memQ = query(collection(db, 'members'), where('cooperative_id', '==', coopId));
+        const memSnap = await getDocs(memQ);
+        memSnap.forEach(d => memList.push({ id: d.id, ...d.data() } as Member));
+
+        if (localDb) {
+          const localUnsyncedMembers = (await localDb.members.toArray()).filter((m: any) => m.id.startsWith('mem-'));
+          await localDb.members.clear();
+          await localDb.members.bulkPut(localUnsyncedMembers);
+          memList = [...memList, ...localUnsyncedMembers];
+        }
+      } else {
+        if (localDb) {
+          memList = await localDb.members.toArray();
+        }
+      }
+      setMembers(memList);
+    } catch (e) {
+      console.error('Error refreshing members:', e);
+    }
+  }, [coopId, online]);
+
+  const refreshTransactions = useCallback(async () => {
+    if (!coopId) return;
+    try {
+      let salesList: POSTransaction[] = [];
+      let purchasesList: PurchaseTransaction[] = [];
+
+      if (online) {
+        const salesQ = query(collection(db, 'sales'), where('cooperative_id', '==', coopId));
+        const salesSnap = await getDocs(salesQ);
+        salesSnap.forEach(d => salesList.push({ id: d.id, ...d.data() } as POSTransaction));
+
+        const purchasesQ = query(collection(db, 'purchases'), where('cooperative_id', '==', coopId));
+        const purchasesSnap = await getDocs(purchasesQ);
+        purchasesSnap.forEach(d => purchasesList.push({ id: d.id, ...d.data() } as PurchaseTransaction));
+
+        if (localDb) {
+          const localUnsyncedSales = (await localDb.transactions.toArray()).filter((t: any) => t.id.startsWith('sale-'));
+          await localDb.transactions.clear();
+          await localDb.transactions.bulkPut(localUnsyncedSales);
+          salesList = [...salesList, ...localUnsyncedSales];
+
+          const localUnsyncedPurchases = (await localDb.purchases.toArray()).filter((p: any) => p.id.startsWith('purchase-'));
+          await localDb.purchases.clear();
+          await localDb.purchases.bulkPut(localUnsyncedPurchases);
+          purchasesList = [...purchasesList, ...localUnsyncedPurchases];
+        }
+      } else {
+        if (localDb) {
+          salesList = await localDb.transactions.toArray();
+          purchasesList = await localDb.purchases.toArray();
+        }
+      }
+
+      setSalesHistory(salesList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      setPurchaseHistory(purchasesList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+    } catch (e) {
+      console.error('Error refreshing transactions:', e);
+    }
+  }, [coopId, online]);
+
+  const refreshRequests = useCallback(async () => {
+    if (!coopId) return;
+    try {
+      if (!online) return;
+
+      const reqSnap = await getDocs(collection(db, 'market_requests'));
+      const buyerSnap = await getDocs(collection(db, 'buyers'));
+      const buyers: Buyer[] = [];
+      buyerSnap.forEach(d => buyers.push({ id: d.id, ...d.data() } as Buyer));
+
+      const commodityNames = new Set(commodities.map(c => c.name.toLowerCase()));
+      const reqList: MarketRequestWithBuyer[] = [];
+
+      reqSnap.forEach(d => {
+        const req = { id: d.id, ...d.data() } as MarketRequest;
+        if (commodityNames.has(req.commodity_name.toLowerCase())) {
+          const buyer = buyers.find(b => b.id === req.buyer_id);
+          reqList.push({
+            ...req,
+            buyer: buyer || { id: req.buyer_id, company_name: 'Industri Nasional', city: 'Indonesia', industry: 'Pangan' }
+          });
+        }
+      });
+      setRequests(reqList);
+    } catch (e) {
+      console.error('Error refreshing requests:', e);
+    }
+  }, [coopId, online, commodities]);
+
+  const refreshCoopProfile = useCallback(async () => {
+    if (!coopId) return;
+    try {
+      let loadedCoop: Cooperative | null = null;
+      if (online) {
+        const coopSnap = await getDoc(doc(db, 'cooperatives', coopId));
+        if (coopSnap.exists()) {
+          loadedCoop = { id: coopSnap.id, ...coopSnap.data() } as Cooperative;
+          setCoop(loadedCoop);
+        }
+      } else {
+        loadedCoop = {
+          id: coopId,
+          name: 'KDKMP Desa Merah Putih',
+          province: 'Jawa Barat',
+          city: 'Garut',
+          latitude: -7.227906,
+          longitude: 107.908699,
+          member_count: 150,
+          active_members: 95,
+          annual_revenue: 550000000,
+          cash_reserve: 85000000,
+          nib_status: 'verified',
+          sk_status: 'verified'
+        };
+        setCoop(loadedCoop);
+      }
+    } catch (e) {
+      console.error('Error refreshing cooperative profile:', e);
+    }
+  }, [coopId, online]);
 
   // ── Fetch all data (Offline first wrapper) ────────────────────────────────────
   const fetchData = useCallback(async () => {
@@ -544,7 +700,7 @@ export default function MitraDashboardClient() {
                   coop={coop}
                   commodities={commodities}
                   members={members}
-                  onRefresh={fetchData}
+                  onRefresh={refreshTransactions}
                   showToast={showToast}
                 />
               )}
@@ -552,7 +708,7 @@ export default function MitraDashboardClient() {
                 <InventoryModule
                   coopId={coopId}
                   commodities={commodities}
-                  onRefresh={fetchData}
+                  onRefresh={refreshCommodities}
                   showToast={showToast}
                 />
               )}
@@ -560,7 +716,7 @@ export default function MitraDashboardClient() {
                 <PurchaseModule
                   coopId={coopId}
                   commodities={commodities}
-                  onRefresh={fetchData}
+                  onRefresh={refreshCommodities}
                   showToast={showToast}
                 />
               )}
@@ -574,7 +730,7 @@ export default function MitraDashboardClient() {
                 <MemberModule
                   coopId={coopId}
                   members={members}
-                  onRefresh={fetchData}
+                  onRefresh={refreshMembers}
                   showToast={showToast}
                 />
               )}
@@ -594,7 +750,7 @@ export default function MitraDashboardClient() {
                   requests={requests}
                   commodities={commodities}
                   coopId={coopId}
-                  onRefresh={fetchData}
+                  onRefresh={refreshRequests}
                   showToast={showToast}
                 />
               )}
@@ -603,7 +759,7 @@ export default function MitraDashboardClient() {
                   coop={coop}
                   coopId={coopId}
                   matches={coopMatches}
-                  onRefresh={fetchData}
+                  onRefresh={refreshRequests}
                   showToast={showToast}
                 />
               )}
@@ -611,7 +767,7 @@ export default function MitraDashboardClient() {
                 <ProfilTab
                   coop={coop}
                   coopId={coopId}
-                  onSave={fetchData}
+                  onSave={refreshCoopProfile}
                   showToast={showToast}
                 />
               )}
@@ -669,6 +825,9 @@ export default function MitraDashboardClient() {
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
+
+      {/* 6. Floating "Aruna Help" product-knowledge chatbot (chat + voice) */}
+      <ArunaHelpWidget activeTab={activeTab} />
     </div>
   );
 }
@@ -681,8 +840,17 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
   const [assistantResponse, setAssistantResponse] = useState<any | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
 
   const assistantRef = useRef<VoiceAssistant | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleClose = () => {
+    setMessages([]);
+    setAssistantResponse(null);
+    setQueryText('');
+    onClose();
+  };
 
   useEffect(() => {
     assistantRef.current = new VoiceAssistant(
@@ -698,6 +866,12 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
       }
     );
   }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, loading]);
 
   const handleMicToggle = () => {
     if (!assistantRef.current || !assistantRef.current.isSupported()) {
@@ -723,15 +897,19 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
     }
     setIsListening(false);
 
+    const text = queryText.trim();
+    setMessages(prev => [...prev, { role: 'user', content: text }]);
+    setQueryText('');
     setLoading(true);
     const prevContext = assistantResponse?.action === 'need_clarification' ? assistantResponse : null;
 
     try {
-      const response = await executeAICommand(queryText.trim(), prevContext);
+      const response = await executeAICommand(text, prevContext);
       setAssistantResponse(response);
-      setQueryText('');
+      setMessages(prev => [...prev, { role: 'assistant', content: response.confirmation_message }]);
     } catch (e) {
       showToast('Gagal memproses analisis perintah AI', 'error');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Maaf, terjadi gangguan saat memproses perintah.' }]);
     } finally {
       setLoading(false);
     }
@@ -1027,18 +1205,44 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
     <div className="flex-1 flex flex-col justify-between py-2 text-xs font-semibold text-slate-300">
 
       {/* Drawer content chat body */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1 py-3 text-center">
-        {/* Visual prompt guidelines */}
-        <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800 text-left space-y-2.5">
-          <span className="text-[10px] text-brand-orange font-semibold uppercase tracking-wider block">Gunakan Perintah Suara / Teks:</span>
-          <ul className="space-y-1.5 text-slate-350 list-disc list-inside leading-relaxed text-[11px]">
-            <li><em>"Jual beras 10 kg ke Pak Budi"</em> (POS)</li>
-            <li><em>"Tambah stok jagung 50 kilo"</em> (Inventory)</li>
-            <li><em>"Terima 20 kg beras dari PT ABC"</em> (Pembelian)</li>
-            <li><em>"Berapa omzet penjualan hari ini?"</em> (Laporan)</li>
-            <li><em>"Tampilkan stok cabai sekarang"</em> (Tanya Stok)</li>
-          </ul>
-        </div>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 pr-1 py-3">
+        {/* Visual prompt guidelines - only show when no messages */}
+        {messages.length === 0 && (
+          <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800 text-left space-y-2.5">
+            <span className="text-[10px] text-brand-orange font-semibold uppercase tracking-wider block">Gunakan Perintah Suara / Teks:</span>
+            <ul className="space-y-1.5 text-slate-350 list-disc list-inside leading-relaxed text-[11px]">
+              <li><em>"Jual beras 10 kg ke Pak Budi"</em> (POS)</li>
+              <li><em>"Tambah stok jagung 50 kilo"</em> (Inventory)</li>
+              <li><em>"Terima 20 kg beras dari PT ABC"</em> (Pembelian)</li>
+              <li><em>"Berapa omzet penjualan hari ini?"</em> (Laporan)</li>
+              <li><em>"Tampilkan stok cabai sekarang"</em> (Tanya Stok)</li>
+            </ul>
+          </div>
+        )}
+
+        {/* Chat messages */}
+        {messages.map((m, i) => (
+          <div key={i} className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            {m.role === 'assistant' && (
+              <div className="h-7 w-7 rounded-lg bg-brand-orange/10 text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
+                <Bot className="h-4 w-4" />
+              </div>
+            )}
+            <div
+              className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${m.role === 'user'
+                  ? 'bg-brand-navy text-white rounded-br-sm'
+                  : 'bg-slate-800 text-slate-300 rounded-bl-sm border border-slate-700'
+                }`}
+            >
+              {m.content}
+            </div>
+            {m.role === 'user' && (
+              <div className="h-7 w-7 rounded-lg bg-brand-navy/10 text-brand-navy flex items-center justify-center shrink-0 mt-0.5">
+                <UserIcon className="h-4 w-4" />
+              </div>
+            )}
+          </div>
+        ))}
 
         {/* Dynamic status recording anim */}
         {isListening && (
@@ -1049,6 +1253,19 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
               <span className="h-2 w-2 rounded-full bg-brand-red animate-bounce" style={{ animationDelay: '300ms' }}></span>
             </div>
             <p className="text-[10px] font-semibold text-brand-red uppercase tracking-wider animate-pulse">Sedang Mendengarkan...</p>
+          </div>
+        )}
+
+        {/* Loading indicator */}
+        {loading && (
+          <div className="flex gap-2.5 justify-start">
+            <div className="h-7 w-7 rounded-lg bg-brand-orange/10 text-brand-orange flex items-center justify-center shrink-0">
+              <Bot className="h-4 w-4" />
+            </div>
+            <div className="bg-slate-800 rounded-2xl rounded-bl-sm px-3.5 py-3 flex items-center gap-1.5 border border-slate-700">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />
+              <span className="text-[10px] text-slate-400 font-semibold">AI memproses...</span>
+            </div>
           </div>
         )}
 
@@ -1150,6 +1367,7 @@ function POSModule({ coopId, coop, commodities, members, onRefresh, showToast }:
   const [amountPaid, setAmountPaid] = useState<number>(0);
   const [showQrisModal, setShowQrisModal] = useState(false);
   const [qrisVerifying, setQrisVerifying] = useState(false);
+  const [qrisTimer, setQrisTimer] = useState(180); // 3 minutes in seconds
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
@@ -1157,6 +1375,37 @@ function POSModule({ coopId, coop, commodities, members, onRefresh, showToast }:
   const filteredCommodities = commodities.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) && c.available_stock > 0
   );
+
+  // QRIS Timer countdown
+  useEffect(() => {
+    if (showQrisModal && qrisTimer > 0) {
+      const interval = setInterval(() => {
+        setQrisTimer(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    } else if (showQrisModal && qrisTimer === 0) {
+      // Auto-close when timer expires and reset to allow direct payment
+      setShowQrisModal(false);
+      setQrisTimer(180);
+      setPaymentMethod('Tunai'); // Reset to default payment method
+      setQrisVerifying(false);
+      showToast('Waktu pembayaran QRIS habis. Silakan gunakan metode pembayaran lain.', 'error');
+    }
+  }, [showQrisModal, qrisTimer]);
+
+  // Reset timer when modal opens
+  useEffect(() => {
+    if (showQrisModal) {
+      setQrisTimer(180);
+    }
+  }, [showQrisModal]);
+
+  // Format timer as MM:SS
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const addToCart = (commodity: Commodity) => {
     setCart(prev => {
@@ -1647,7 +1896,7 @@ function POSModule({ coopId, coop, commodities, members, onRefresh, showToast }:
 
               <div className="text-center space-y-0.5">
                 <span className="text-[9px] text-slate-400 block font-semibold uppercase">Sisa Waktu Pembayaran</span>
-                <span className="text-xs font-semibold text-brand-navy font-mono animate-pulse">02:59</span>
+                <span className="text-xs font-semibold text-brand-navy font-mono animate-pulse">{formatTimer(qrisTimer)}</span>
               </div>
             </div>
 

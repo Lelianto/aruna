@@ -30,7 +30,7 @@ const ROLE_LABELS: Record<string, string> = {
 // (declaration) order. hrefs not listed keep their original relative order.
 const MOBILE_NAV_PRIORITY: Record<string, string[]> = {
   // Koperasi: their operational workspace (Portal Saya) comes first.
-  koperasi: ['/mitra-dashboard', '/marketplace', '/komoditas', '/insights'],
+  koperasi: ['/mitra-dashboard', '/komoditas', '/insights'],
   // Pemerintah: analytical/oversight tools are primary; catalog/market overflow.
   pemerintah: ['/potensi-desa', '/dashboard', '/scoring', '/insights', '/komoditas', '/marketplace'],
   // Admin: platform-operation tools first. Admin tidak bertransaksi, jadi

@@ -1,0 +1,213 @@
+[
+  {
+    "id": "portal-overview",
+    "title": "Ringkasan Portal Mitra Koperasi",
+    "group": "umum",
+    "tab_key": null,
+    "summary": "Portal Mitra (Portal Saya) adalah ruang kerja operasional koperasi di ARUNA: Kasir POS, Stok & Opname, Pembelian, Riwayat Transaksi, Anggota Koperasi, Laporan Keuangan, Permintaan Pasar, Connector & Pengadaan, Bagi Hasil (SHU), dan Profil Koperasi.",
+    "steps": [
+      "Masuk dengan akun Google yang sudah terdaftar sebagai peran Koperasi.",
+      "Anda akan diarahkan ke halaman Portal Mitra (/mitra-dashboard).",
+      "Menu navigasi berada di sidebar kiri (desktop) atau tombol hamburger (mobile), dikelompokkan menjadi: Operasional Koperasi, Jejaring & Pemasaran, dan Pengaturan.",
+      "Portal Mitra bisa dipakai offline di lapangan; data yang dicatat saat offline otomatis tersinkron ke server ketika koneksi internet kembali tersedia (lihat status koneksi di bilah atas)."
+    ],
+    "tips": [
+      "Perhatikan indikator status koneksi (hijau = online tersinkron, kuning = offline/menunggu sinkron) di pojok kanan atas halaman.",
+      "Ini berbeda dari fitur AI Command Center (tombol mikrofon bulat) yang berfungsi mengeksekusi perintah suara/teks seperti mencatat transaksi otomatis."
+    ]
+  },
+  {
+    "id": "kasir",
+    "title": "Kasir POS",
+    "group": "operasional",
+    "tab_key": "kasir",
+    "summary": "Mencatat transaksi penjualan harian ke pelanggan atau anggota koperasi, mendukung berbagai metode pembayaran, dan tetap bisa dipakai saat offline.",
+    "steps": [
+      "Buka menu 'Kasir POS'.",
+      "Cari dan sentuh/klik kartu produk pada daftar 'Produk Tersedia' untuk memasukkannya ke keranjang belanja.",
+      "Atur jumlah (kuantitas) setiap item langsung di keranjang; jumlah tidak boleh melebihi stok yang tersedia.",
+      "Pilih pembeli pada dropdown 'Anggota' (pilih '-- Umum --' jika bukan anggota koperasi).",
+      "Pilih metode pembayaran: Tunai, Transfer, Simpanan, atau QRIS (GPN).",
+      "(Opsional) Isi nama dan nomor WhatsApp pembeli agar struk digital bisa dikirim otomatis lewat WhatsApp.",
+      "Jika metode Tunai: masukkan nominal 'Uang Diterima' (ada tombol saran nominal cepat), sistem akan menghitung kembalian otomatis.",
+      "Jika metode QRIS: akan muncul kode QR pembayaran; klik 'Sudah Scan & Bayar' setelah pelanggan menyelesaikan pembayaran di aplikasi mereka.",
+      "Klik tombol 'Bayar Sekarang' untuk menyelesaikan transaksi.",
+      "Setelah transaksi berhasil, muncul struk digital yang bisa dikirim ke WhatsApp pembeli atau diunduh sebagai PDF."
+    ],
+    "tips": [
+      "Transaksi kasir tetap tersimpan meski koneksi internet mati (mode offline); nanti akan tersinkron otomatis saat online.",
+      "Nomor WhatsApp pembeli bersifat opsional — kosongkan saja untuk pembeli yang tidak ingin struk digital."
+    ]
+  },
+  {
+    "id": "stok",
+    "title": "Stok & Opname (Input dan Kelola Barang)",
+    "group": "operasional",
+    "tab_key": "stok",
+    "summary": "Menambahkan komoditas/produk baru, mengedit atau menghapus produk, serta melakukan Stock Opname untuk mencocokkan stok sistem dengan stok fisik di gudang.",
+    "steps": [
+      "Buka menu 'Stok & Opname'.",
+      "Untuk menambah produk baru, klik tombol 'Tambah Komoditas Baru', lalu isi: Nama produk, SKU (boleh dikosongkan, akan dibuat otomatis), Kategori, Kapasitas bulanan, Stok awal, Batas stok minimum (opsional), Harga satuan (opsional), Satuan, Musim panen/keterangan (opsional), Deskripsi (opsional), dan foto produk (opsional).",
+      "Klik 'Simpan' untuk menambahkan produk ke daftar komoditas koperasi.",
+      "Untuk mengubah data produk yang sudah ada, klik ikon edit (pensil) pada baris produk tersebut, ubah data yang diperlukan, lalu klik 'Simpan Perubahan'.",
+      "Untuk menghapus produk, klik ikon hapus (tempat sampah) pada baris produk, lalu konfirmasi penghapusan pada dialog yang muncul.",
+      "Untuk Stock Opname (koreksi stok fisik), klik tombol 'Stock Opname', pilih komoditas yang ingin diperiksa, masukkan jumlah stok aktual hasil hitung fisik di gudang, isi alasan penyesuaian (wajib), lalu simpan.",
+      "Sistem akan otomatis menghitung selisih antara stok sistem dan stok aktual, kemudian menyesuaikan stok sistem sesuai hasil opname."
+    ],
+    "tips": [
+      "Nama produk otomatis dirapikan formatnya (huruf awal kapital di setiap kata).",
+      "Isi 'Batas Stok Minimum' agar mudah memantau kapan harus menambah stok kembali.",
+      "Alasan Stock Opname wajib diisi supaya riwayat penyesuaian stok mudah ditelusuri."
+    ]
+  },
+  {
+    "id": "pembelian",
+    "title": "Pembelian (Stok Masuk dari Petani/Pemasok)",
+    "group": "operasional",
+    "tab_key": "pembelian",
+    "summary": "Mencatat pembelian/pengadaan komoditas dari petani atau pemasok. Setiap pencatatan otomatis menambah volume stok produk terkait.",
+    "steps": [
+      "Buka menu 'Pembelian (Stok Masuk)'.",
+      "Pilih produk yang dibeli dari dropdown 'Pilih Produk'.",
+      "Masukkan 'Kuantitas Masuk' (jumlah barang yang diterima).",
+      "Isi 'Nama Petani / Supplier' pemasok barang tersebut.",
+      "Klik tombol 'Catat Stok Masuk' untuk menyimpan pencatatan pembelian.",
+      "Stok produk terkait akan bertambah secara otomatis sesuai kuantitas yang dicatat."
+    ],
+    "tips": [
+      "Fitur ini khusus untuk stok MASUK dari petani/pemasok — untuk penjualan ke pembeli gunakan menu Kasir POS.",
+      "Semua field wajib diisi (produk, kuantitas, nama pemasok) sebelum bisa disimpan."
+    ]
+  },
+  {
+    "id": "penjualan",
+    "title": "Riwayat Transaksi",
+    "group": "operasional",
+    "tab_key": "penjualan",
+    "summary": "Menampilkan seluruh riwayat pembukuan transaksi koperasi, terbagi dalam dua tab: Penjualan (Kasir) dan Pembelian (Pemasok).",
+    "steps": [
+      "Buka menu 'Riwayat Transaksi'.",
+      "Klik tab 'Penjualan (Kasir)' untuk melihat riwayat semua transaksi kasir: tanggal, metode pembayaran, daftar item, total, dan status sinkronisasi.",
+      "Klik tab 'Pembelian (Pemasok)' untuk melihat riwayat pembelian/stok masuk dari petani atau pemasok.",
+      "Status 'Synced' berarti data sudah tersimpan di server; status 'Local' berarti data masih tersimpan lokal dan menunggu sinkronisasi saat online."
+    ],
+    "tips": [
+      "Gunakan riwayat ini untuk mengecek ulang transaksi harian tanpa perlu masuk ke Laporan Keuangan."
+    ]
+  },
+  {
+    "id": "anggota",
+    "title": "Anggota Koperasi",
+    "group": "operasional",
+    "tab_key": "anggota",
+    "summary": "Mengelola data keanggotaan koperasi: mendaftarkan anggota baru dan melihat daftar seluruh anggota yang terdaftar.",
+    "steps": [
+      "Buka menu 'Anggota Koperasi'.",
+      "Klik tombol 'Daftarkan Anggota Baru'.",
+      "Isi Nama Lengkap, No. Telepon/WA, dan Alamat Rumah anggota (semua wajib diisi).",
+      "Klik 'Daftarkan Anggota' untuk menyimpan data.",
+      "Anggota yang sudah terdaftar akan muncul di tabel daftar keanggotaan beserta tanggal bergabungnya, dan bisa dipilih sebagai pembeli saat transaksi di Kasir POS."
+    ],
+    "tips": [
+      "Nomor telepon/WA anggota berguna untuk mengirim struk digital otomatis saat mereka berbelanja di Kasir POS."
+    ]
+  },
+  {
+    "id": "laporan",
+    "title": "Laporan Keuangan",
+    "group": "operasional",
+    "tab_key": "laporan",
+    "summary": "Menyajikan ringkasan kinerja finansial koperasi: total penjualan (omzet), total pembelian (modal), surplus operasional, serta grafik tren penjualan dan stok.",
+    "steps": [
+      "Buka menu 'Laporan Keuangan'.",
+      "Lihat tiga kartu ringkasan di bagian atas: Total Penjualan (Omzet), Total Pembelian (Modal), dan Surplus Operasional (selisih omzet dikurangi modal).",
+      "Lihat grafik 'Tren Penjualan Harian (Omzet)' untuk memantau performa penjualan dari hari ke hari.",
+      "Lihat grafik 'Kapasitas Bulanan vs Tersedia (Inventori)' untuk membandingkan kapasitas produksi dengan stok yang tersedia saat ini."
+    ],
+    "tips": [
+      "Laporan ini dihitung otomatis dari data Kasir POS dan Pembelian — tidak perlu input manual tambahan."
+    ]
+  },
+  {
+    "id": "pesanan",
+    "title": "Permintaan Pasar",
+    "group": "jejaring",
+    "tab_key": "pesanan",
+    "summary": "Menampilkan permintaan komoditas dari pembeli industri (buyer) yang cocok dengan komoditas milik koperasi Anda, agar bisa ditawarkan pemenuhannya.",
+    "steps": [
+      "Buka menu 'Permintaan Pasar'.",
+      "Lihat daftar permintaan buyer yang cocok dengan komoditas koperasi Anda, ditandai badge status seperti 'Menunggu Pemenuhan'.",
+      "Pilih permintaan yang ingin dipenuhi, lalu ajukan/proses penawaran pemenuhan jika stok komoditas Anda mencukupi.",
+      "Jika stok tidak mencukupi, sistem akan menampilkan peringatan bahwa stok belum cukup untuk memenuhi permintaan tersebut."
+    ],
+    "tips": [
+      "Perbarui stok komoditas Anda secara rutin di menu Stok & Opname agar peluang pemenuhan permintaan pasar lebih akurat."
+    ]
+  },
+  {
+    "id": "connector",
+    "title": "Connector & Pengadaan",
+    "group": "jejaring",
+    "tab_key": "connector",
+    "summary": "Terdiri dari dua sub-fitur: ARUNA Smart Stock Connector (rekomendasi transfer stok antar-koperasi) dan Collective Procurement (pengadaan/pembelian bersama antar-koperasi untuk harga grosir).",
+    "steps": [
+      "Buka menu 'Connector & Pengadaan'.",
+      "Pada panel 'ARUNA Smart Stock Connector', lihat rekomendasi transfer kelebihan stok dari/ke koperasi lain; klik 'Setujui Pengiriman' untuk memproses atau 'Abaikan' untuk melewatkannya.",
+      "Pada panel 'Collective Procurement (Pembelian Bersama)', lihat daftar program pengadaan bersama yang sedang berjalan beserta progres kuota dan harga grosir per satuan.",
+      "Klik tombol 'Ikut Pengadaan' pada program yang diminati untuk mengajukan kuota partisipasi koperasi Anda."
+    ],
+    "tips": [
+      "Program pengadaan bersama membantu koperasi mendapatkan harga grosir (bulk-pricing) yang lebih murah dibanding membeli sendiri-sendiri."
+    ]
+  },
+  {
+    "id": "shu",
+    "title": "Bagi Hasil (SHU)",
+    "group": "jejaring",
+    "tab_key": "shu",
+    "summary": "Menampilkan alokasi Sisa Hasil Usaha (SHU) dari kontribusi penjualan gotong royong: 40% untuk Cadangan Kas Desa dan 60% untuk Dana SHU Anggota Tani, beserta riwayat kontribusinya.",
+    "steps": [
+      "Buka menu 'Bagi Hasil (SHU)'.",
+      "Lihat dua kartu ringkasan: 'Tabungan Cadangan Kas Desa (40%)' dan 'Dana SHU Anggota Tani (60%)'.",
+      "Lihat daftar riwayat kontribusi penjualan gotong royong (pasokan yang berhasil terpenuhi ke buyer) beserta nilai bagi hasilnya."
+    ],
+    "tips": [
+      "Nilai SHU dihitung otomatis berdasarkan volume komoditas yang berhasil dipasok melalui program gotong royong/pencocokan pasar (business matching), bukan input manual."
+    ]
+  },
+  {
+    "id": "profil",
+    "title": "Profil Koperasi",
+    "group": "profil",
+    "tab_key": "profil",
+    "summary": "Mengelola informasi dasar koperasi (nama ketua, telepon, alamat) dan status legalitas/kepatuhan (NIB dan nomor SK) yang diverifikasi oleh Admin ARUNA.",
+    "steps": [
+      "Buka menu 'Profil Koperasi'.",
+      "Pada kartu 'Informasi Dasar Koperasi', klik 'Edit Profil' untuk mengubah Nama Ketua Koperasi, No. Telepon Kontak, atau Alamat Koperasi Utama, lalu klik 'Simpan Perubahan'.",
+      "Pada kartu 'Legalitas & Kepatuhan', klik 'Update Dokumen' untuk mengisi/mengubah Nomor NIB Koperasi dan Nomor SK Kementerian.",
+      "Klik 'Kirim Berkas Verifikasi' — status akan berubah menjadi 'pending' menunggu ditinjau oleh Admin ARUNA.",
+      "Setelah diverifikasi oleh Admin, status akan berubah menjadi 'verified' dan koperasi mendapat bonus +15 poin ARUNA Score."
+    ],
+    "tips": [
+      "ID SimkopDes dan lokasi Provinsi/Kota koperasi bersifat tetap dan dikelola oleh Admin, bukan diedit sendiri oleh koperasi.",
+      "Selama status NIB/SK masih 'pending' atau 'unsubmitted', akan muncul alert pengingat verifikasi di bagian atas dashboard."
+    ]
+  },
+  {
+    "id": "ai-command-center",
+    "title": "AI Command Center (Asisten Suara/Teks Transaksi)",
+    "group": "umum",
+    "tab_key": null,
+    "summary": "Tombol mikrofon bulat mengambang di pojok kanan bawah portal. Berbeda dari Aruna Help, fitur ini digunakan untuk mengeksekusi perintah transaksi (bukan sekadar bertanya) menggunakan suara atau teks bahasa natural, seperti mencatat penjualan atau menambah stok.",
+    "steps": [
+      "Klik tombol mikrofon bulat (AI Command Center) di pojok kanan bawah.",
+      "Ucapkan atau ketik perintah dalam bahasa natural, contoh: 'jual 5 kg jagung ke Pak Budi' atau 'tambah stok gula 10 kg'.",
+      "Sistem akan menganalisis perintah dan menampilkan ringkasan aksi yang akan dilakukan untuk dikonfirmasi.",
+      "Jika ada data yang kurang jelas, sistem akan menanyakan klarifikasi sebelum mengeksekusi aksi."
+    ],
+    "tips": [
+      "AI Command Center cocok untuk pencatatan cepat di lapangan tanpa perlu membuka form manual satu per satu.",
+      "Jika sedang offline, sistem tetap mencoba mencocokkan perintah secara lokal menggunakan pola bahasa sederhana."
+    ]
+  }
+]

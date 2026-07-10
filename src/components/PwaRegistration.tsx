@@ -17,9 +17,13 @@ export default function PwaRegistration() {
   const [showBanner, setShowBanner] = useState(false);
   const [showIosHint, setShowIosHint] = useState(false);
 
-  // Register the service worker.
+  // Register the service worker. Skipped in development: the SW's cache-first
+  // fetch handler ends up intercepting Next's Fast Refresh / RSC requests,
+  // which get aborted on every navigation and surface as noisy unhandled
+  // "Failed to fetch" rejections in the console.
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (process.env.NODE_ENV !== 'production') return;
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js').catch((error) => {

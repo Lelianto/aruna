@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import Toast from '@/components/ui/Toast';
 import { Building2, Users, MapPin, Compass, ShieldAlert, Check, Plus, Trash2, ArrowRight, FileText, XCircle, Loader2 } from 'lucide-react';
 import { db } from '@/lib/firebase/config';
 import { collection, addDoc, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
@@ -45,6 +46,7 @@ export default function OnboardingMitraPage() {
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'warning' } | null>(null);
 
   // Guard access: only admin can access this page
   useEffect(() => {
@@ -102,11 +104,11 @@ export default function OnboardingMitraPage() {
   const handleCoopSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!coopData.name || !coopData.city || !coopData.province || !coopData.address || !coopData.head || !coopData.phone) {
-      alert("Harap lengkapi semua data koperasi.");
+      setToast({ message: 'Harap lengkapi semua data koperasi.', type: 'warning' });
       return;
     }
     if (!coopCoords) {
-      alert("Harap tentukan lokasi koordinat koperasi pada peta.");
+      setToast({ message: 'Harap tentukan lokasi koordinat koperasi pada peta.', type: 'warning' });
       return;
     }
 
@@ -147,11 +149,11 @@ export default function OnboardingMitraPage() {
       // Reset
       setCoopData({ name: '', address: '', city: '', province: '', head: '', phone: '' });
       setCoopCoords(null);
-      alert("Koperasi berhasil didaftarkan ke platform!");
+      setToast({ message: 'Koperasi berhasil didaftarkan ke platform!', type: 'success' });
       setActiveTab('list');
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan.");
+      setToast({ message: 'Terjadi kesalahan.', type: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -161,7 +163,7 @@ export default function OnboardingMitraPage() {
   const handleBuyerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!buyerData.company_name || !buyerData.city || !buyerData.industry || !buyerData.address) {
-      alert("Harap lengkapi nama perusahaan, kota, industri, dan alamat kirim buyer.");
+      setToast({ message: 'Harap lengkapi nama perusahaan, kota, industri, dan alamat kirim buyer.', type: 'warning' });
       return;
     }
 
@@ -181,11 +183,11 @@ export default function OnboardingMitraPage() {
 
       // Reset
       setBuyerData({ company_name: '', city: '', industry: '', address: '', nib: '', siup: '' });
-      alert("Perusahaan buyer berhasil didaftarkan!");
+      setToast({ message: 'Perusahaan buyer berhasil didaftarkan!', type: 'success' });
       setActiveTab('list');
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan.");
+      setToast({ message: 'Terjadi kesalahan.', type: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -535,7 +537,7 @@ export default function OnboardingMitraPage() {
                                 <button
                                   onClick={async () => {
                                     await cooperativeRepository.verifyCooperativeDocs(coop.id, 'nib', 'verified');
-                                    alert('Dokumen NIB terverifikasi. Nilai ARUNA Score koperasi diperbarui!');
+                                    setToast({ message: 'Dokumen NIB terverifikasi. Nilai ARUNA Score koperasi diperbarui!', type: 'success' });
                                   }}
                                   className="p-1 px-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                                 >
@@ -544,7 +546,7 @@ export default function OnboardingMitraPage() {
                                 <button
                                   onClick={async () => {
                                     await cooperativeRepository.verifyCooperativeDocs(coop.id, 'nib', 'rejected');
-                                    alert('Dokumen NIB ditolak.');
+                                    setToast({ message: 'Dokumen NIB ditolak.', type: 'warning' });
                                   }}
                                   className="p-1 px-2 bg-rose-500 hover:bg-rose-600 text-white rounded text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                                 >
@@ -569,7 +571,7 @@ export default function OnboardingMitraPage() {
                                 <button
                                   onClick={async () => {
                                     await cooperativeRepository.verifyCooperativeDocs(coop.id, 'sk', 'verified');
-                                    alert('Dokumen SK Pendirian terverifikasi. Nilai ARUNA Score koperasi diperbarui!');
+                                    setToast({ message: 'Dokumen SK Pendirian terverifikasi. Nilai ARUNA Score koperasi diperbarui!', type: 'success' });
                                   }}
                                   className="p-1 px-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                                 >
@@ -578,7 +580,7 @@ export default function OnboardingMitraPage() {
                                 <button
                                   onClick={async () => {
                                     await cooperativeRepository.verifyCooperativeDocs(coop.id, 'sk', 'rejected');
-                                    alert('Dokumen SK Pendirian ditolak.');
+                                    setToast({ message: 'Dokumen SK Pendirian ditolak.', type: 'warning' });
                                   }}
                                   className="p-1 px-2 bg-rose-500 hover:bg-rose-600 text-white rounded text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-colors"
                                 >
@@ -654,6 +656,7 @@ export default function OnboardingMitraPage() {
         </div>
       )}
 
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }
