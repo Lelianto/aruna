@@ -41,7 +41,8 @@ import {
   Coins, Award, Scale, Check, FileCheck, ArrowUpRight, ArrowRight,
   Mic, MicOff, Send, Database, RefreshCw, BarChart3,
   History, UserPlus, FileText, ArrowRightLeft, Gift, ShieldAlert,
-  Search, ArrowDownToLine, Tag, Menu, LayoutDashboard, ChevronLeft, LogOut
+  Search, ArrowDownToLine, Tag, Menu, LayoutDashboard, ChevronLeft, LogOut,
+  Bot, User as UserIcon
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -839,8 +840,17 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
   const [assistantResponse, setAssistantResponse] = useState<any | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
 
   const assistantRef = useRef<VoiceAssistant | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleClose = () => {
+    setMessages([]);
+    setAssistantResponse(null);
+    setQueryText('');
+    onClose();
+  };
 
   useEffect(() => {
     assistantRef.current = new VoiceAssistant(
@@ -856,6 +866,12 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
       }
     );
   }, []);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, loading]);
 
   const handleMicToggle = () => {
     if (!assistantRef.current || !assistantRef.current.isSupported()) {
@@ -881,15 +897,19 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
     }
     setIsListening(false);
 
+    const text = queryText.trim();
+    setMessages(prev => [...prev, { role: 'user', content: text }]);
+    setQueryText('');
     setLoading(true);
     const prevContext = assistantResponse?.action === 'need_clarification' ? assistantResponse : null;
 
     try {
-      const response = await executeAICommand(queryText.trim(), prevContext);
+      const response = await executeAICommand(text, prevContext);
       setAssistantResponse(response);
-      setQueryText('');
+      setMessages(prev => [...prev, { role: 'assistant', content: response.confirmation_message }]);
     } catch (e) {
       showToast('Gagal memproses analisis perintah AI', 'error');
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Maaf, terjadi gangguan saat memproses perintah.' }]);
     } finally {
       setLoading(false);
     }
@@ -1185,18 +1205,44 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
     <div className="flex-1 flex flex-col justify-between py-2 text-xs font-semibold text-slate-300">
 
       {/* Drawer content chat body */}
-      <div className="flex-1 overflow-y-auto space-y-4 pr-1 py-3 text-center">
-        {/* Visual prompt guidelines */}
-        <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800 text-left space-y-2.5">
-          <span className="text-[10px] text-brand-orange font-semibold uppercase tracking-wider block">Gunakan Perintah Suara / Teks:</span>
-          <ul className="space-y-1.5 text-slate-350 list-disc list-inside leading-relaxed text-[11px]">
-            <li><em>"Jual beras 10 kg ke Pak Budi"</em> (POS)</li>
-            <li><em>"Tambah stok jagung 50 kilo"</em> (Inventory)</li>
-            <li><em>"Terima 20 kg beras dari PT ABC"</em> (Pembelian)</li>
-            <li><em>"Berapa omzet penjualan hari ini?"</em> (Laporan)</li>
-            <li><em>"Tampilkan stok cabai sekarang"</em> (Tanya Stok)</li>
-          </ul>
-        </div>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 pr-1 py-3">
+        {/* Visual prompt guidelines - only show when no messages */}
+        {messages.length === 0 && (
+          <div className="bg-slate-800/50 p-4 rounded-2xl border border-slate-800 text-left space-y-2.5">
+            <span className="text-[10px] text-brand-orange font-semibold uppercase tracking-wider block">Gunakan Perintah Suara / Teks:</span>
+            <ul className="space-y-1.5 text-slate-350 list-disc list-inside leading-relaxed text-[11px]">
+              <li><em>"Jual beras 10 kg ke Pak Budi"</em> (POS)</li>
+              <li><em>"Tambah stok jagung 50 kilo"</em> (Inventory)</li>
+              <li><em>"Terima 20 kg beras dari PT ABC"</em> (Pembelian)</li>
+              <li><em>"Berapa omzet penjualan hari ini?"</em> (Laporan)</li>
+              <li><em>"Tampilkan stok cabai sekarang"</em> (Tanya Stok)</li>
+            </ul>
+          </div>
+        )}
+
+        {/* Chat messages */}
+        {messages.map((m, i) => (
+          <div key={i} className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+            {m.role === 'assistant' && (
+              <div className="h-7 w-7 rounded-lg bg-brand-orange/10 text-brand-orange flex items-center justify-center shrink-0 mt-0.5">
+                <Bot className="h-4 w-4" />
+              </div>
+            )}
+            <div
+              className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${m.role === 'user'
+                  ? 'bg-brand-navy text-white rounded-br-sm'
+                  : 'bg-slate-800 text-slate-300 rounded-bl-sm border border-slate-700'
+                }`}
+            >
+              {m.content}
+            </div>
+            {m.role === 'user' && (
+              <div className="h-7 w-7 rounded-lg bg-brand-navy/10 text-brand-navy flex items-center justify-center shrink-0 mt-0.5">
+                <UserIcon className="h-4 w-4" />
+              </div>
+            )}
+          </div>
+        ))}
 
         {/* Dynamic status recording anim */}
         {isListening && (
@@ -1207,6 +1253,19 @@ function AIConsolePanel({ coopId, commodities, members, onClose, onActionTrigger
               <span className="h-2 w-2 rounded-full bg-brand-red animate-bounce" style={{ animationDelay: '300ms' }}></span>
             </div>
             <p className="text-[10px] font-semibold text-brand-red uppercase tracking-wider animate-pulse">Sedang Mendengarkan...</p>
+          </div>
+        )}
+
+        {/* Loading indicator */}
+        {loading && (
+          <div className="flex gap-2.5 justify-start">
+            <div className="h-7 w-7 rounded-lg bg-brand-orange/10 text-brand-orange flex items-center justify-center shrink-0">
+              <Bot className="h-4 w-4" />
+            </div>
+            <div className="bg-slate-800 rounded-2xl rounded-bl-sm px-3.5 py-3 flex items-center gap-1.5 border border-slate-700">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-400" />
+              <span className="text-[10px] text-slate-400 font-semibold">AI memproses...</span>
+            </div>
           </div>
         )}
 
