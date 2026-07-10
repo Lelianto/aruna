@@ -26,6 +26,8 @@ function getProductCategory(name: string): string {
 }
 
 async function getCooperativesInternal() {
+  // Pre-aggregate child tables once (grouped) instead of correlated subqueries
+  // per row — see /api/cooperatives for the same optimization.
   const listRes = await query(`
     SELECT 
       pk.koperasi_ref AS id,
@@ -33,12 +35,24 @@ async function getCooperativesInternal() {
       rw.provinsi AS province,
       rw.kab_kota AS city,
       pk.koordinat_dibulatkan,
-      (SELECT count(*) FROM anggota_koperasi WHERE koperasi_ref = pk.koperasi_ref) AS member_count,
-      (SELECT count(*) FROM anggota_koperasi WHERE koperasi_ref = pk.koperasi_ref AND status_keanggotaan = 'Approved') AS active_members,
-      (SELECT COALESCE(SUM(total_pembayaran), 0) FROM transaksi_penjualan WHERE koperasi_ref = pk.koperasi_ref) AS annual_revenue
+      COALESCE(am.member_count, 0) AS member_count,
+      COALESCE(am.active_members, 0) AS active_members,
+      COALESCE(tp.annual_revenue, 0) AS annual_revenue
     FROM profil_koperasi pk
     LEFT JOIN referensi_koperasi_wilayah rkw ON pk.koperasi_ref = rkw.koperasi_ref
     LEFT JOIN referensi_wilayah rw ON rkw.kode_wilayah = rw.kode_wilayah
+    LEFT JOIN (
+      SELECT koperasi_ref,
+             count(*) AS member_count,
+             count(*) FILTER (WHERE status_keanggotaan = 'Approved') AS active_members
+      FROM anggota_koperasi
+      GROUP BY koperasi_ref
+    ) am ON am.koperasi_ref = pk.koperasi_ref
+    LEFT JOIN (
+      SELECT koperasi_ref, COALESCE(SUM(total_pembayaran), 0) AS annual_revenue
+      FROM transaksi_penjualan
+      GROUP BY koperasi_ref
+    ) tp ON tp.koperasi_ref = pk.koperasi_ref
     ORDER BY pk.nama_koperasi ASC
   `);
 

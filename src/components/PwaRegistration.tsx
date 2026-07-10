@@ -47,7 +47,13 @@ export default function PwaRegistration() {
       // Stop the browser's own mini-infobar so we can show our own UI.
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowBanner(true);
+      // Only surface our custom install banner on mobile/tablet. On desktop the
+      // browser already shows an install icon in the address bar, so an in-page
+      // modal is unnecessary and intrusive.
+      const isMobileViewport = window.matchMedia('(max-width: 1023px)').matches;
+      if (isMobileViewport) {
+        setShowBanner(true);
+      }
     };
     window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
 

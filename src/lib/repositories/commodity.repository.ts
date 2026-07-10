@@ -13,6 +13,8 @@ function getBaseUrl() {
 
 export interface CommodityRepository {
   getAll(): Promise<Commodity[]>;
+  getCommodityOverrides(): Promise<Map<string, Partial<Commodity>>>;
+  getInStockPage(limit: number, offset: number, overrides?: Map<string, Partial<Commodity>>): Promise<{ items: Commodity[]; total: number }>;
   getById(id: string): Promise<Commodity | null>;
   getByCooperativeId(cooperativeId: string): Promise<Commodity[]>;
   getUniqueNames(): Promise<string[]>;
@@ -56,6 +58,46 @@ export class HybridCommodityRepository implements CommodityRepository {
     }
   }
 
+  // Fetch the Firestore override/custom-commodity layer once. Callers can pass
+  // the returned map into getInStockPage() to apply live stock edits to each
+  // page without re-reading Firestore per batch.
+  async getCommodityOverrides(): Promise<Map<string, Partial<Commodity>>> {
+    const overrides = new Map<string, Partial<Commodity>>();
+    try {
+      const fsSnap = await getDocs(collection(db, 'commodities'));
+      fsSnap.forEach((docSnap) => {
+        overrides.set(docSnap.id, docSnap.data() as Partial<Commodity>);
+      });
+    } catch (error) {
+      console.error('Error loading commodity overrides from Firestore:', error);
+    }
+    return overrides;
+  }
+
+  // Paginated, in-stock-only slice of the catalog for progressive (batched)
+  // loading in the marketplace. Applies Firestore overrides when provided.
+  async getInStockPage(
+    limit: number,
+    offset: number,
+    overrides?: Map<string, Partial<Commodity>>
+  ): Promise<{ items: Commodity[]; total: number }> {
+    try {
+      const baseUrl = getBaseUrl();
+      const res = await fetch(`${baseUrl}/api/commodities?inStock=1&limit=${limit}&offset=${offset}`, { cache: 'no-store' });
+      if (!res.ok) throw new Error('Failed to fetch in-stock commodities page');
+      const data = (await res.json()) as { items: Commodity[]; total: number };
+
+      const items = overrides && overrides.size > 0
+        ? data.items.map((it) => (overrides.has(it.id) ? ({ ...it, ...overrides.get(it.id) } as Commodity) : it))
+        : data.items;
+
+      return { items, total: data.total };
+    } catch (error) {
+      console.error('Error in commodityRepository.getInStockPage:', error);
+      return { items: [], total: 0 };
+    }
+  }
+
   async getById(id: string): Promise<Commodity | null> {
     if (!id) return null;
     try {
@@ -70,8 +112,26 @@ export class HybridCommodityRepository implements CommodityRepository {
   async getByCooperativeId(cooperativeId: string): Promise<Commodity[]> {
     if (!cooperativeId) return [];
     try {
-      const list = await this.getAll();
-      return list.filter(c => c.cooperative_id === cooperativeId);
+      // Targeted PG query for just this cooperative — avoids pulling the entire
+      // ~14k-row commodity catalog into memory just to filter one cooperative.
+      const baseUrl = getBaseUrl();
+      const res = await fetch(`${baseUrl}/api/commodities?cooperativeId=${encodeURIComponent(cooperativeId)}`, { cache: 'no-store' });
+      const pgList: Commodity[] = res.ok ? await res.json() : [];
+
+      // Merge Firestore overrides / custom commodities belonging to this coop.
+      const fsSnap = await getDocs(collection(db, 'commodities'));
+      const merged = [...pgList];
+      fsSnap.forEach((docSnap) => {
+        const fsComm = { id: docSnap.id, ...docSnap.data() } as Commodity;
+        if (fsComm.cooperative_id !== cooperativeId) return;
+        const idx = merged.findIndex(c => c.id === fsComm.id);
+        if (idx !== -1) {
+          merged[idx] = { ...merged[idx], ...fsComm };
+        } else {
+          merged.push(fsComm);
+        }
+      });
+      return merged;
     } catch (error) {
       console.error(`Error in commodityRepository.getByCooperativeId for ${cooperativeId}:`, error);
       return [];

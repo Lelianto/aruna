@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { MarketRequestWithBuyer, Buyer, MarketRequest, Commodity, CooperativeWithCommodities, SupplyMatch } from '@/types';
+import { MarketRequestWithBuyer, Buyer, MarketRequest, Commodity, Cooperative, SupplyMatch } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -80,6 +80,27 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   return Math.round(d * 10) / 10; // 1 decimal place
 }
 
+// Progressive, batched in-stock product loader shared by the initial load and
+// the post-transaction refreshes. Fetches in-stock products page by page
+// (server-filtered + cached), applies Firestore overrides once, and reports
+// each accumulated batch via `onBatch` so the UI can paint before the whole
+// catalog arrives. Returns the full accumulated list.
+async function loadInStockCommodities(onBatch?: (items: Commodity[]) => void): Promise<Commodity[]> {
+  const BATCH = 300;
+  const accumulated: Commodity[] = [];
+  const overrides = await commodityRepository.getCommodityOverrides();
+  let offset = 0;
+  // Bounded loop guard in case `total` is ever inconsistent.
+  for (let guard = 0; guard < 100; guard++) {
+    const { items, total } = await commodityRepository.getInStockPage(BATCH, offset, overrides);
+    accumulated.push(...items);
+    onBatch?.([...accumulated]);
+    offset += BATCH;
+    if (items.length === 0 || offset >= total) break;
+  }
+  return accumulated;
+}
+
 export default function MarketplaceClient({ initialRequests }: MarketplaceClientProps) {
   const { user, userData, signInWithGoogle } = useAuth();
 
@@ -142,7 +163,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   const [successMsg, setSuccessMsg] = useState<string>('');
 
   // ─── STATE 2: CUSTOMER CENTRIC MARKETPLACE ──────────────────────────────────
-  const [coops, setCoops] = useState<CooperativeWithCommodities[]>([]);
+  const [coops, setCoops] = useState<Cooperative[]>([]);
   const [allCommodities, setAllCommodities] = useState<Commodity[]>([]);
   const [customerSearch, setCustomerSearch] = useState<string>('');
 
@@ -262,19 +283,25 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     return () => unsubscribe();
   }, []);
 
-  // Load Cooperatives & Commodities for Customer search
+  // Load Cooperatives & Commodities for Customer search.
+  // Products load progressively in batches (see loadInStockCommodities) so the
+  // grid paints after the first page instead of waiting for the whole catalog.
+  // Cooperatives load separately (lightweight getAll — never getAllWithDetails,
+  // which fans out a full commodity fetch per cooperative and never resolves).
+  // StrictMode-safe via the `cancelled` guard (ignores the discarded mount).
   useEffect(() => {
-    async function loadCustomerMarketData() {
-      try {
-        const coopList = await cooperativeRepository.getAllWithDetails();
-        const comList = await commodityRepository.getAll();
-        setCoops(coopList);
-        setAllCommodities(comList);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    loadCustomerMarketData();
+    let cancelled = false;
+
+    loadInStockCommodities((partial) => {
+      if (!cancelled) setAllCommodities(partial);
+    }).catch((err) => console.error('Gagal memuat produk komoditas:', err));
+
+    // Cooperative list supplies name/city/coordinates for distance ranking.
+    cooperativeRepository.getAll()
+      .then((list) => { if (!cancelled) setCoops(list); })
+      .catch((err) => console.error('Gagal memuat data koperasi:', err));
+
+    return () => { cancelled = true; };
   }, []);
 
   // Request browser geolocation for hyperlocal ranking
@@ -409,7 +436,9 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         coopName: coop?.name || 'Koperasi Mitra',
         city: coop?.city || 'Garut',
         province: coop?.province || 'Jawa Barat',
-        grade: coop?.score?.grade || 'B',
+        // Grade comes from the scoring engine (not in the lightweight coop list);
+        // default to 'B' here to avoid the expensive per-coop score computation.
+        grade: 'B',
         coopPhone: coop?.phone || '082122345566',
         distance,
         distanceSource,
@@ -701,9 +730,12 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         index++;
       }
 
-      // Refresh local UI data
-      const coopList = await cooperativeRepository.getAllWithDetails();
-      const comList = await commodityRepository.getAll();
+      // Refresh local UI: reuse the batched in-stock loader so the product list
+      // stays consistent with the initial load (in-stock only, cached, batched).
+      const [coopList, comList] = await Promise.all([
+        cooperativeRepository.getAll(),
+        loadInStockCommodities(),
+      ]);
       setCoops(coopList);
       setAllCommodities(comList);
 
@@ -767,9 +799,11 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         const reqRef = doc(db, 'market_requests', req.id);
         await updateDoc(reqRef, { status: 'Terpenuhi' });
 
-        // Refresh local UI lists
-        const coopList = await cooperativeRepository.getAllWithDetails();
-        const comList = await commodityRepository.getAll();
+        // Refresh local UI: reuse the batched in-stock loader for consistency.
+        const [coopList, comList] = await Promise.all([
+          cooperativeRepository.getAll(),
+          loadInStockCommodities(),
+        ]);
         setCoops(coopList);
         setAllCommodities(comList);
 
@@ -883,8 +917,8 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                   <CardHeader className="pb-3 flex flex-row justify-between items-start gap-3">
                     <div className="space-y-1">
                       <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${req.status === 'Menunggu Pembayaran' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                          req.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' :
-                            'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        req.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' :
+                          'bg-emerald-50 text-emerald-700 border border-emerald-200'
                         }`}>
                         {req.status}
                       </span>
@@ -1008,10 +1042,10 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                         )}
                         {/* Distance chip */}
                         <span className={`absolute top-2 right-2 backdrop-blur-sm border text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 z-10 ${osrmLoading
-                            ? 'bg-white/70 border-slate-200 text-slate-400 animate-pulse'
-                            : prod.distanceSource === 'osrm'
-                              ? 'bg-emerald-50/90 border-emerald-200 text-emerald-700'
-                              : 'bg-white/90 border-slate-200 text-slate-600'
+                          ? 'bg-white/70 border-slate-200 text-slate-400 animate-pulse'
+                          : prod.distanceSource === 'osrm'
+                            ? 'bg-emerald-50/90 border-emerald-200 text-emerald-700'
+                            : 'bg-white/90 border-slate-200 text-slate-600'
                           }`}>
                           <MapPin className="h-2.5 w-2.5 text-brand-red" />
                           {osrmLoading ? '...' : `${prod.distance} km`}
@@ -1092,8 +1126,8 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       key={i}
                       onClick={() => handleSelectPage(i)}
                       className={`w-7 h-7 text-xs font-bold rounded-lg transition-colors cursor-pointer ${i === currentPage
-                          ? 'bg-brand-navy text-white'
-                          : 'border border-slate-200 text-slate-500 hover:bg-slate-50'
+                        ? 'bg-brand-navy text-white'
+                        : 'border border-slate-200 text-slate-500 hover:bg-slate-50'
                         }`}
                     >
                       {i + 1}
@@ -1148,8 +1182,8 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                     <CardHeader className="pb-3 flex flex-row justify-between items-start gap-3">
                       <div className="space-y-1">
                         <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${order.status === 'Menunggu Pembayaran' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                            order.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' :
-                              'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          order.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' :
+                            'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           }`}>
                           {order.status}
                         </span>
