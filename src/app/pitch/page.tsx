@@ -32,7 +32,7 @@ export default function PitchPage() {
           
           {/* Pitch Text Panel */}
           <div className="md:col-span-2 space-y-2.5">
-            <h3 className="text-base font-black text-slate-800 leading-tight">
+            <h3 className="text-base font-semibold text-slate-800 leading-tight">
               Tiga Hambatan Lapangan
             </h3>
             <p className="text-slate-500 text-[11px] leading-relaxed">
@@ -50,10 +50,10 @@ export default function PitchPage() {
             <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs">
               <div className="p-1.5 rounded-lg bg-red-50 text-brand-red shrink-0 flex flex-col items-center justify-center w-14">
                 <ShoppingCart className="h-4 w-4" />
-                <span className="text-[8px] font-black text-brand-red mt-0.5">Manual POS</span>
+                <span className="text-[8px] font-semibold text-brand-red mt-0.5">Manual POS</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-[11px] text-slate-900 leading-none">Belum Ada Sistem Kasir & Stok Opname</h4>
+                <h4 className="font-semibold text-[11px] text-slate-900 leading-none">Belum Ada Sistem Kasir & Stok Opname</h4>
                 <p className="text-[10px] text-slate-500 mt-1 leading-normal">
                   Pencatatan transaksi harian dan rekap persediaan fisik (<em>stok opname</em>) saat ini masih dilakukan secara manual menggunakan kertas rekap.
                 </p>
@@ -64,10 +64,10 @@ export default function PitchPage() {
             <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs">
               <div className="p-1.5 rounded-lg bg-red-50 text-brand-red shrink-0 flex flex-col items-center justify-center w-14">
                 <Network className="h-4 w-4" />
-                <span className="text-[8px] font-black text-brand-red mt-0.5">No Market</span>
+                <span className="text-[8px] font-semibold text-brand-red mt-0.5">No Market</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-[11px] text-slate-900 leading-none">Belum Ada Marketplace untuk Umum</h4>
+                <h4 className="font-semibold text-[11px] text-slate-900 leading-none">Belum Ada Marketplace untuk Umum</h4>
                 <p className="text-[10px] text-slate-500 mt-1 leading-normal">
                   Koperasi belum memiliki etalase digital. Akibatnya, <em>customer</em> umum tidak dapat mengakses produk, melihat katalog, atau bertransaksi langsung.
                 </p>
@@ -78,10 +78,10 @@ export default function PitchPage() {
             <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs">
               <div className="p-1.5 rounded-lg bg-red-50 text-brand-red shrink-0 flex flex-col items-center justify-center w-14">
                 <WifiOff className="h-4 w-4" />
-                <span className="text-[8px] font-black text-brand-red mt-0.5">Data Seluler</span>
+                <span className="text-[8px] font-semibold text-brand-red mt-0.5">Data Seluler</span>
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-bold text-[11px] text-slate-900 leading-none">Tidak Ada Hotspot & Bergantung Koneksi Pribadi</h4>
+                <h4 className="font-semibold text-[11px] text-slate-900 leading-none">Tidak Ada Hotspot & Bergantung Koneksi Pribadi</h4>
                 <p className="text-[10px] text-slate-500 mt-1 leading-normal">
                   Koperasi belum memiliki infrastruktur WiFi/Hotspot. Pengurus harus menggunakan paket data seluler pribadi yang sering tidak stabil untuk operasional.
                 </p>
@@ -102,7 +102,7 @@ export default function PitchPage() {
           
           {/* Solution Text Panel */}
           <div className="md:col-span-2 space-y-2.5">
-            <h3 className="text-base font-black text-slate-800 leading-tight">
+            <h3 className="text-base font-semibold text-slate-800 leading-tight">
               Sistem Operasi Terpadu
             </h3>
             <p className="text-slate-500 text-[11px] leading-relaxed">
@@ -120,12 +120,12 @@ export default function PitchPage() {
             <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs hover:shadow-md transition-shadow">
               <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0 flex flex-col items-center justify-center w-14">
                 <ShoppingCart className="h-4 w-4" />
-                <span className="text-[8px] font-black text-emerald-600 mt-0.5">Solusi POS</span>
+                <span className="text-[8px] font-semibold text-emerald-600 mt-0.5">Solusi POS</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-[11px] text-slate-900 leading-none">Kasir & Stok Opname Digital</h4>
-                  <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-black uppercase tracking-wider scale-90">Masalah 1</span>
+                  <h4 className="font-semibold text-[11px] text-slate-900 leading-none">Kasir & Stok Opname Digital</h4>
+                  <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-semibold uppercase tracking-wider scale-90">Masalah 1</span>
                 </div>
                 <p className="text-[10px] text-slate-500 mt-1 leading-normal">
                   Pencatatan transaksi kasir real-time dan rekap opname persediaan otomatis, menghilangkan pembukuan kertas manual.
@@ -137,12 +137,12 @@ export default function PitchPage() {
             <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs hover:shadow-md transition-shadow">
               <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0 flex flex-col items-center justify-center w-14">
                 <Network className="h-4 w-4" />
-                <span className="text-[8px] font-black text-emerald-600 mt-0.5">Solusi Pasar</span>
+                <span className="text-[8px] font-semibold text-emerald-600 mt-0.5">Solusi Pasar</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-[11px] text-slate-900 leading-none">Pasar & Etalase Digital Terbuka</h4>
-                  <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-black uppercase tracking-wider scale-90">Masalah 2</span>
+                  <h4 className="font-semibold text-[11px] text-slate-900 leading-none">Pasar & Etalase Digital Terbuka</h4>
+                  <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-semibold uppercase tracking-wider scale-90">Masalah 2</span>
                 </div>
                 <p className="text-[10px] text-slate-500 mt-1 leading-normal">
                   Menyediakan portal marketplace agar customer umum dapat menelusuri katalog produk dan berbelanja langsung secara online.
@@ -154,12 +154,12 @@ export default function PitchPage() {
             <div className="flex items-start gap-2.5 p-2 bg-white border border-slate-200 rounded-xl shadow-xs hover:shadow-md transition-shadow">
               <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 shrink-0 flex flex-col items-center justify-center w-14">
                 <Database className="h-4 w-4" />
-                <span className="text-[8px] font-black text-emerald-600 mt-0.5">Offline POS</span>
+                <span className="text-[8px] font-semibold text-emerald-600 mt-0.5">Offline POS</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-[11px] text-slate-900 leading-none">Arsitektur Offline-First & Auto-Sync</h4>
-                  <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-black uppercase tracking-wider scale-90">Masalah 3</span>
+                  <h4 className="font-semibold text-[11px] text-slate-900 leading-none">Arsitektur Offline-First & Auto-Sync</h4>
+                  <span className="text-[8px] bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-semibold uppercase tracking-wider scale-90">Masalah 3</span>
                 </div>
                 <p className="text-[10px] text-slate-500 mt-1 leading-normal">
                   Sistem tetap berjalan lancar saat internet mati. Data tersinkronisasi otomatis saat pengurus mendapat jaringan seluler.
@@ -181,7 +181,7 @@ export default function PitchPage() {
           {/* AI Role Iconography */}
           <div className="flex items-center gap-1.5 self-start mb-2 px-2.5 py-1 bg-brand-navy/5 rounded-lg border border-brand-navy/10 select-none">
             <Bot className="h-4 w-4 text-brand-navy" />
-            <span className="text-[10px] font-black text-brand-navy uppercase tracking-wider">AI Voice POS:</span>
+            <span className="text-[10px] font-semibold text-brand-navy uppercase tracking-wider">AI Voice POS:</span>
             <Sparkles className="h-3.5 w-3.5 text-brand-orange animate-pulse" />
             <Mic className="h-3.5 w-3.5 text-slate-650" />
           </div>
@@ -191,8 +191,8 @@ export default function PitchPage() {
             <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-4">
               {/* Step 1 */}
               <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
-                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">1</div>
-                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Pencatatan POS</h6>
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-semibold flex items-center justify-center mb-2">1</div>
+                <h6 className="font-semibold text-slate-800 text-[11px] md:text-xs">Pencatatan POS</h6>
                 <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Pengurus menginput data transaksi harian anggota.</p>
               </div>
               {/* Arrow */}
@@ -201,8 +201,8 @@ export default function PitchPage() {
               </div>
               {/* Step 2 */}
               <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
-                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">2</div>
-                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Automasi Stok</h6>
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-semibold flex items-center justify-center mb-2">2</div>
+                <h6 className="font-semibold text-slate-800 text-[11px] md:text-xs">Automasi Stok</h6>
                 <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Persediaan komoditas otomatis terpotong di sistem.</p>
               </div>
               {/* Arrow */}
@@ -211,8 +211,8 @@ export default function PitchPage() {
               </div>
               {/* Step 3 */}
               <div className="md:col-span-1 p-5 bg-emerald-55 border border-emerald-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
-                <div className="h-8 w-8 rounded-full bg-emerald-600 text-white text-xs font-black flex items-center justify-center mb-2">3</div>
-                <h6 className="font-extrabold text-emerald-900 text-[11px] md:text-xs">Stok Opname Klop</h6>
+                <div className="h-8 w-8 rounded-full bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center mb-2">3</div>
+                <h6 className="font-semibold text-emerald-900 text-[11px] md:text-xs">Stok Opname Klop</h6>
                 <p className="text-[10px] md:text-[10.5px] text-emerald-700 mt-1 leading-snug">Jumlah kasir dan persediaan terintegrasi otomatis secara klop.</p>
               </div>
             </div>
@@ -236,7 +236,7 @@ export default function PitchPage() {
           {/* AI Role Iconography */}
           <div className="flex items-center gap-1.5 self-start mb-2 px-2.5 py-1 bg-brand-navy/5 rounded-lg border border-brand-navy/10 select-none">
             <Bot className="h-4 w-4 text-brand-navy" />
-            <span className="text-[10px] font-black text-brand-navy uppercase tracking-wider">AI Matchmaking:</span>
+            <span className="text-[10px] font-semibold text-brand-navy uppercase tracking-wider">AI Matchmaking:</span>
             <Sparkles className="h-3.5 w-3.5 text-brand-orange animate-pulse" />
             <Users className="h-3.5 w-3.5 text-slate-650" />
           </div>
@@ -246,8 +246,8 @@ export default function PitchPage() {
             <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-4">
               {/* Step 1 */}
               <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
-                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">1</div>
-                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Upload Etalase</h6>
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-semibold flex items-center justify-center mb-2">1</div>
+                <h6 className="font-semibold text-slate-800 text-[11px] md:text-xs">Upload Etalase</h6>
                 <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Stok komoditas koperasi muncul di katalog digital.</p>
               </div>
               {/* Arrow */}
@@ -256,8 +256,8 @@ export default function PitchPage() {
               </div>
               {/* Step 2 */}
               <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
-                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">2</div>
-                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Checkout Customer</h6>
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-semibold flex items-center justify-center mb-2">2</div>
+                <h6 className="font-semibold text-slate-800 text-[11px] md:text-xs">Checkout Customer</h6>
                 <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Customer umum memesan komoditas secara online.</p>
               </div>
               {/* Arrow */}
@@ -266,8 +266,8 @@ export default function PitchPage() {
               </div>
               {/* Step 3 */}
               <div className="md:col-span-1 p-5 bg-emerald-55 border border-emerald-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
-                <div className="h-8 w-8 rounded-full bg-emerald-600 text-white text-xs font-black flex items-center justify-center mb-2">3</div>
-                <h6 className="font-extrabold text-emerald-900 text-[11px] md:text-xs">Kirim Langsung</h6>
+                <div className="h-8 w-8 rounded-full bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center mb-2">3</div>
+                <h6 className="font-semibold text-emerald-900 text-[11px] md:text-xs">Kirim Langsung</h6>
                 <p className="text-[10px] md:text-[10.5px] text-emerald-700 mt-1 leading-snug">Koperasi memproses pengiriman ke alamat tujuan.</p>
               </div>
             </div>
@@ -291,7 +291,7 @@ export default function PitchPage() {
           {/* AI Role Iconography */}
           <div className="flex items-center gap-1.5 self-start mb-2 px-2.5 py-1 bg-brand-navy/5 rounded-lg border border-brand-navy/10 select-none">
             <Bot className="h-4 w-4 text-brand-navy" />
-            <span className="text-[10px] font-black text-brand-navy uppercase tracking-wider">Offline NLP Parser:</span>
+            <span className="text-[10px] font-semibold text-brand-navy uppercase tracking-wider">Offline NLP Parser:</span>
             <Sparkles className="h-3.5 w-3.5 text-brand-orange animate-pulse" />
             <Database className="h-3.5 w-3.5 text-slate-650" />
           </div>
@@ -301,8 +301,8 @@ export default function PitchPage() {
             <div className="grid grid-cols-1 md:grid-cols-5 items-center gap-4">
               {/* Step 1 */}
               <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
-                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">1</div>
-                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Input Offline</h6>
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-semibold flex items-center justify-center mb-2">1</div>
+                <h6 className="font-semibold text-slate-800 text-[11px] md:text-xs">Input Offline</h6>
                 <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Pengurus tetap menginput data tanpa sinyal/hotspot.</p>
               </div>
               {/* Arrow */}
@@ -311,8 +311,8 @@ export default function PitchPage() {
               </div>
               {/* Step 2 */}
               <div className="md:col-span-1 p-5 bg-slate-50 border border-slate-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
-                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-black flex items-center justify-center mb-2">2</div>
-                <h6 className="font-extrabold text-slate-800 text-[11px] md:text-xs">Penyimpanan Cache</h6>
+                <div className="h-8 w-8 rounded-full bg-brand-navy text-white text-xs font-semibold flex items-center justify-center mb-2">2</div>
+                <h6 className="font-semibold text-slate-800 text-[11px] md:text-xs">Penyimpanan Cache</h6>
                 <p className="text-[10px] md:text-[10.5px] text-slate-500 mt-1 leading-snug">Data diamankan sementara pada penyimpanan lokal.</p>
               </div>
               {/* Arrow */}
@@ -321,8 +321,8 @@ export default function PitchPage() {
               </div>
               {/* Step 3 */}
               <div className="md:col-span-1 p-5 bg-emerald-55 border border-emerald-200 rounded-2xl text-center shadow-sm min-h-[150px] flex flex-col justify-center items-center">
-                <div className="h-8 w-8 rounded-full bg-emerald-600 text-white text-xs font-black flex items-center justify-center mb-2">3</div>
-                <h6 className="font-extrabold text-emerald-900 text-[11px] md:text-xs">Sinkronisasi Otomatis</h6>
+                <div className="h-8 w-8 rounded-full bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center mb-2">3</div>
+                <h6 className="font-semibold text-emerald-900 text-[11px] md:text-xs">Sinkronisasi Otomatis</h6>
                 <p className="text-[10px] md:text-[10.5px] text-emerald-700 mt-1 leading-snug">Data otomatis terunggah saat terhubung koneksi seluler.</p>
               </div>
             </div>
@@ -350,11 +350,11 @@ export default function PitchPage() {
               <div className="h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-3">
                 <ShoppingCart className="h-5 w-5" />
               </div>
-              <span className="text-2xl font-black text-slate-950 tracking-tight block">SIMKOPDES</span>
-              <h5 className="font-bold text-slate-800 text-xs mt-2">Kasir & Stok Terintegrasi</h5>
+              <span className="text-2xl font-semibold text-slate-950 tracking-tight block">SIMKOPDES</span>
+              <h5 className="font-semibold text-slate-800 text-xs mt-2">Kasir & Stok Terintegrasi</h5>
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-snug">
-              Seluruh transaksi harian anggota diintegrasikan langsung dengan basis data nasional di <a href="https://simkopdes.go.id/pers/dashboard" target="_blank" rel="noopener noreferrer" className="text-brand-navy underline font-bold">simkopdes.go.id</a> secara real-time.
+              Seluruh transaksi harian anggota diintegrasikan langsung dengan basis data nasional di <a href="https://simkopdes.go.id/pers/dashboard" target="_blank" rel="noopener noreferrer" className="text-brand-navy underline font-semibold">simkopdes.go.id</a> secara real-time.
             </p>
           </Card>
 
@@ -364,8 +364,8 @@ export default function PitchPage() {
               <div className="h-10 w-10 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center mx-auto mb-3">
                 <Network className="h-5 w-5" />
               </div>
-              <span className="text-3xl font-black text-slate-950 tracking-tight block">83.382 Koperasi</span>
-              <h5 className="font-bold text-slate-800 text-xs mt-2">Ekosistem Terhubung</h5>
+              <span className="text-3xl font-semibold text-slate-950 tracking-tight block">83.382 Koperasi</span>
+              <h5 className="font-semibold text-slate-800 text-xs mt-2">Ekosistem Terhubung</h5>
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-snug">
               Menghubungkan 83.382 Koperasi Desa menjadi satu kesatuan ekosistem yang terintegrasi di pasar digital terbuka untuk customer umum maupun offtaker industrial.
@@ -378,8 +378,8 @@ export default function PitchPage() {
               <div className="h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
                 <WifiOff className="h-5 w-5" />
               </div>
-              <span className="text-3xl font-black text-slate-950 tracking-tight block">0% Data Hilang</span>
-              <h5 className="font-bold text-slate-800 text-xs mt-2">Aman Tanpa Hotspot</h5>
+              <span className="text-3xl font-semibold text-slate-950 tracking-tight block">0% Data Hilang</span>
+              <h5 className="font-semibold text-slate-800 text-xs mt-2">Aman Tanpa Hotspot</h5>
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-snug">
               Arsitektur offline-first mengamankan seluruh rekap transaksi lokal tanpa bergantung pada kestabilan internet koperasi.
@@ -403,7 +403,7 @@ export default function PitchPage() {
                 <div className="h-8 w-8 rounded-full bg-brand-navy/10 text-brand-navy flex items-center justify-center">
                   <Users className="h-4 w-4" />
                 </div>
-                <h4 className="font-black text-slate-800 text-sm">Sektor B2B2C (Masyarakat Umum)</h4>
+                <h4 className="font-semibold text-slate-800 text-sm">Sektor B2B2C (Masyarakat Umum)</h4>
               </div>
               <p className="text-[10px] md:text-[11px] text-slate-600 leading-relaxed">
                 KDKMP <em>(Business)</em> memasarkan komoditas unggulan secara langsung ke <em>Customer Umum (Consumer)</em> melalui katalog digital di pasar terbuka. Transaksi berjalan secara mandiri dan transparan.
@@ -421,7 +421,7 @@ export default function PitchPage() {
                 <div className="h-8 w-8 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center">
                   <Building2 className="h-4 w-4" />
                 </div>
-                <h4 className="font-black text-slate-800 text-sm">Sektor B2B (Offtaker Industrial)</h4>
+                <h4 className="font-semibold text-slate-800 text-sm">Sektor B2B (Offtaker Industrial)</h4>
               </div>
               <p className="text-[10px] md:text-[11px] text-slate-600 leading-relaxed">
                 Agregasi kolektif komoditas dari berbagai KDKMP <em>(Business)</em> dipasok langsung kepada <em>Pembeli Industri/Offtaker (Business)</em> untuk memenuhi kebutuhan manufaktur skala besar secara kontinu.
@@ -448,7 +448,7 @@ export default function PitchPage() {
               <div className="h-9 w-9 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mb-2">
                 <Coins className="h-4.5 w-4.5" />
               </div>
-              <h5 className="font-black text-slate-800 text-xs">1,5% Platform Fee</h5>
+              <h5 className="font-semibold text-slate-800 text-xs">1,5% Platform Fee</h5>
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
               Biaya layanan ditarik secara transparan dari setiap transaksi sukses di marketplace (B2B & B2B2C) untuk menjaga operasional.
@@ -461,7 +461,7 @@ export default function PitchPage() {
               <div className="h-9 w-9 rounded-full bg-brand-orange/10 text-brand-orange flex items-center justify-center mb-2">
                 <Network className="h-4.5 w-4.5" />
               </div>
-              <h5 className="font-black text-slate-800 text-xs">SaaS Dashboard Analytics</h5>
+              <h5 className="font-semibold text-slate-800 text-xs">SaaS Dashboard Analytics</h5>
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
               Akses premium berbayar untuk pembeli skala besar untuk melihat proyeksi volume panen & peta sebaran komoditas.
@@ -474,7 +474,7 @@ export default function PitchPage() {
               <div className="h-9 w-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-2">
                 <Mic className="h-4.5 w-4.5" />
               </div>
-              <h5 className="font-black text-slate-800 text-xs">Lisensi AI Voice POS API</h5>
+              <h5 className="font-semibold text-slate-800 text-xs">Lisensi AI Voice POS API</h5>
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-relaxed">
               Komersialisasi asisten suara offline-first untuk digitalisasi pembukuan UMKM & BUMDes pedesaan non-koperasi.
@@ -495,10 +495,10 @@ export default function PitchPage() {
           {/* Phase 1 */}
           <Card className="border-slate-200 bg-slate-50 p-4 flex flex-col justify-between h-full min-h-[180px]">
             <div>
-              <span className="bg-brand-orange text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2 animate-pulse">
+              <span className="bg-brand-orange text-white text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2 animate-pulse">
                 1 Bulan
               </span>
-              <h5 className="font-extrabold text-slate-900 text-xs">POS & AI Voice Stability</h5>
+              <h5 className="font-semibold text-slate-900 text-xs">POS & AI Voice Stability</h5>
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-snug">
               Beta-testing POS offline-first & input asisten suara AI di 5 KDKMP percontohan Bangka secara terkendali.
@@ -508,10 +508,10 @@ export default function PitchPage() {
           {/* Phase 2 */}
           <Card className="border-slate-200 bg-slate-50 p-4 flex flex-col justify-between h-full min-h-[180px]">
             <div>
-              <span className="bg-brand-orange text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2">
+              <span className="bg-brand-orange text-white text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2">
                 3 Bulan
               </span>
-              <h5 className="font-extrabold text-slate-900 text-xs">Marketplace Launch</h5>
+              <h5 className="font-semibold text-slate-900 text-xs">Marketplace Launch</h5>
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-snug">
               Uji coba transaksi katalog digital bagi 20 KDKMP percontohan & pembukaan akses untuk 7 offtaker lokal.
@@ -521,10 +521,10 @@ export default function PitchPage() {
           {/* Phase 3 */}
           <Card className="border-slate-200 bg-slate-50 p-4 flex flex-col justify-between h-full min-h-[180px]">
             <div>
-              <span className="bg-brand-orange text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2">
+              <span className="bg-brand-orange text-white text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2">
                 6 Bulan
               </span>
-              <h5 className="font-extrabold text-slate-900 text-xs">SIMKOPDES & LPDB</h5>
+              <h5 className="font-semibold text-slate-900 text-xs">SIMKOPDES & LPDB</h5>
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-snug">
               Sinkronisasi data real-time dengan simkopdes.go.id & penyaluran fasilitas modal kerja logistik LPDB-KUMKM.
@@ -534,10 +534,10 @@ export default function PitchPage() {
           {/* Phase 4 */}
           <Card className="border-slate-200 bg-slate-50 p-4 flex flex-col justify-between h-full min-h-[180px]">
             <div>
-              <span className="bg-brand-orange text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2">
+              <span className="bg-brand-orange text-white text-[9px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider block w-max mb-2">
                 1 Tahun
               </span>
-              <h5 className="font-extrabold text-slate-900 text-xs">Skala Nasional</h5>
+              <h5 className="font-semibold text-slate-900 text-xs">Skala Nasional</h5>
             </div>
             <p className="text-[10px] text-slate-500 mt-2 leading-snug">
               Ekspansi bertahap menyerap 83.382 Koperasi Desa menjadi satu ekosistem nasional terpadu.
@@ -579,7 +579,7 @@ export default function PitchPage() {
         {/* Page Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-black text-brand-navy flex items-center gap-2">
+            <h1 className="text-3xl font-semibold text-brand-navy flex items-center gap-2">
               <Compass className="h-8 w-8 text-brand-red animate-spin-slow" />
               Pitch Deck ARUNA
             </h1>
@@ -592,7 +592,7 @@ export default function PitchPage() {
               <button
                 key={s.id}
                 onClick={() => setActiveSlide(idx)}
-                className={`px-3.5 py-2 rounded-lg text-xs font-bold transition-all duration-200 cursor-pointer ${activeSlide === idx
+                className={`px-3.5 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer ${activeSlide === idx
                     ? 'bg-brand-navy text-white shadow-md'
                     : 'bg-white text-slate-650 border border-slate-200/80 hover:bg-slate-100'
                   }`}
@@ -606,16 +606,16 @@ export default function PitchPage() {
         {/* Slide Frame (Card) */}
         <Card className="border-slate-200 shadow-xl overflow-hidden flex flex-col bg-white w-full max-w-4xl mx-auto">
           <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between bg-slate-50/50 select-none">
-            <span className="text-xs bg-brand-orange/20 text-brand-orange px-3 py-1 rounded-full font-extrabold tracking-wider uppercase">
+            <span className="text-xs bg-brand-orange/20 text-brand-orange px-3 py-1 rounded-full font-semibold tracking-wider uppercase">
               {slides[activeSlide].category}
             </span>
-            <span className="text-xs text-slate-400 font-bold">
+            <span className="text-xs text-slate-400 font-semibold">
               Slide {activeSlide + 1} dari {slides.length}
             </span>
           </div>
 
           <CardHeader className="pb-2 px-6 md:px-8 pt-6">
-            <CardTitle className="text-2xl font-black text-slate-900">
+            <CardTitle className="text-2xl font-semibold text-slate-900">
               {slides[activeSlide].title}
             </CardTitle>
             <CardDescription className="text-slate-500 text-sm font-semibold mt-1">
@@ -635,7 +635,7 @@ export default function PitchPage() {
               size="sm"
               onClick={prevSlide}
               disabled={activeSlide === 0}
-              className="flex items-center gap-1.5 text-xs font-bold cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" /> Sebelumnya
             </Button>
@@ -655,7 +655,7 @@ export default function PitchPage() {
               size="sm"
               onClick={nextSlide}
               disabled={activeSlide === slides.length - 1}
-              className="flex items-center gap-1.5 bg-brand-navy hover:bg-brand-navy/90 text-white text-xs font-bold cursor-pointer"
+              className="flex items-center gap-1.5 bg-brand-navy hover:bg-brand-navy/90 text-white text-xs font-semibold cursor-pointer"
             >
               Selanjutnya <ArrowRight className="h-4 w-4" />
             </Button>

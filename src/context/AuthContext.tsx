@@ -26,7 +26,7 @@ interface AuthContextType {
   userData: UserData | null;
   loading: boolean;
   needsRoleSelection: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: (options?: { redirect?: boolean }) => Promise<void>;
   logout: () => Promise<void>;
   setRoleForUser: (role: 'admin' | 'buyer' | 'koperasi' | 'customer' | 'pemerintah', associatedId?: string) => Promise<void>;
   updateUserAddress: (address: string) => Promise<void>;
@@ -86,7 +86,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (options?: { redirect?: boolean }) => {
+    // Default: arahkan otomatis ke dashboard sesuai peran setelah login.
+    // Halaman internal (mis. /akses-internal) mematikan ini agar bisa
+    // menentukan peran elevated sendiri tanpa dilempar keluar.
+    const shouldRedirect = options?.redirect ?? true;
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -103,7 +107,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserData(data);
         localStorage.setItem(`aruna_user_data_${firebaseUser.uid}`, JSON.stringify(data));
         setNeedsRoleSelection(false);
-        if (data.role === 'koperasi' || data.role === 'admin') {
+        if (!shouldRedirect) return;
+        if (data.role === 'admin') {
+          // Admin mendarat di Pusat Kendali Admin (data mitra/pengguna + antrean
+          // validasi KYC & pembayaran), bukan portal operasional koperasi.
+          router.push('/admin');
+        } else if (data.role === 'koperasi') {
           router.push('/mitra-dashboard');
         } else if (data.role === 'pemerintah') {
           router.push('/potensi-desa');
@@ -117,6 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setUserData(null);
         setNeedsRoleSelection(true);
+        if (!shouldRedirect) return;
         router.push('/select-role');
       }
     } catch (error) {

@@ -12,7 +12,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         className={twMerge(
-          'inline-flex items-center justify-center rounded-md text-sm font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+          'inline-flex items-center justify-center rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
 
           // Variants
           variant === 'default' && 'bg-brand-navy text-white shadow-sm hover:bg-primary-hover active:scale-[0.98]',
@@ -26,7 +26,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           // Sizes
           size === 'default' && 'h-10 px-4 py-2',
           size === 'sm' && 'h-9 px-3',
-          size === 'lg' && 'h-11 rounded-md px-8',
+          size === 'lg' && 'h-11 rounded-lg px-8',
           size === 'icon' && 'h-10 w-10',
           className
         )}

@@ -108,7 +108,7 @@ export default function MapComponent({
         className="w-full h-full"
       >
         <ChangeView center={mapCenter} zoom={currentZoom} />
-        
+
         {/* Modern dark-themed tile layer matching Government Tech aesthetics */}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -129,21 +129,20 @@ export default function MapComponent({
             >
               <Popup>
                 <div className="p-3 min-w-[220px] text-slate-800">
-                  <h4 className="font-bold text-sm text-brand-navy">{coop.name}</h4>
+                  <h4 className="font-semibold text-sm text-brand-navy">{coop.name}</h4>
                   <p className="text-xs text-slate-500 mb-2">{coop.city}, {coop.province}</p>
 
                   <div className="flex items-center gap-2 my-2 border-y py-2 border-slate-200">
                     <div>
                       <span className="text-[11px] text-slate-400 block font-medium">SKOR ARUNA</span>
-                      <span className="font-bold text-sm text-brand-navy">{score?.final_score || 0}/100</span>
+                      <span className="font-semibold text-sm text-brand-navy">{score?.final_score || 0}/100</span>
                     </div>
                     <div className="ml-auto">
                       <span className="text-[11px] text-slate-400 block text-right font-medium">GRADE</span>
-                      <span className={`inline-block font-extrabold px-2 py-0.5 rounded text-white text-xs ${
-                        grade === 'A' ? 'bg-emerald-500' :
-                        grade === 'B' ? 'bg-blue-500' :
-                        grade === 'C' ? 'bg-amber-500' : 'bg-red-500'
-                      }`}>
+                      <span className={`inline-block font-semibold px-2 py-0.5 rounded text-white text-xs ${grade === 'A' ? 'bg-emerald-500' :
+                          grade === 'B' ? 'bg-blue-500' :
+                            grade === 'C' ? 'bg-amber-500' : 'bg-red-500'
+                        }`}>
                         {grade}
                       </span>
                     </div>
@@ -180,10 +179,10 @@ export default function MapComponent({
           >
             <Popup>
               <div className="p-3 min-w-[200px] text-slate-800">
-                <span className="text-[11px] bg-brand-orange/15 text-brand-orange px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                <span className="text-[11px] bg-brand-orange/15 text-brand-orange px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
                   National Buyer / Offtaker
                 </span>
-                <h4 className="font-bold text-sm text-brand-navy mt-1.5">{buyerLocation.company_name}</h4>
+                <h4 className="font-semibold text-sm text-brand-navy mt-1.5">{buyerLocation.company_name}</h4>
                 <p className="text-xs text-slate-500 mt-0.5">Pabrik: {buyerLocation.name}</p>
               </div>
             </Popup>
@@ -213,7 +212,7 @@ export default function MapComponent({
                   <div className="p-2 text-xs text-slate-800">
                     <span className="font-semibold">{coop.name}</span>
                     <br />
-                    Mengirimkan <span className="font-bold text-brand-navy">{conn.allocated_quantity} ton</span> komoditas gotong royong.
+                    Mengirimkan <span className="font-semibold text-brand-navy">{conn.allocated_quantity.toLocaleString('id-ID')} ton</span> komoditas gotong royong.
                   </div>
                 </Popup>
               </Polyline>

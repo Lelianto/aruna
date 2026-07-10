@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { CooperativeWithCommodities, Insight } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
+import {
   Lightbulb, AlertCircle, ShieldAlert,
   Search, Info, Building2, MapPin, Award
 } from 'lucide-react';
@@ -45,10 +45,10 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
 
   if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'koperasi' && userData.role !== 'pemerintah')) {
     return (
-      <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
+      <div className="flex-1 flex items-center justify-center py-20 bg-[#f7f8fa]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy mx-auto mb-4"></div>
-          <p className="text-xs text-slate-500 font-bold">Memuat...</p>
+          <p className="text-xs text-slate-500 font-semibold">Memuat...</p>
         </div>
       </div>
     );
@@ -57,15 +57,15 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
   // Handle case where cooperative user has no associated cooperative data
   if (userData?.role === 'koperasi' && !userData.associatedId) {
     return (
-      <div className="page-shell flex-1 py-8 bg-[#faf9f6]">
+      <div className="page-shell flex-1 py-8 bg-[#f7f8fa]">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
+            <h1 className="text-3xl font-semibold text-slate-900 flex items-center gap-3">
               <Lightbulb className="h-8 w-8 text-brand-red" /> Analisis AI Insights
             </h1>
           </div>
           <Card className="border-slate-200/80 bg-white p-8 text-center">
-            <p className="text-sm font-bold text-slate-500">Akun Anda belum ditautkan ke data koperasi terdaftar. Silakan hubungi Admin ARUNA.</p>
+            <p className="text-sm font-semibold text-slate-500">Akun Anda belum ditautkan ke data koperasi terdaftar. Silakan hubungi Admin ARUNA.</p>
           </Card>
         </div>
       </div>
@@ -120,8 +120,8 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
     return allInsights.filter(ins => {
       const matchCoop = selectedCoopId === 'all' || ins.cooperative_id === selectedCoopId;
       const matchSeverity = selectedSeverity === 'all' || ins.severity === selectedSeverity;
-      const matchSearch = searchQuery === '' || 
-        ins.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      const matchSearch = searchQuery === '' ||
+        ins.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         ins.coopName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         ins.description.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -135,7 +135,7 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
 
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-black text-slate-900 flex items-center gap-3">
+          <h1 className="text-3xl font-semibold text-slate-900 flex items-center gap-3">
             <Lightbulb className="h-8 w-8 text-brand-orange" /> Rekomendasi & AI Insights
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -151,8 +151,8 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                 <ShieldAlert className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Diagnosis Kritis</span>
-                <span className="text-xl font-black text-brand-red">
+                <span className="text-[10px] text-slate-400 font-semibold block uppercase tracking-wider">Diagnosis Kritis</span>
+                <span className="text-xl font-semibold text-brand-red">
                   {severityCounts.Kritis} Temuan
                 </span>
               </div>
@@ -165,8 +165,8 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                 <AlertCircle className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Peringatan</span>
-                <span className="text-xl font-black text-brand-orange">
+                <span className="text-[10px] text-slate-400 font-semibold block uppercase tracking-wider">Peringatan</span>
+                <span className="text-xl font-semibold text-brand-orange">
                   {severityCounts.Peringatan} Isu
                 </span>
               </div>
@@ -179,8 +179,8 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                 <Info className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 font-bold block uppercase tracking-wider">Rekomendasi</span>
-                <span className="text-xl font-black text-blue-600">
+                <span className="text-[10px] text-slate-400 font-semibold block uppercase tracking-wider">Rekomendasi</span>
+                <span className="text-xl font-semibold text-blue-600">
                   {severityCounts.Info} Peluang
                 </span>
               </div>
@@ -194,7 +194,7 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
 
             {/* Search */}
             <div className="relative col-span-1 md:col-span-2">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Cari</label>
+              <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">Cari</label>
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                 <input
@@ -230,9 +230,9 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
 
         {/* Insights Results List */}
         <div className="space-y-4">
-          <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+          <div className="flex justify-between items-center text-xs font-semibold text-slate-500">
             <span>Diagnosis AI Insights</span>
-            <span className="text-brand-red font-bold">{filteredInsights.length} Insight Temuan</span>
+            <span className="text-brand-red font-semibold">{filteredInsights.length} Insight Temuan</span>
           </div>
 
           {filteredInsights.length === 0 ? (
@@ -248,24 +248,23 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                 return (
                   <Card
                     key={ins.id}
-                    className={`border-l-4 hover:shadow-md transition-shadow bg-white ${
-                      isCritical ? 'border-l-red-500 border-red-200' :
-                      isWarning ? 'border-l-amber-500 border-amber-200' :
-                      'border-l-blue-500 border-blue-200'
-                    }`}
+                    className={`border-l-4 hover:shadow-md transition-shadow bg-white ${isCritical ? 'border-l-red-500 border-red-200' :
+                        isWarning ? 'border-l-amber-500 border-amber-200' :
+                          'border-l-blue-500 border-blue-200'
+                      }`}
                   >
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start gap-2">
                         <div className="flex items-center gap-2">
                           <Building2 className="h-4 w-4 text-slate-400" />
-                          <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-wider truncate max-w-[200px]">
+                          <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider truncate max-w-[200px]">
                             {ins.coopName}
                           </span>
                         </div>
                         <Badge
                           variant={
                             isCritical ? 'destructive' :
-                            isWarning ? 'warning' : 'secondary'
+                              isWarning ? 'warning' : 'secondary'
                           }
                           className="text-[10px] px-2.5 py-0.5"
                         >
@@ -273,7 +272,7 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                         </Badge>
                       </div>
 
-                      <CardTitle className="text-base font-black text-slate-900 mt-2">
+                      <CardTitle className="text-base font-semibold text-slate-900 mt-2">
                         {ins.title}
                       </CardTitle>
 
@@ -291,7 +290,7 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
 
                       {/* Recommendation */}
                       <div className="space-y-1.5">
-                        <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+                        <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
                           Rekomendasi Tindakan:
                         </span>
                         <div className="p-3 bg-brand-cream/30 rounded-lg border border-brand-navy/5 flex items-start gap-2">
@@ -305,7 +304,7 @@ export default function InsightsClient({ cooperatives, initialCoopId }: Insights
                       <div className="flex justify-end pt-1">
                         <Link
                           href={`/scoring?coopId=${ins.cooperative_id}`}
-                          className="text-xs font-bold text-brand-red hover:underline flex items-center gap-1"
+                          className="text-xs font-semibold text-brand-red hover:underline flex items-center gap-1"
                         >
                           <Award className="h-4 w-4" /> Buka Skor Koperasi &rarr;
                         </Link>

@@ -46,7 +46,7 @@ function ProgressRing({ value, size = 64, strokeWidth = 6, colorClass = 'stroke-
         />
       </svg>
       <div className="absolute text-center">
-        <span className="text-[11px] font-black text-slate-800 leading-none">{value}</span>
+        <span className="text-[11px] font-semibold text-slate-800 leading-none">{value}</span>
       </div>
     </div>
   );
@@ -163,11 +163,11 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
             <div className="p-4 border-b border-slate-200/80 bg-white flex items-center justify-between">
               <button
                 onClick={() => setSelectedCoopId(undefined)}
-                className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors"
               >
                 <ArrowLeft className="h-4 w-4" /> Kembali ke Daftar
               </button>
-              <Badge variant="outline" className="border-brand-navy/15 font-bold text-[10px] text-brand-navy">
+              <Badge variant="outline" className="border-brand-navy/15 font-semibold text-[10px] text-brand-navy">
                 Detail Koperasi
               </Badge>
             </div>
@@ -177,10 +177,10 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
 
               {/* Title & Info */}
               <div className="space-y-2">
-                <span className="text-[10px] bg-brand-navy text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                <span className="text-[10px] bg-brand-navy text-white px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
                   {selectedCoop.province}
                 </span>
-                <h3 className="text-base font-black text-brand-navy leading-snug">
+                <h3 className="text-base font-semibold text-brand-navy leading-snug">
                   {selectedCoop.name}
                 </h3>
                 <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
@@ -192,10 +192,10 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
               {/* ARUNA Score Panel */}
               <div className="bg-white border rounded-xl p-3.5 space-y-3 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-extrabold text-brand-navy flex items-center gap-1">
+                  <span className="text-xs font-semibold text-brand-navy flex items-center gap-1">
                     <Award className="h-4.5 w-4.5 text-brand-red" /> Kesiapan ARUNA Score
                   </span>
-                  <span className={`font-black text-xs px-2.5 py-0.5 rounded text-white ${
+                  <span className={`font-semibold text-xs px-2.5 py-0.5 rounded text-white ${
                     selectedCoop.score?.grade === 'A' ? 'bg-emerald-500' :
                     selectedCoop.score?.grade === 'B' ? 'bg-blue-500' :
                     selectedCoop.score?.grade === 'C' ? 'bg-amber-500' : 'bg-red-500'
@@ -207,26 +207,26 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
                 <div className="grid grid-cols-4 gap-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-100 justify-items-center">
                   <div className="flex flex-col items-center">
                     <ProgressRing value={selectedCoop.score?.final_score || 0} size={44} strokeWidth={4.5} colorClass="stroke-brand-red" />
-                    <span className="text-[8px] font-bold text-slate-500 mt-1 uppercase">Final</span>
+                    <span className="text-[8px] font-semibold text-slate-500 mt-1 uppercase">Final</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <ProgressRing value={selectedCoop.score?.health_score || 0} size={44} strokeWidth={4.5} colorClass="stroke-emerald-500" />
-                    <span className="text-[8px] font-bold text-slate-500 mt-1 uppercase">Aktif</span>
+                    <span className="text-[8px] font-semibold text-slate-500 mt-1 uppercase">Aktif</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <ProgressRing value={selectedCoop.score?.growth_score || 0} size={44} strokeWidth={4.5} colorClass="stroke-blue-500" />
-                    <span className="text-[8px] font-bold text-slate-500 mt-1 uppercase">Keu</span>
+                    <span className="text-[8px] font-semibold text-slate-500 mt-1 uppercase">Keu</span>
                   </div>
                   <div className="flex flex-col items-center">
                     <ProgressRing value={selectedCoop.score?.supply_score || 0} size={44} strokeWidth={4.5} colorClass="stroke-brand-orange" />
-                    <span className="text-[8px] font-bold text-slate-500 mt-1 uppercase">Panen</span>
+                    <span className="text-[8px] font-semibold text-slate-500 mt-1 uppercase">Panen</span>
                   </div>
                 </div>
               </div>
 
               {/* Commodities & Stock List */}
               <div className="space-y-2">
-                <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">
+                <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">
                   Komoditas & Ketersediaan Stok
                 </span>
                 <div className="bg-white border rounded-xl divide-y shadow-sm">
@@ -235,13 +235,13 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
                       <div className="flex items-center gap-2">
                         <Compass className="h-4 w-4 text-brand-orange shrink-0" />
                         <div>
-                          <p className="font-bold text-slate-800">{com.name}</p>
+                          <p className="font-semibold text-slate-800">{com.name}</p>
                           <p className="text-[10px] text-slate-400">Cap: {com.monthly_capacity} t/bln</p>
                         </div>
                       </div>
                       <div className="text-right">
-                        <span className="font-black text-brand-red text-sm">{com.available_stock} {com.unit}</span>
-                        <span className="text-[9px] text-slate-400 block font-bold uppercase">Ready stok</span>
+                        <span className="font-semibold text-brand-red text-sm">{com.available_stock} {com.unit}</span>
+                        <span className="text-[9px] text-slate-400 block font-semibold uppercase">Ready stok</span>
                       </div>
                     </div>
                   ))}
@@ -251,7 +251,7 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
               {/* AI Insights alert callouts */}
               {selectedCoop.insights && selectedCoop.insights.length > 0 && (
                 <div className="space-y-2">
-                  <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">
+                  <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">
                     Temuan AI & Diagnosis Masalah
                   </span>
                   <div className="space-y-2">
@@ -270,9 +270,9 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
                           'text-blue-500'
                         }`} />
                         <div>
-                          <p className="font-bold text-slate-800">{ins.title}</p>
+                          <p className="font-semibold text-slate-800">{ins.title}</p>
                           <p className="text-slate-600 text-[11px] mt-0.5">{ins.description}</p>
-                          <p className="text-brand-navy font-bold mt-1 text-[11px]">Rekomendasi: {ins.recommendation}</p>
+                          <p className="text-brand-navy font-semibold mt-1 text-[11px]">Rekomendasi: {ins.recommendation}</p>
                         </div>
                       </div>
                     ))}
@@ -283,7 +283,7 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
               {/* Penasihat Pintar AI */}
               <div className="bg-brand-cream/55 border border-brand-navy/15 rounded-xl p-3.5 space-y-3 shadow-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] bg-brand-navy text-white px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider block">
+                  <span className="text-[10px] bg-brand-navy text-white px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider block">
                     Penasihat Pintar AI
                   </span>
                   {loadingGemini[selectedCoop.id] && (
@@ -304,7 +304,7 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
                      </p>
 
                      <div className="space-y-1">
-                       <span className="text-[9px] font-black text-slate-400 block uppercase">Temuan Kendala</span>
+                       <span className="text-[9px] font-semibold text-slate-400 block uppercase">Temuan Kendala</span>
                        <ul className="list-disc pl-4 space-y-0.5 text-slate-600 text-[11px] leading-relaxed">
                          {geminiInsights[selectedCoop.id].analysis.map((pt, idx) => (
                            <li key={idx}>{pt}</li>
@@ -313,8 +313,8 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
                      </div>
 
                      <div className="space-y-1">
-                       <span className="text-[9px] font-black text-slate-400 block uppercase">Rekomendasi Gotong Royong</span>
-                       <ul className="list-disc pl-4 space-y-0.5 text-brand-navy text-[11px] font-extrabold leading-relaxed">
+                       <span className="text-[9px] font-semibold text-slate-400 block uppercase">Rekomendasi Gotong Royong</span>
+                       <ul className="list-disc pl-4 space-y-0.5 text-brand-navy text-[11px] font-semibold leading-relaxed">
                          {geminiInsights[selectedCoop.id].recommendations.map((rec, idx) => (
                            <li key={idx}>{rec}</li>
                          ))}
@@ -329,12 +329,12 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
               {/* Deep Analysis Navigation Links */}
               <div className="pt-2 flex gap-2">
                 <Link href={`/scoring?coopId=${selectedCoop.id}`} className="flex-1">
-                  <Button size="sm" variant="outline" className="w-full text-xs font-bold border-brand-navy/15 hover:bg-brand-navy hover:text-white">
+                  <Button size="sm" variant="outline" className="w-full text-xs font-semibold border-brand-navy/15 hover:bg-brand-navy hover:text-white">
                     Peringkat Nasional
                   </Button>
                 </Link>
                 <Link href="/marketplace" className="flex-1">
-                  <Button size="sm" className="w-full text-xs font-bold bg-brand-red hover:bg-brand-red/90 text-white">
+                  <Button size="sm" className="w-full text-xs font-semibold bg-brand-red hover:bg-brand-red/90 text-white">
                     Proses Transaksi
                   </Button>
                 </Link>
@@ -348,7 +348,7 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
           <>
             {/* Filters Box */}
             <div className="p-4 border-b border-slate-100 space-y-3">
-              <h2 className="text-base font-extrabold text-brand-navy flex items-center gap-1.5">
+              <h2 className="text-base font-semibold text-brand-navy flex items-center gap-1.5">
                 <Layers className="h-4.5 w-4.5 text-brand-red" /> Sebaran Koperasi
               </h2>
 
@@ -391,7 +391,7 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
 
             {/* Scrollable Cooperatives List */}
             <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-slate-50/50">
-              <div className="flex justify-between items-center text-xs font-bold text-slate-500 px-1">
+              <div className="flex justify-between items-center text-xs font-semibold text-slate-500 px-1">
                 <span>Daftar Koperasi</span>
                 <span className="text-brand-red">{filteredCooperatives.length} Hasil</span>
               </div>
@@ -417,7 +417,7 @@ export default function CooperativeExplorerPanel({ cooperatives, provinces, comm
                     >
                       <CardContent className="p-3 space-y-1.5">
                         <div className="flex items-start justify-between gap-2">
-                          <h4 className="font-bold text-sm text-slate-800 leading-snug">
+                          <h4 className="font-semibold text-sm text-slate-800 leading-snug">
                             {coop.name}
                           </h4>
                           <Badge

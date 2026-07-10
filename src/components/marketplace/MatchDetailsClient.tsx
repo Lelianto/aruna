@@ -7,9 +7,9 @@ import { Badge } from '@/components/ui/badge';
 import MapWrapper from '@/components/map/MapWrapper';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  ArrowLeft, ArrowRight, Building2, MapPin, Compass, 
-  CheckCircle2, AlertTriangle, Award, Lightbulb, 
+import {
+  ArrowLeft, ArrowRight, Building2, MapPin, Compass,
+  CheckCircle2, AlertTriangle, Award, Lightbulb,
   FileText, Check, Plus, Trash2, Users, TrendingUp, Boxes, X
 } from 'lucide-react';
 import Link from 'next/link';
@@ -174,7 +174,7 @@ function ProgressRing({ value, size = 64, strokeWidth = 6, colorClass = 'stroke-
         />
       </svg>
       <div className="absolute text-center">
-        <span className="text-[11px] font-black text-slate-800 leading-none">{value}</span>
+        <span className="text-[11px] font-semibold text-slate-800 leading-none">{value}</span>
       </div>
     </div>
   );
@@ -347,21 +347,21 @@ export default function MatchDetailsClient({
   }, [selectedCoopId, candidateCoops]);
 
   // Pricing helper (Rp 10.500 / kg standard demo pricing)
-  const UNIT_PRICE = 10500; 
+  const UNIT_PRICE = 10500;
 
   return (
     <div className="flex-1 flex flex-col md:flex-row h-[calc(100dvh-68px)] overflow-hidden bg-slate-50">
-      
+
       {/* Sidebar Panel - Left Column */}
       <div className="w-full md:w-[480px] lg:w-[520px] border-r border-slate-200 bg-white flex flex-col h-[50%] md:h-full overflow-y-auto shadow-sm">
         <div className="p-5 space-y-5">
-          
+
           {/* Back Button & Header */}
           <div className="flex items-center justify-between">
-            <Link href="/marketplace" className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors">
+            <Link href="/marketplace" className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 transition-colors">
               <ArrowLeft className="h-4 w-4" /> Kembali
             </Link>
-            <span className="text-[10px] bg-brand-cream border border-brand-navy/10 px-2.5 py-0.5 rounded-full font-extrabold text-brand-navy uppercase tracking-wider">
+            <span className="text-[10px] bg-brand-cream border border-brand-navy/10 px-2.5 py-0.5 rounded-full font-semibold text-brand-navy uppercase tracking-wider">
               Command Center
             </span>
           </div>
@@ -373,8 +373,8 @@ export default function MatchDetailsClient({
                 <Building2 className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-[10px] text-brand-orange font-bold uppercase tracking-wider block">Buyer Nasional (Offtaker)</span>
-                <h2 className="text-base font-black text-brand-navy leading-tight">
+                <span className="text-[10px] text-brand-orange font-semibold uppercase tracking-wider block">Buyer Nasional (Offtaker)</span>
+                <h2 className="text-base font-semibold text-brand-navy leading-tight">
                   {request.buyer.company_name}
                 </h2>
               </div>
@@ -384,7 +384,7 @@ export default function MatchDetailsClient({
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-brand-red/70 shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold text-slate-700 block">Alamat Pabrik Penerima:</span>
+                  <span className="font-semibold text-slate-700 block">Alamat Pabrik Penerima:</span>
                   <span className="text-slate-600 block leading-relaxed">{buyerDetailsMap[request.buyer_id]?.address || `${request.buyer.city}, Indonesia`}</span>
                 </div>
               </div>
@@ -398,7 +398,7 @@ export default function MatchDetailsClient({
           {/* Commodity Demand Details */}
           <div className="p-4 bg-brand-cream/35 border border-brand-navy/5 rounded-xl space-y-2.5">
             <div className="flex justify-between items-center">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Kebutuhan Utama</span>
+              <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Kebutuhan Utama</span>
               <Badge variant="accent" className="text-[10px] px-2 py-0">
                 Gotong Royong
               </Badge>
@@ -406,14 +406,14 @@ export default function MatchDetailsClient({
             <div className="flex justify-between items-end">
               <div className="flex items-center gap-2">
                 <Compass className="h-6 w-6 text-brand-orange" />
-                <span className="text-lg font-black text-brand-navy">
+                <span className="text-lg font-semibold text-brand-navy">
                   {request.commodity_name}
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-slate-500 block font-bold uppercase">Volume Target</span>
-                <span className="text-xl font-black text-brand-red">
-                  {request.quantity} {request.unit}
+                <span className="text-[10px] text-slate-500 block font-semibold uppercase">Volume Target</span>
+                <span className="text-xl font-semibold text-brand-red">
+                  {request.quantity.toLocaleString('id-ID')} {request.unit}
                 </span>
               </div>
             </div>
@@ -422,17 +422,17 @@ export default function MatchDetailsClient({
           {/* Aggregated Engine Result Status */}
           <div className="space-y-3">
             <div className="flex justify-between items-baseline">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Status Pemenuhan</span>
-              <span className="text-xs text-slate-400">Target: {request.quantity} ton</span>
+              <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Status Pemenuhan</span>
+              <span className="text-xs text-slate-400">Target: {request.quantity.toLocaleString('id-ID')} ton</span>
             </div>
 
             {isFullySatisfied ? (
               <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl flex gap-3 items-start shadow-sm">
                 <CheckCircle2 className="h-5 w-5 text-emerald-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 className="font-extrabold text-sm text-emerald-950">Target Terpenuhi</h4>
+                  <h4 className="font-semibold text-sm text-emerald-950">Target Terpenuhi</h4>
                   <p className="text-xs text-emerald-700 leading-relaxed mt-0.5">
-                    Sebanyak <span className="font-bold">{activeMatches.length} koperasi</span> berkolaborasi memenuhi {totalAllocated} ton dari total {request.quantity} ton.
+                    Sebanyak <span className="font-semibold">{activeMatches.length} koperasi</span> berkolaborasi memenuhi {totalAllocated.toLocaleString('id-ID')} ton dari total {request.quantity.toLocaleString('id-ID')} ton.
                   </p>
                 </div>
               </div>
@@ -440,9 +440,9 @@ export default function MatchDetailsClient({
               <div className="p-4 bg-amber-50/70 border border-amber-200 text-amber-800 rounded-xl flex gap-3 items-start shadow-sm">
                 <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 className="font-extrabold text-sm text-amber-950">Terpenuhi Sebagian</h4>
+                  <h4 className="font-semibold text-sm text-amber-950">Terpenuhi Sebagian</h4>
                   <p className="text-xs text-amber-700 leading-relaxed mt-0.5">
-                    Stok terkumpul baru <span className="font-bold">{totalAllocated} ton</span> ({percentFulfilled}%). Naikkan alokasi atau tambah koperasi pendukung di bawah.
+                    Stok terkumpul baru <span className="font-semibold">{totalAllocated.toLocaleString('id-ID')} ton</span> ({percentFulfilled}%). Naikkan alokasi atau tambah koperasi pendukung di bawah.
                   </p>
                 </div>
               </div>
@@ -450,8 +450,8 @@ export default function MatchDetailsClient({
 
             {/* Dynamic Progress Bar */}
             <div className="space-y-1.5 pt-1">
-              <div className="flex justify-between text-xs font-bold text-brand-navy">
-                <span>Total Agregasi: {totalAllocated} {request.unit}</span>
+              <div className="flex justify-between text-xs font-semibold text-brand-navy">
+                <span>Total Agregasi: {totalAllocated.toLocaleString('id-ID')} {request.unit}</span>
                 <span>{percentFulfilled}%</span>
               </div>
               <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
@@ -465,7 +465,7 @@ export default function MatchDetailsClient({
 
           {/* ACTIVE GOTONG ROYONG CONTRIBUTORS */}
           <div className="space-y-3">
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
+            <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
               Koperasi Pengirim Aktif ({activeMatches.length})
             </span>
 
@@ -482,26 +482,24 @@ export default function MatchDetailsClient({
                   const grade = item.score?.grade || 'D';
 
                   return (
-                    <div 
+                    <div
                       key={coop.id}
                       onClick={() => handleInspectCoop(coop.id)}
-                      className={`cursor-pointer p-3.5 bg-white border rounded-xl transition-all duration-200 ${
-                        isSelected 
-                          ? 'border-brand-navy ring-1 ring-brand-navy/20 shadow-md bg-brand-cream/5'
-                          : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
-                      }`}
+                      className={`cursor-pointer p-3.5 bg-white border rounded-xl transition-all duration-200 ${isSelected
+                        ? 'border-brand-navy ring-1 ring-brand-navy/20 shadow-md bg-brand-cream/5'
+                        : 'border-slate-200 hover:border-slate-300 hover:shadow-sm'
+                        }`}
                     >
                       <div className="flex justify-between items-start">
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className={`inline-block font-extrabold text-[10px] px-1.5 py-0.5 rounded text-white ${
-                              grade === 'A' ? 'bg-emerald-500' :
+                            <span className={`inline-block font-semibold text-[10px] px-1.5 py-0.5 rounded text-white ${grade === 'A' ? 'bg-emerald-500' :
                               grade === 'B' ? 'bg-blue-500' :
-                              grade === 'C' ? 'bg-amber-500' : 'bg-red-500'
-                            }`}>
+                                grade === 'C' ? 'bg-amber-500' : 'bg-red-500'
+                              }`}>
                               {grade}
                             </span>
-                            <span className="font-bold text-sm text-slate-800 hover:text-brand-red transition-colors">
+                            <span className="font-semibold text-sm text-slate-800 hover:text-brand-red transition-colors">
                               {coop.name}
                             </span>
                           </div>
@@ -511,12 +509,12 @@ export default function MatchDetailsClient({
                         </div>
 
                         <div className="text-right">
-                          <span className="text-[10px] font-bold text-slate-500 block uppercase">Alokasi Pasok</span>
-                          <span className="font-black text-base text-brand-red">
-                            {allocatedVal} {request.unit}
+                          <span className="text-[10px] font-semibold text-slate-500 block uppercase">Alokasi Pasok</span>
+                          <span className="font-semibold text-base text-brand-red">
+                            {allocatedVal.toLocaleString('id-ID')} {request.unit}
                           </span>
                           <span className="text-[10px] text-slate-400 block">
-                            Maks: {item.commodity.available_stock} t
+                            Maks: {item.commodity.available_stock.toLocaleString('id-ID')} t
                           </span>
                         </div>
                       </div>
@@ -524,13 +522,13 @@ export default function MatchDetailsClient({
                       {/* Accordion Inspector Panel (Only displayed when selected/clicked) */}
                       {isSelected && (
                         <div className="mt-4 pt-4 border-t border-slate-100 space-y-4 animate-fade-slide-up" onClick={(e) => e.stopPropagation()}>
-                          
+
                           {/* Warehouse Origin details */}
                           <div className="bg-slate-50 border border-slate-200/60 p-3 rounded-lg text-xs space-y-2">
                             <div className="flex items-start gap-2">
                               <MapPin className="h-4 w-4 text-brand-orange shrink-0 mt-0.5" />
                               <div>
-                                <span className="font-bold text-slate-700 block">Gudang Pengirim (Origin):</span>
+                                <span className="font-semibold text-slate-700 block">Gudang Pengirim (Origin):</span>
                                 <span className="text-slate-600 block leading-relaxed">{coopDetailsMap[coop.id]?.address || `${coop.city}, ${coop.province}`}</span>
                               </div>
                             </div>
@@ -542,25 +540,25 @@ export default function MatchDetailsClient({
 
                           {/* 4 Score Gauges */}
                           <div className="space-y-1.5">
-                            <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">
+                            <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">
                               ARUNA Kesiapan Skor (Detail)
                             </span>
                             <div className="grid grid-cols-4 gap-2 bg-slate-50 p-2.5 rounded-lg border">
                               <div className="flex flex-col items-center">
                                 <ProgressRing value={item.score?.final_score || 0} size={48} strokeWidth={5} colorClass="stroke-brand-red" />
-                                <span className="text-[9px] font-bold text-slate-500 mt-1 text-center">FINAL</span>
+                                <span className="text-[9px] font-semibold text-slate-500 mt-1 text-center">FINAL</span>
                               </div>
                               <div className="flex flex-col items-center">
                                 <ProgressRing value={item.score?.health_score || 0} size={48} strokeWidth={5} colorClass="stroke-emerald-500" />
-                                <span className="text-[9px] font-bold text-slate-500 mt-1 text-center">KEAKTIFAN</span>
+                                <span className="text-[9px] font-semibold text-slate-500 mt-1 text-center">KEAKTIFAN</span>
                               </div>
                               <div className="flex flex-col items-center">
                                 <ProgressRing value={item.score?.growth_score || 0} size={48} strokeWidth={5} colorClass="stroke-blue-500" />
-                                <span className="text-[9px] font-bold text-slate-500 mt-1 text-center">KEUANGAN</span>
+                                <span className="text-[9px] font-semibold text-slate-500 mt-1 text-center">KEUANGAN</span>
                               </div>
                               <div className="flex flex-col items-center">
                                 <ProgressRing value={item.score?.supply_score || 0} size={48} strokeWidth={5} colorClass="stroke-brand-orange" />
-                                <span className="text-[9px] font-bold text-slate-500 mt-1 text-center">PASOKAN</span>
+                                <span className="text-[9px] font-semibold text-slate-500 mt-1 text-center">PASOKAN</span>
                               </div>
                             </div>
                           </div>
@@ -568,24 +566,24 @@ export default function MatchDetailsClient({
                           {/* Dynamic slider control for allocation */}
                           <div className="space-y-2">
                             <div className="flex justify-between items-center text-xs">
-                              <span className="font-bold text-brand-navy flex items-center gap-1">
+                              <span className="font-semibold text-brand-navy flex items-center gap-1">
                                 <Boxes className="h-4 w-4 text-brand-orange" /> Atur Jumlah Pengiriman:
                               </span>
                               <div className="flex items-center gap-1.5">
-                                <input 
+                                <input
                                   type="number"
                                   value={allocatedVal}
                                   onChange={(e) => handleUpdateAllocation(coop.id, parseFloat(e.target.value) || 0, item.commodity.available_stock)}
-                                  className="w-16 p-1 border rounded text-right font-black text-slate-800 text-xs focus:ring-1 focus:ring-brand-navy"
+                                  className="w-16 p-1 border rounded text-right font-semibold text-slate-800 text-xs focus:ring-1 focus:ring-brand-navy"
                                   min={0}
                                   max={item.commodity.available_stock}
                                   step={0.1}
                                 />
-                                <span className="font-bold text-slate-500 text-xs">Ton</span>
+                                <span className="font-semibold text-slate-500 text-xs">Ton</span>
                               </div>
                             </div>
-                            
-                            <input 
+
+                            <input
                               type="range"
                               value={allocatedVal}
                               onChange={(e) => handleUpdateAllocation(coop.id, parseFloat(e.target.value) || 0, item.commodity.available_stock)}
@@ -594,38 +592,36 @@ export default function MatchDetailsClient({
                               max={item.commodity.available_stock}
                               step={0.1}
                             />
-                            
-                            <div className="flex justify-between text-[10px] text-slate-400 font-bold">
+
+                            <div className="flex justify-between text-[10px] text-slate-400 font-semibold">
                               <span>0 Ton</span>
-                              <span>Kapasitas Stok: {item.commodity.available_stock} Ton</span>
+                              <span>Kapasitas Stok: {item.commodity.available_stock.toLocaleString('id-ID')} Ton</span>
                             </div>
                           </div>
 
                           {/* AI Diagnosis Insights */}
                           {item.insights.length > 0 && (
                             <div className="space-y-1.5">
-                              <span className="text-[10px] text-slate-400 uppercase font-black tracking-wider block">
+                              <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider block">
                                 AI Rekomendasi & Temuan Koperasi
                               </span>
                               <div className="space-y-1.5">
                                 {item.insights.map(ins => (
-                                  <div 
+                                  <div
                                     key={ins.id}
-                                    className={`p-2.5 rounded-lg border text-xs leading-relaxed flex gap-2 items-start ${
-                                      ins.severity === 'Kritis' ? 'bg-red-50/50 border-red-200 text-red-800' :
+                                    className={`p-2.5 rounded-lg border text-xs leading-relaxed flex gap-2 items-start ${ins.severity === 'Kritis' ? 'bg-red-50/50 border-red-200 text-red-800' :
                                       ins.severity === 'Peringatan' ? 'bg-amber-50/50 border-amber-200 text-amber-800' :
-                                      'bg-blue-50/50 border-blue-200 text-blue-800'
-                                    }`}
+                                        'bg-blue-50/50 border-blue-200 text-blue-800'
+                                      }`}
                                   >
-                                    <Lightbulb className={`h-4 w-4 shrink-0 mt-0.5 ${
-                                      ins.severity === 'Kritis' ? 'text-brand-red' :
+                                    <Lightbulb className={`h-4 w-4 shrink-0 mt-0.5 ${ins.severity === 'Kritis' ? 'text-brand-red' :
                                       ins.severity === 'Peringatan' ? 'text-brand-orange' :
-                                      'text-blue-500'
-                                    }`} />
+                                        'text-blue-500'
+                                      }`} />
                                     <div>
-                                      <p className="font-bold text-slate-800">{ins.title}</p>
+                                      <p className="font-semibold text-slate-800">{ins.title}</p>
                                       <p className="text-slate-600 text-[11px] mt-0.5">{ins.description}</p>
-                                      <p className="text-brand-navy text-[11px] font-bold mt-1">Rekomendasi: {ins.recommendation}</p>
+                                      <p className="text-brand-navy text-[11px] font-semibold mt-1">Rekomendasi: {ins.recommendation}</p>
                                     </div>
                                   </div>
                                 ))}
@@ -636,7 +632,7 @@ export default function MatchDetailsClient({
                           {/* Gemini AI Smart Advisor */}
                           <div className="bg-brand-cream/55 border border-brand-navy/15 rounded-xl p-3.5 space-y-3 shadow-xs">
                             <div className="flex items-center justify-between">
-                              <span className="text-[10px] bg-brand-navy text-white px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider block">
+                              <span className="text-[10px] bg-brand-navy text-white px-2.5 py-0.5 rounded-full font-semibold uppercase tracking-wider block">
                                 Gemini AI Smart Advisor
                               </span>
                               {loadingGemini[coop.id] && (
@@ -655,9 +651,9 @@ export default function MatchDetailsClient({
                                 <p className="font-semibold text-slate-800 italic leading-relaxed">
                                   &ldquo;{geminiInsights[coop.id].summary}&rdquo;
                                 </p>
-                                
+
                                 <div className="space-y-1">
-                                  <span className="text-[9px] font-black text-slate-400 block uppercase">Temuan Kendala</span>
+                                  <span className="text-[9px] font-semibold text-slate-400 block uppercase">Temuan Kendala</span>
                                   <ul className="list-disc pl-4 space-y-0.5 text-slate-600 text-[11px] leading-relaxed">
                                     {geminiInsights[coop.id].analysis.map((pt, idx) => (
                                       <li key={idx}>{pt}</li>
@@ -666,8 +662,8 @@ export default function MatchDetailsClient({
                                 </div>
 
                                 <div className="space-y-1">
-                                  <span className="text-[9px] font-black text-slate-400 block uppercase">Rekomendasi Gotong Royong</span>
-                                  <ul className="list-disc pl-4 space-y-0.5 text-brand-navy text-[11px] font-extrabold leading-relaxed">
+                                  <span className="text-[9px] font-semibold text-slate-400 block uppercase">Rekomendasi Gotong Royong</span>
+                                  <ul className="list-disc pl-4 space-y-0.5 text-brand-navy text-[11px] font-semibold leading-relaxed">
                                     {geminiInsights[coop.id].recommendations.map((rec, idx) => (
                                       <li key={idx}>{rec}</li>
                                     ))}
@@ -681,8 +677,8 @@ export default function MatchDetailsClient({
 
                           {/* Remove allocation option */}
                           <div className="flex justify-end">
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               className="text-xs gap-1 border-red-200 hover:bg-red-50 hover:text-brand-red"
                               onClick={() => handleUpdateAllocation(coop.id, 0, item.commodity.available_stock)}
@@ -703,7 +699,7 @@ export default function MatchDetailsClient({
           {/* INACTIVE GOTONG ROYONG CANDIDATES */}
           {inactiveMatches.length > 0 && (
             <div className="space-y-3 pt-2">
-              <span className="text-xs text-slate-500 font-bold uppercase tracking-wider block">
+              <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
                 Koperasi Mitra Alternatif Tersedia ({inactiveMatches.length})
               </span>
               <div className="grid grid-cols-1 gap-2">
@@ -711,28 +707,27 @@ export default function MatchDetailsClient({
                   const coop = item.cooperative;
                   const grade = item.score?.grade || 'D';
                   return (
-                    <div 
+                    <div
                       key={coop.id}
                       className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:border-slate-300 transition-colors flex justify-between items-center"
                     >
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className={`inline-block font-extrabold text-[9px] px-1 py-0.5 rounded text-white ${
-                            grade === 'A' ? 'bg-emerald-500' :
+                          <span className={`inline-block font-semibold text-[9px] px-1 py-0.5 rounded text-white ${grade === 'A' ? 'bg-emerald-500' :
                             grade === 'B' ? 'bg-blue-500' :
-                            grade === 'C' ? 'bg-amber-500' : 'bg-red-500'
-                          }`}>
+                              grade === 'C' ? 'bg-amber-500' : 'bg-red-500'
+                            }`}>
                             {grade}
                           </span>
-                          <span className="font-bold text-xs text-slate-700">
+                          <span className="font-semibold text-xs text-slate-700">
                             {coop.name}
                           </span>
                         </div>
                         <span className="text-[11px] text-slate-400 block mt-0.5">
-                          {coop.city}, {coop.province} (Stok: {item.commodity.available_stock} Ton)
+                          {coop.city}, {coop.province} (Stok: {item.commodity.available_stock.toLocaleString('id-ID')} Ton)
                         </span>
                       </div>
-                      <Button 
+                      <Button
                         size="sm"
                         variant="outline"
                         className="gap-1 text-xs border-brand-navy/20 hover:bg-brand-navy hover:text-white"
@@ -755,16 +750,15 @@ export default function MatchDetailsClient({
             {isSpkReleased ? (
               <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80 shadow-xs animate-fade-slide-up">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">Pelacakan & Pembayaran</span>
-                  <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                    transactionStep === 1 ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                  <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider block">Pelacakan & Pembayaran</span>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${transactionStep === 1 ? 'bg-blue-50 text-blue-700 border border-blue-200' :
                     transactionStep === 2 ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                    transactionStep === 3 ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
-                    'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                  }`}>
+                      transactionStep === 3 ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
+                        'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    }`}>
                     {transactionStep === 1 ? 'SPK Diterbitkan' :
-                     transactionStep === 2 ? 'Dalam Perjalanan' :
-                     transactionStep === 3 ? 'Verifikasi Kargo' : 'Selesai & Lunas'}
+                      transactionStep === 2 ? 'Dalam Perjalanan' :
+                        transactionStep === 3 ? 'Verifikasi Kargo' : 'Selesai & Lunas'}
                   </span>
                 </div>
 
@@ -772,7 +766,7 @@ export default function MatchDetailsClient({
                 <div className="relative flex justify-between items-center py-2 px-1">
                   <div className="absolute top-[21px] left-3 right-3 h-0.5 bg-slate-200 z-0"></div>
                   <div className="absolute top-[21px] left-3 h-0.5 bg-brand-navy transition-all duration-500 z-0" style={{ width: `${(transactionStep - 1) * 33.33}%` }}></div>
-                  
+
                   {[
                     { label: 'SPK', step: 1 },
                     { label: 'Kirim', step: 2 },
@@ -780,21 +774,20 @@ export default function MatchDetailsClient({
                     { label: 'Cair', step: 4 }
                   ].map((s) => (
                     <div key={s.step} className="flex flex-col items-center z-10">
-                      <div className={`h-7 w-7 rounded-full flex items-center justify-center font-black text-[10px] transition-all duration-300 border ${
-                        transactionStep >= s.step
-                          ? 'bg-brand-navy text-white border-brand-navy shadow-sm'
-                          : 'bg-white text-slate-400 border-slate-200'
-                      }`}>
+                      <div className={`h-7 w-7 rounded-full flex items-center justify-center font-semibold text-[10px] transition-all duration-300 border ${transactionStep >= s.step
+                        ? 'bg-brand-navy text-white border-brand-navy shadow-sm'
+                        : 'bg-white text-slate-400 border-slate-200'
+                        }`}>
                         {transactionStep > s.step ? <Check className="h-3 w-3" /> : s.step}
                       </div>
-                      <span className="text-[9px] font-bold mt-1 text-slate-500">{s.label}</span>
+                      <span className="text-[9px] font-semibold mt-1 text-slate-500">{s.label}</span>
                     </div>
                   ))}
                 </div>
 
                 {/* Step Info Callout */}
                 <div className="p-3 bg-white border border-slate-100 rounded-lg text-xs leading-relaxed space-y-1.5">
-                  <p className="font-bold text-slate-800 flex items-center gap-1.5">
+                  <p className="font-semibold text-slate-800 flex items-center gap-1.5">
                     {transactionStep === 1 && <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>}
                     {transactionStep === 2 && <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></span>}
                     {transactionStep === 3 && <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse"></span>}
@@ -815,8 +808,8 @@ export default function MatchDetailsClient({
                 {/* Simulator controls */}
                 <div className="flex gap-2">
                   {transactionStep < 4 ? (
-                    <Button 
-                      className="flex-1 bg-brand-red hover:bg-brand-red/90 text-white font-bold text-xs py-2 gap-1.5 justify-center"
+                    <Button
+                      className="flex-1 bg-brand-red hover:bg-brand-red/90 text-white font-semibold text-xs py-2 gap-1.5 justify-center"
                       onClick={() => {
                         setIsSimulating(true);
                         setTimeout(() => {
@@ -830,21 +823,21 @@ export default function MatchDetailsClient({
                     >
                       {isSimulating ? 'Memproses Simulasi...' : (
                         transactionStep === 1 ? 'Simulasikan Pengiriman' :
-                        transactionStep === 2 ? 'Simulasikan Verifikasi' : 'Selesaikan Transaksi & Cairkan'
+                          transactionStep === 2 ? 'Simulasikan Verifikasi' : 'Selesaikan Transaksi & Cairkan'
                       )}
                       <ArrowRight className="h-3.5 w-3.5 text-brand-cream" />
                     </Button>
                   ) : (
                     <>
                       <Button
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 gap-1.5 justify-center"
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs py-2 gap-1.5 justify-center"
                         onClick={() => setIsReceiptOpen(true)}
                       >
                         <FileText className="h-4 w-4" /> Kwitansi Resmi
                       </Button>
                       <Button
                         variant="outline"
-                        className="text-xs font-bold py-2 border-slate-200"
+                        className="text-xs font-semibold py-2 border-slate-200"
                         onClick={() => {
                           setTransactionStep(1);
                           setIsSpkReleased(false);
@@ -858,7 +851,7 @@ export default function MatchDetailsClient({
                   )}
                 </div>
 
-                <Button 
+                <Button
                   variant="outline"
                   className="w-full text-xs border-slate-200 flex items-center justify-center gap-1 py-2 font-semibold text-slate-700 hover:bg-slate-50"
                   onClick={() => setIsSpkOpen(true)}
@@ -867,10 +860,10 @@ export default function MatchDetailsClient({
                 </Button>
               </div>
             ) : (
-              <Button 
+              <Button
                 onClick={() => setIsSpkOpen(true)}
                 disabled={activeMatches.length === 0}
-                className="w-full bg-brand-navy hover:bg-brand-navy/90 text-white font-black text-sm flex items-center justify-center gap-2 py-3 rounded-xl shadow-md transition-all duration-200 disabled:opacity-50"
+                className="w-full bg-brand-navy hover:bg-brand-navy/90 text-white font-semibold text-sm flex items-center justify-center gap-2 py-3 rounded-xl shadow-md transition-all duration-200 disabled:opacity-50"
               >
                 <FileText className="h-4.5 w-4.5 text-brand-cream" />
                 Konfirmasi & Rilis SPK Gotong Royong
@@ -902,21 +895,21 @@ export default function MatchDetailsClient({
         {/* Selected cooperative float tooltip */}
         {selectedCoopDetails && (
           <div className="absolute top-4 left-4 z-[999] bg-white border border-slate-200/80 rounded-xl p-3 shadow-lg max-w-sm hidden sm:block">
-            <span className="text-[9px] uppercase font-extrabold text-brand-orange block tracking-wider">Koperasi Fokus Peta</span>
-            <h4 className="font-bold text-sm text-brand-navy mt-1">{selectedCoopDetails.cooperative.name}</h4>
+            <span className="text-[9px] uppercase font-semibold text-brand-orange block tracking-wider">Koperasi Fokus Peta</span>
+            <h4 className="font-semibold text-sm text-brand-navy mt-1">{selectedCoopDetails.cooperative.name}</h4>
             <p className="text-xs text-slate-500 mt-0.5">{selectedCoopDetails.cooperative.city}, {selectedCoopDetails.cooperative.province}</p>
             <div className="flex items-center gap-4 mt-2 pt-2 border-t text-xs">
               <div>
                 <span className="text-slate-400 block text-[9px]">ALOKASI</span>
-                <span className="font-black text-brand-red">{allocations[selectedCoopId || ''] || 0} Ton</span>
+                <span className="font-semibold text-brand-red">{(allocations[selectedCoopId || ''] || 0).toLocaleString('id-ID')} Ton</span>
               </div>
               <div>
                 <span className="text-slate-400 block text-[9px]">GRADE</span>
-                <span className="font-black text-emerald-600">{selectedCoopDetails.score?.grade} ({selectedCoopDetails.score?.final_score})</span>
+                <span className="font-semibold text-emerald-600">{selectedCoopDetails.score?.grade} ({selectedCoopDetails.score?.final_score})</span>
               </div>
-              <button 
+              <button
                 onClick={() => setSelectedCoopId(undefined)}
-                className="ml-auto text-[10px] font-bold text-slate-400 hover:text-slate-700 hover:underline"
+                className="ml-auto text-[10px] font-semibold text-slate-400 hover:text-slate-700 hover:underline"
               >
                 Reset Focus
               </button>
@@ -929,16 +922,16 @@ export default function MatchDetailsClient({
       {isSpkOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
-            
+
             {/* Modal Header */}
             <div className="p-4 bg-brand-navy text-white flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-brand-yellow" />
-                <h3 className="font-black text-sm uppercase tracking-wider">
+                <h3 className="font-semibold text-sm uppercase tracking-wider">
                   Draft Surat Perintah Kerja (SPK) Gotong Royong
                 </h3>
               </div>
-              <button 
+              <button
                 onClick={() => setIsSpkOpen(false)}
                 className="text-white/80 hover:text-white"
               >
@@ -948,11 +941,11 @@ export default function MatchDetailsClient({
 
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto space-y-6 text-sm text-slate-700 leading-relaxed font-sans">
-              
+
               {/* Kop Surat */}
               <div className="text-center space-y-1 border-b-2 border-slate-800 pb-4">
-                <h2 className="font-black text-base text-slate-900 tracking-wider">ALIANSI KOPERASI USAHA RAKYAT NUSANTARA (ARUNA)</h2>
-                <p className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
+                <h2 className="font-semibold text-base text-slate-900 tracking-wider">ALIANSI KOPERASI USAHA RAKYAT NUSANTARA (ARUNA)</h2>
+                <p className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider">
                   Pusat Agregasi & Rantai Pasok Digital Desa - Digital Cooperatives Expo 2026
                 </p>
                 <p className="text-[10px] text-slate-400">Gedung Expo Kemakmuran Rakyat, Jakarta, Indonesia</p>
@@ -960,8 +953,8 @@ export default function MatchDetailsClient({
 
               {/* Judul SPK */}
               <div className="text-center space-y-1">
-                <h4 className="font-black text-slate-900 underline uppercase">SURAT PERINTAH KERJA (SPK) AGREGASI LOGISTIK</h4>
-                <p className="text-xs text-slate-500 font-bold">Nomor: SPK-GR/{request.id}/{new Date().getFullYear()}</p>
+                <h4 className="font-semibold text-slate-900 underline uppercase">SURAT PERINTAH KERJA (SPK) AGREGASI LOGISTIK</h4>
+                <p className="text-xs text-slate-500 font-semibold">Nomor: SPK-GR/{request.id}/{new Date().getFullYear()}</p>
               </div>
 
               <div className="space-y-4">
@@ -972,8 +965,8 @@ export default function MatchDetailsClient({
                 {/* Buyer & Shipping Address Block */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border text-xs">
                   <div className="space-y-1">
-                    <span className="text-slate-400 font-bold block uppercase tracking-wider text-[9px]">Penerima & Alamat Pengiriman (Buyer)</span>
-                    <span className="font-black text-brand-navy text-sm block">{request.buyer.company_name}</span>
+                    <span className="text-slate-400 font-semibold block uppercase tracking-wider text-[9px]">Penerima & Alamat Pengiriman (Buyer)</span>
+                    <span className="font-semibold text-brand-navy text-sm block">{request.buyer.company_name}</span>
                     <p className="text-slate-650 leading-relaxed font-semibold">
                       {buyerDetailsMap[request.buyer_id]?.address || `${request.buyer.city}, Indonesia`}
                     </p>
@@ -982,23 +975,23 @@ export default function MatchDetailsClient({
                     </span>
                   </div>
                   <div className="space-y-1.5 md:border-l md:pl-4">
-                    <span className="text-slate-400 font-bold block uppercase tracking-wider text-[9px]">Spesifikasi Permintaan</span>
+                    <span className="text-slate-400 font-semibold block uppercase tracking-wider text-[9px]">Spesifikasi Permintaan</span>
                     <div className="grid grid-cols-2 gap-2 text-[11px]">
                       <div>
                         <span className="text-slate-400 block font-semibold">KOMODITAS</span>
-                        <span className="font-bold text-slate-850">{request.commodity_name}</span>
+                        <span className="font-semibold text-slate-850">{request.commodity_name}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 block font-semibold">TARGET VOLUME</span>
-                        <span className="font-bold text-brand-red">{request.quantity} {request.unit}</span>
+                        <span className="font-semibold text-brand-red">{request.quantity.toLocaleString('id-ID')} {request.unit}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 block font-semibold">TERPENUHI</span>
-                        <span className="font-bold text-emerald-600">{totalAllocated} {request.unit}</span>
+                        <span className="font-semibold text-emerald-600">{totalAllocated.toLocaleString('id-ID')} {request.unit}</span>
                       </div>
                       <div>
                         <span className="text-slate-400 block font-semibold">STATUS</span>
-                        <span className="font-bold text-brand-navy">{isFullySatisfied ? '100% Terpenuhi' : 'Terpenuhi Sebagian'}</span>
+                        <span className="font-semibold text-brand-navy">{isFullySatisfied ? '100% Terpenuhi' : 'Terpenuhi Sebagian'}</span>
                       </div>
                     </div>
                   </div>
@@ -1006,11 +999,11 @@ export default function MatchDetailsClient({
 
                 {/* Allocation details table */}
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-800 uppercase block">Rincian Pembagian Kuota Gotong Royong:</span>
+                  <span className="text-xs font-semibold text-slate-800 uppercase block">Rincian Pembagian Kuota Gotong Royong:</span>
                   <div className="border rounded-lg overflow-hidden">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="bg-slate-50 border-b font-bold text-slate-500">
+                        <tr className="bg-slate-50 border-b font-semibold text-slate-500">
                           <th className="p-2.5">Koperasi Mitra</th>
                           <th className="p-2.5">Asal Provinsi</th>
                           <th className="p-2.5 text-center">Grade</th>
@@ -1025,17 +1018,17 @@ export default function MatchDetailsClient({
                           const valueEst = qty * 1000 * UNIT_PRICE; // in Rp
                           return (
                             <tr key={coop.id}>
-                              <td className="p-2.5 font-bold text-slate-900">{coop.name}</td>
+                              <td className="p-2.5 font-semibold text-slate-900">{coop.name}</td>
                               <td className="p-2.5 text-slate-600">{coop.province}</td>
-                              <td className="p-2.5 text-center font-bold text-emerald-600">{item.score?.grade}</td>
-                              <td className="p-2.5 text-right font-black text-brand-navy">{qty} Ton</td>
+                              <td className="p-2.5 text-center font-semibold text-emerald-600">{item.score?.grade}</td>
+                              <td className="p-2.5 text-right font-semibold text-brand-navy">{qty.toLocaleString('id-ID')} Ton</td>
                               <td className="p-2.5 text-right font-semibold text-slate-800">Rp {valueEst.toLocaleString('id-ID')}</td>
                             </tr>
                           );
                         })}
-                        <tr className="bg-brand-cream/20 font-black border-t-2">
+                        <tr className="bg-brand-cream/20 font-semibold border-t-2">
                           <td className="p-2.5" colSpan={3}>TOTAL ALOKASI GOTONG ROYONG</td>
-                          <td className="p-2.5 text-right text-brand-red">{totalAllocated} Ton</td>
+                          <td className="p-2.5 text-right text-brand-red">{totalAllocated.toLocaleString('id-ID')} Ton</td>
                           <td className="p-2.5 text-right text-slate-900">
                             Rp {(totalAllocated * 1000 * UNIT_PRICE).toLocaleString('id-ID')}
                           </td>
@@ -1047,7 +1040,7 @@ export default function MatchDetailsClient({
 
                 {/* S&K */}
                 <div className="space-y-1.5 text-[11px] text-slate-550 leading-relaxed border-t pt-3">
-                  <span className="font-bold text-slate-700 uppercase tracking-wider block text-[10px]">Syarat & Ketentuan Logistik Gotong Royong:</span>
+                  <span className="font-semibold text-slate-700 uppercase tracking-wider block text-[10px]">Syarat & Ketentuan Logistik Gotong Royong:</span>
                   <ul className="list-disc pl-4 space-y-1">
                     <li>Pengiriman komoditas dari masing-masing koperasi mitra akan ditujukan langsung ke alamat pabrik penerima: <strong>{buyerDetailsMap[request.buyer_id]?.address || `${request.buyer.city}`}</strong>.</li>
                     <li>Pihak pengirim dari masing-masing koperasi dipimpin oleh Ketua Koperasi masing-masing yang bertindak sebagai Narahubung Pengiriman Utama.</li>
@@ -1059,13 +1052,13 @@ export default function MatchDetailsClient({
               {/* Signature Area */}
               <div className="grid grid-cols-2 gap-8 pt-8 border-t border-slate-100 text-xs justify-items-center">
                 <div className="text-center space-y-12">
-                  <span className="block text-slate-400 font-bold uppercase">Representatif Buyer ({request.buyer.company_name})</span>
+                  <span className="block text-slate-400 font-semibold uppercase">Representatif Buyer ({request.buyer.company_name})</span>
                   {isDigitallySigned ? (
                     <div className="space-y-1">
-                      <div className="inline-flex h-9 w-32 items-center justify-center border border-emerald-500 rounded bg-emerald-50 text-emerald-700 font-extrabold text-[10px] uppercase">
+                      <div className="inline-flex h-9 w-32 items-center justify-center border border-emerald-500 rounded bg-emerald-50 text-emerald-700 font-semibold text-[10px] uppercase">
                         TANDATANGAN DIGITAL
                       </div>
-                      <span className="block font-bold text-slate-800">
+                      <span className="block font-semibold text-slate-800">
                         {buyerDetailsMap[request.buyer_id]?.persona.split(' (')[0] || 'Representatif Buyer'}
                       </span>
                     </div>
@@ -1074,13 +1067,13 @@ export default function MatchDetailsClient({
                   )}
                 </div>
                 <div className="text-center space-y-12">
-                  <span className="block text-slate-400 font-bold uppercase">Direktur Rantai Pasok ARUNA</span>
+                  <span className="block text-slate-400 font-semibold uppercase">Direktur Rantai Pasok ARUNA</span>
                   {isSpkReleased ? (
                     <div className="space-y-1">
-                      <div className="inline-flex h-9 w-32 items-center justify-center border border-brand-navy rounded bg-brand-cream text-brand-navy font-extrabold text-[10px] uppercase">
+                      <div className="inline-flex h-9 w-32 items-center justify-center border border-brand-navy rounded bg-brand-cream text-brand-navy font-semibold text-[10px] uppercase">
                         DISESUAIKAN & RILIS
                       </div>
-                      <span className="block font-bold text-slate-800">Adi Wijaya, M.Sc.</span>
+                      <span className="block font-semibold text-slate-800">Adi Wijaya, M.Sc.</span>
                     </div>
                   ) : (
                     <span className="block border-b border-dashed border-slate-400 w-32 pt-6"></span>
@@ -1092,29 +1085,29 @@ export default function MatchDetailsClient({
 
             {/* Modal Actions */}
             <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center gap-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setIsSpkOpen(false)}
-                className="text-xs font-bold"
+                className="text-xs font-semibold"
               >
                 Tutup Draft
               </Button>
-              
+
               {!isSpkReleased ? (
                 <div className="flex gap-2">
                   {!isDigitallySigned && (
-                    <Button 
+                    <Button
                       onClick={() => {
                         setIsDigitallySigned(true);
                         saveTransactionToFirestore(undefined, undefined, true);
                       }}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs gap-1.5"
                     >
                       <Check className="h-4 w-4" /> Tanda Tangan Buyer
                     </Button>
                   )}
-                  
-                  <Button 
+
+                  <Button
                     onClick={() => {
                       setIsSpkReleased(true);
                       setIsDigitallySigned(true);
@@ -1122,13 +1115,13 @@ export default function MatchDetailsClient({
                       saveTransactionToFirestore(1, true, true);
                     }}
                     disabled={!isDigitallySigned}
-                    className="bg-brand-red hover:bg-brand-red/90 text-white font-black text-xs gap-1.5"
+                    className="bg-brand-red hover:bg-brand-red/90 text-white font-semibold text-xs gap-1.5"
                   >
                     <CheckCircle2 className="h-4 w-4" /> Rilis Kontrak SPK
                   </Button>
                 </div>
               ) : (
-                <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
                   <Check className="h-4 w-4" /> Surat Perintah Kerja Telah Dirilis Resmi
                 </span>
               )}
@@ -1142,9 +1135,9 @@ export default function MatchDetailsClient({
       {isReceiptOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-white border border-slate-200 rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden relative animate-fade-slide-up">
-            
+
             {/* Stamp Lunas/Paid */}
-            <div className="absolute top-20 right-8 transform rotate-12 border-4 border-emerald-500 rounded-xl px-4 py-2 text-emerald-500 font-black text-3xl opacity-20 select-none pointer-events-none">
+            <div className="absolute top-20 right-8 transform rotate-12 border-4 border-emerald-500 rounded-xl px-4 py-2 text-emerald-500 font-semibold text-3xl opacity-20 select-none pointer-events-none">
               LUNAS / PAID
             </div>
 
@@ -1152,11 +1145,11 @@ export default function MatchDetailsClient({
             <div className="p-4 bg-emerald-600 text-white flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-white" />
-                <h3 className="font-black text-sm uppercase tracking-wider">
+                <h3 className="font-semibold text-sm uppercase tracking-wider">
                   Kwitansi Pembayaran Gotong Royong
                 </h3>
               </div>
-              <button 
+              <button
                 onClick={() => setIsReceiptOpen(false)}
                 className="text-white/80 hover:text-white"
               >
@@ -1167,34 +1160,34 @@ export default function MatchDetailsClient({
             {/* Modal Body */}
             <div className="p-6 space-y-5 text-xs text-slate-700 leading-relaxed font-sans">
               <div className="text-center space-y-1 pb-3 border-b">
-                <h3 className="font-black text-slate-900 text-sm">ALIANSI KOPERASI USAHA RAKYAT NUSANTARA (ARUNA)</h3>
+                <h3 className="font-semibold text-slate-900 text-sm">ALIANSI KOPERASI USAHA RAKYAT NUSANTARA (ARUNA)</h3>
                 <p className="text-[10px] text-slate-400">Bukti Pembayaran Valid & Terenkripsi Digital</p>
               </div>
 
               <div className="grid grid-cols-2 gap-y-3 pt-2">
                 <div>
-                  <span className="text-slate-400 font-bold block">NOMOR KWITANSI</span>
-                  <span className="font-bold text-slate-800 text-[11px]">REC-GR/{request.id}/{new Date().getFullYear()}</span>
+                  <span className="text-slate-400 font-semibold block">NOMOR KWITANSI</span>
+                  <span className="font-semibold text-slate-800 text-[11px]">REC-GR/{request.id}/{new Date().getFullYear()}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-slate-400 font-bold block">TANGGAL TRANSAKSI</span>
-                  <span className="font-bold text-slate-800 text-[11px]">{new Date().toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'})}</span>
+                  <span className="text-slate-400 font-semibold block">TANGGAL TRANSAKSI</span>
+                  <span className="font-semibold text-slate-800 text-[11px]">{new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                 </div>
-                
+
                 <div className="col-span-2 border-t pt-2 mt-1">
-                  <span className="text-slate-400 font-bold block">TELAH DITERIMA DARI</span>
-                  <span className="font-black text-brand-navy text-sm">{request.buyer.company_name}</span>
+                  <span className="text-slate-400 font-semibold block">TELAH DITERIMA DARI</span>
+                  <span className="font-semibold text-brand-navy text-sm">{request.buyer.company_name}</span>
                 </div>
 
                 <div className="col-span-2 border-t pt-2">
-                  <span className="text-slate-400 font-bold block">UNTUK PEMBAYARAN</span>
-                  <span className="font-bold text-slate-800">Agregasi Komoditas {request.commodity_name} sebanyak {totalAllocated} Ton</span>
+                  <span className="text-slate-400 font-semibold block">UNTUK PEMBAYARAN</span>
+                  <span className="font-semibold text-slate-800">Agregasi Komoditas {request.commodity_name} sebanyak {totalAllocated.toLocaleString('id-ID')} Ton</span>
                 </div>
               </div>
 
               {/* Breakdown of disbursement */}
               <div className="space-y-1.5 pt-2 border-t">
-                <span className="font-bold text-slate-800 uppercase block">Distribusi Pencairan Dana ke Koperasi:</span>
+                <span className="font-semibold text-slate-800 uppercase block">Distribusi Pencairan Dana ke Koperasi:</span>
                 <div className="bg-slate-50 p-2.5 rounded-lg border divide-y space-y-1.5 text-[11px]">
                   {activeMatches.map((item) => {
                     const coop = item.cooperative;
@@ -1203,14 +1196,14 @@ export default function MatchDetailsClient({
                     return (
                       <div key={coop.id} className="flex justify-between items-center pt-1.5 first:pt-0">
                         <div>
-                          <span className="font-bold text-slate-800 block">{coop.name}</span>
-                          <span className="text-slate-400 font-medium">Porsi Pasokan: {qty} Ton ({Math.round(qty/totalAllocated*100)}%)</span>
+                          <span className="font-semibold text-slate-800 block">{coop.name}</span>
+                          <span className="text-slate-400 font-medium">Porsi Pasokan: {qty.toLocaleString('id-ID')} Ton ({Math.round(qty / totalAllocated * 100)}%)</span>
                         </div>
-                        <span className="font-bold text-emerald-600">Rp {val.toLocaleString('id-ID')}</span>
+                        <span className="font-semibold text-emerald-600">Rp {val.toLocaleString('id-ID')}</span>
                       </div>
                     );
                   })}
-                  <div className="flex justify-between items-center pt-1.5 font-bold text-slate-900 border-t-2">
+                  <div className="flex justify-between items-center pt-1.5 font-semibold text-slate-900 border-t-2">
                     <span>TOTAL DANA CAIR</span>
                     <span className="text-brand-navy text-xs">Rp {(totalAllocated * 1000 * UNIT_PRICE).toLocaleString('id-ID')}</span>
                   </div>
@@ -1225,16 +1218,16 @@ export default function MatchDetailsClient({
 
             {/* Modal Footer */}
             <div className="p-3 bg-slate-50 border-t flex justify-end gap-2">
-              <Button 
+              <Button
                 onClick={() => window.print()}
-                className="bg-brand-navy hover:bg-brand-navy/90 text-white font-bold text-xs"
+                className="bg-brand-navy hover:bg-brand-navy/90 text-white font-semibold text-xs"
               >
                 Cetak Bukti PDF
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setIsReceiptOpen(false)}
-                className="text-xs font-bold"
+                className="text-xs font-semibold"
               >
                 Tutup
               </Button>

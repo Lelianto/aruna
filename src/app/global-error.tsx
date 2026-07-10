@@ -19,7 +19,7 @@ export default function GlobalError({
 
   return (
     <html lang="id">
-      <body style={{ margin: 0, fontFamily: 'system-ui, sans-serif', background: '#faf9f6', color: '#0f172a' }}>
+      <body style={{ margin: 0, fontFamily: 'system-ui, sans-serif', background: '#f7f8fa', color: '#0f172a' }}>
         <div
           style={{
             minHeight: '100vh',
@@ -31,7 +31,7 @@ export default function GlobalError({
           }}
         >
           <div style={{ maxWidth: 420 }}>
-            <h1 style={{ fontSize: '1.125rem', fontWeight: 900, margin: '0 0 0.5rem' }}>
+            <h1 style={{ fontSize: '1.125rem', fontWeight: 600, margin: '0 0 0.5rem' }}>
               Aplikasi Perlu Dimuat Ulang
             </h1>
             <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: 1.6, margin: '0 0 1.25rem' }}>
@@ -46,7 +46,7 @@ export default function GlobalError({
                 borderRadius: 8,
                 padding: '0.625rem 1rem',
                 fontSize: '0.875rem',
-                fontWeight: 800,
+                fontWeight: 600,
                 cursor: 'pointer',
               }}
             >

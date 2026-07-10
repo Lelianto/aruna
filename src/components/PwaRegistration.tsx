@@ -104,11 +104,11 @@ export default function PwaRegistration() {
   return (
     <div className="fixed bottom-20 lg:bottom-4 inset-x-4 z-[9998] flex justify-center pointer-events-none">
       <div className="pointer-events-auto w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-2xl p-4 flex items-start gap-3 animate-fade-in">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-navy text-white font-black">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-navy text-white font-semibold">
           A
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-black text-slate-900 leading-tight">Pasang Aplikasi ARUNA</p>
+          <p className="text-sm font-semibold text-slate-900 leading-tight">Pasang Aplikasi ARUNA</p>
 
           {showBanner ? (
             <>
@@ -118,13 +118,13 @@ export default function PwaRegistration() {
               <div className="flex gap-2 mt-3">
                 <button
                   onClick={handleInstall}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-brand-red px-3.5 py-2 text-xs font-black text-white hover:bg-brand-red/90 transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-brand-red px-3.5 py-2 text-xs font-semibold text-white hover:bg-brand-red/90 transition-colors cursor-pointer"
                 >
                   <Download className="h-4 w-4" /> Pasang Sekarang
                 </button>
                 <button
                   onClick={dismiss}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-500 hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   Nanti
                 </button>
@@ -134,8 +134,8 @@ export default function PwaRegistration() {
             // iOS manual instructions
             <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
               Ketuk tombol <Share className="inline h-3.5 w-3.5 -mt-0.5 text-brand-navy" />{' '}
-              <span className="font-bold">Bagikan</span> di Safari, lalu pilih{' '}
-              <span className="font-bold">
+              <span className="font-semibold">Bagikan</span> di Safari, lalu pilih{' '}
+              <span className="font-semibold">
                 Tambah ke Layar Utama <Plus className="inline h-3.5 w-3.5 -mt-0.5" />
               </span>
               .

@@ -51,20 +51,20 @@ export default function LandingPage() {
   // Cegah kedipan konten landing page sesaat sebelum redirect ke Marketplace
   if (!loading && user && (userData?.role === 'customer' || userData?.role === 'buyer')) {
     return (
-      <div className="flex h-[calc(100vh-68px)] items-center justify-center bg-[#faf9f6]">
+      <div className="flex h-[calc(100vh-68px)] items-center justify-center bg-[#f7f8fa]">
         <div className="text-center space-y-2">
           <div className="h-10 w-10 border-4 border-brand-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider animate-pulse">Mengalihkan ke Pasar Digital...</p>
+          <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider animate-pulse">Mengalihkan ke Pasar Digital...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-[#faf9f6] font-sans overflow-hidden">
+    <div className="flex-1 flex flex-col bg-[#f7f8fa] font-sans overflow-hidden">
 
       {/* Hero Section */}
-      <section className="relative pt-16 pb-20 border-b border-slate-200/60 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-brand-cream/40 via-[#faf9f6] to-white">
+      <section className="relative pt-16 pb-20 border-b border-slate-200/60 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-brand-cream/40 via-[#f7f8fa] to-white">
 
         {/* Decorative background glows */}
         <div className="absolute top-20 right-1/4 h-80 w-80 bg-brand-orange/5 rounded-full filter blur-3xl pointer-events-none"></div>
@@ -74,7 +74,7 @@ export default function LandingPage() {
 
           {/* Left: Punchy Headings & Actions */}
           <div className="space-y-6 text-left">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-brand-navy leading-[1.1] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold text-brand-navy leading-[1.1] tracking-tight">
               Konsolidasi Usaha <br />
               Koperasi Merah Putih <br />
               <span className="bg-gradient-to-r from-brand-red via-brand-orange to-brand-navy bg-clip-text text-transparent">
@@ -89,19 +89,11 @@ export default function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <Button
                 onClick={handleCTAClick}
-                className="px-6 py-5 bg-brand-red hover:bg-brand-red/90 text-white font-black text-sm flex items-center justify-center gap-2 rounded-xl shadow-md transition-all duration-200 cursor-pointer"
+                className="px-6 py-5 bg-brand-red hover:bg-brand-red/90 text-white font-semibold text-sm flex items-center justify-center gap-2 rounded-xl shadow-md transition-all duration-200 cursor-pointer"
               >
                 {user ? 'Buka Dashboard Mitra' : 'Masuk dengan Google'}
                 <ArrowRight className="h-4.5 w-4.5" />
               </Button>
-              <Link href="/pitch" className="w-full sm:w-auto">
-                <Button
-                  variant="outline"
-                  className="w-full px-6 py-5 border-slate-200 text-slate-700 font-bold text-sm rounded-xl hover:bg-slate-50 transition-all duration-200 cursor-pointer bg-white"
-                >
-                  Buka Pitch Deck
-                </Button>
-              </Link>
             </div>
 
             {/* Quick Live Metadata */}
@@ -126,21 +118,21 @@ export default function LandingPage() {
 
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
-                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Kalkulator Konsolidasi</span>
-                  <h3 className="text-sm font-black text-slate-900 mt-0.5">
-                    Permintaan Suplai Buyer <span className="text-slate-400 font-medium">({simulateValue} Ton)</span>
+                  <span className="text-[9px] font-semibold uppercase tracking-wider text-slate-400 block">Kalkulator Konsolidasi</span>
+                  <h3 className="text-sm font-semibold text-slate-900 mt-0.5">
+                    Permintaan Suplai Buyer <span className="text-slate-400 font-medium">({simulateValue.toLocaleString('id-ID')} Ton)</span>
                   </h3>
                 </div>
-                <span className="rounded-full bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-700 uppercase tracking-wider">
+                <span className="rounded-full bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-semibold text-emerald-700 uppercase tracking-wider">
                   Sistem Aktif
                 </span>
               </div>
 
               {/* Slider Input */}
               <div className="space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div className="flex justify-between text-xs font-bold text-slate-700">
+                <div className="flex justify-between text-xs font-semibold text-slate-700">
                   <span>Volume Pesanan:</span>
-                  <span className="text-brand-red font-black text-sm">{simulateValue} Ton</span>
+                  <span className="text-brand-red font-semibold text-sm">{simulateValue.toLocaleString('id-ID')} Ton</span>
                 </div>
                 <input
                   type="range"
@@ -151,7 +143,7 @@ export default function LandingPage() {
                   onChange={(e) => setSimulateValue(parseInt(e.target.value))}
                   className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand-red focus:outline-none"
                 />
-                <div className="flex justify-between text-[8px] text-slate-400 font-black uppercase">
+                <div className="flex justify-between text-[8px] text-slate-400 font-semibold uppercase">
                   <span>200 Ton</span>
                   <span>Geser untuk membagi kuota secara otomatis</span>
                   <span>800 Ton</span>
@@ -160,7 +152,7 @@ export default function LandingPage() {
 
               {/* Aggregation Splits */}
               <div className="space-y-2">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Alokasi Gotong Royong Koperasi Desa</span>
+                <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider block">Alokasi Gotong Royong Koperasi Desa</span>
                 {splits.map(coop => (
                   <div key={coop.name} className="flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-3xs">
                     <div className="flex items-center gap-3">
@@ -168,12 +160,12 @@ export default function LandingPage() {
                         <Building2 className="h-4.5 w-4.5" />
                       </div>
                       <div>
-                        <p className="text-xs font-black text-slate-800">{coop.name}</p>
-                        <p className="text-[9px] text-slate-400 font-bold uppercase">{coop.loc} (Grade {coop.grade})</p>
+                        <p className="text-xs font-semibold text-slate-800">{coop.name}</p>
+                        <p className="text-[9px] text-slate-400 font-semibold uppercase">{coop.loc} (Grade {coop.grade})</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-black text-brand-red">{coop.allocated} Ton</p>
+                      <p className="text-xs font-semibold text-brand-red">{coop.allocated.toLocaleString('id-ID')} Ton</p>
                       <div className="w-16 bg-slate-100 h-1.5 rounded-full overflow-hidden mt-1 ml-auto">
                         <div
                           className="bg-brand-orange h-full rounded-full transition-all duration-300"
@@ -189,7 +181,7 @@ export default function LandingPage() {
               <div className="bg-brand-navy rounded-xl p-3 text-white text-xs font-semibold flex items-start gap-2.5 shadow-2xs">
                 <Network className="h-4.5 w-4.5 text-brand-yellow shrink-0 mt-0.5 animate-pulse" />
                 <p className="leading-relaxed">
-                  Permintaan industri dialokasikan secara proporsional berdasarkan radius koordinat terdekat, available stock aktual, & grade kesiapan masing-masing koperasi desa.
+                  Permintaan industri dialokasikan secara gotong royong berdasarkan grade kesiapan (Aruna Score) & ketersediaan stok aktual masing-masing koperasi desa.
                 </p>
               </div>
 
@@ -202,8 +194,8 @@ export default function LandingPage() {
       {/* Keunggulan Utama (Core Advantages) */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 border-b border-slate-200/50">
         <div className="text-center space-y-2 mb-12">
-          <span className="text-[10px] font-black text-brand-red uppercase tracking-wider">Keunggulan Platform</span>
-          <h2 className="text-2xl sm:text-3xl font-black text-brand-navy">Mengapa Memilih ARUNA?</h2>
+          <span className="text-[10px] font-semibold text-brand-red uppercase tracking-wider">Keunggulan Platform</span>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-brand-navy">Mengapa Memilih ARUNA?</h2>
           <p className="text-xs sm:text-sm text-slate-450 max-w-md mx-auto">Solusi tangguh yang menjawab keterbatasan jaringan internet dan menyederhanakan pelaporan desa.</p>
         </div>
 
@@ -214,7 +206,7 @@ export default function LandingPage() {
               <WifiOff className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-extrabold text-sm text-slate-900">Sistem Bekerja Offline</h3>
+              <h3 className="font-semibold text-sm text-slate-900">Sistem Bekerja Offline</h3>
               <p className="text-xs text-slate-450 leading-relaxed">
                 POS Kasir tetap dapat digunakan untuk transaksi saat internet mati. Data disimpan aman di memori lokal dan disinkronkan otomatis setelah internet aktif kembali.
               </p>
@@ -227,7 +219,7 @@ export default function LandingPage() {
               <Volume2 className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-extrabold text-sm text-slate-900">AI Command (Natural Language OS)</h3>
+              <h3 className="font-semibold text-sm text-slate-900">AI Command (Natural Language OS)</h3>
               <p className="text-xs text-slate-450 leading-relaxed">
                 Pengurus koperasi desa dapat melakukan stok opname, penjualan, dan pembelian komoditas cukup dengan mengetik atau mengirim perintah suara alami.
               </p>
@@ -240,7 +232,7 @@ export default function LandingPage() {
               <Network className="h-6 w-6" />
             </div>
             <div className="space-y-1">
-              <h3 className="font-extrabold text-sm text-slate-900">Konsolidasi Gotong Royong</h3>
+              <h3 className="font-semibold text-sm text-slate-900">Konsolidasi Gotong Royong</h3>
               <p className="text-xs text-slate-450 leading-relaxed">
                 Mengkonsolidasikan kapasitas pasokan beberapa sentra produksi desa terdekat demi memenuhi kuota pembelian minimum dari industri/offtaker besar.
               </p>
@@ -252,8 +244,8 @@ export default function LandingPage() {
       {/* Fitur Utama (Core Features Grid) */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center space-y-2 mb-12">
-          <span className="text-[10px] font-black text-brand-red uppercase tracking-wider">Fitur Utama</span>
-          <h2 className="text-2xl sm:text-3xl font-black text-brand-navy">Fungsionalitas Pusat Kendali</h2>
+          <span className="text-[10px] font-semibold text-brand-red uppercase tracking-wider">Fitur Utama</span>
+          <h2 className="text-2xl sm:text-3xl font-semibold text-brand-navy">Fungsionalitas Pusat Kendali</h2>
           <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto">Dirancang sederhana dan intuitif demi menjembatani gap operasional desa.</p>
         </div>
 
@@ -265,7 +257,7 @@ export default function LandingPage() {
                 <ShoppingCart className="h-5 w-5" />
               </div>
               <div className="space-y-1 text-left">
-                <h4 className="font-black text-xs text-slate-900">Kasir POS & Pembelian</h4>
+                <h4 className="font-semibold text-xs text-slate-900">Kasir POS & Pembelian</h4>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   Pencatatan kasir penjualan anggota & log stok masuk pembelian produk anggota terintegrasi dengan penyesuaian stok instan.
                 </p>
@@ -280,7 +272,7 @@ export default function LandingPage() {
                 <Map className="h-5 w-5" />
               </div>
               <div className="space-y-1 text-left">
-                <h4 className="font-black text-xs text-slate-900">Peta Potensi Geografis</h4>
+                <h4 className="font-semibold text-xs text-slate-900">Peta Potensi Geografis</h4>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   Visualisasi peta interaktif yang memetakan sebaran panen, letak geografis koperasi desa, dan pabrik buyer terdekat.
                 </p>
@@ -295,7 +287,7 @@ export default function LandingPage() {
                 <RefreshCw className="h-5 w-5" />
               </div>
               <div className="space-y-1 text-left">
-                <h4 className="font-black text-xs text-slate-900">Stok Opname Mandiri</h4>
+                <h4 className="font-semibold text-xs text-slate-900">Stok Opname Mandiri</h4>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   Audit fisik stok berkala dengan penyesuaian otomatis serta rekam jejak log audit demi menjamin transparansi data.
                 </p>
@@ -310,7 +302,7 @@ export default function LandingPage() {
                 <ShieldCheck className="h-5 w-5" />
               </div>
               <div className="space-y-1 text-left">
-                <h4 className="font-black text-xs text-slate-900">Penilaian Kinerja Koperasi</h4>
+                <h4 className="font-semibold text-xs text-slate-900">Penilaian Kinerja Koperasi</h4>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   Peringkat kelayakan kemitraan otomatis koperasi desa berdasarkan kesehatan finansial dan stabilitas supply.
                 </p>
@@ -324,7 +316,7 @@ export default function LandingPage() {
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16">
         <div className="grid gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 sm:p-6 shadow-3xs md:grid-cols-[1fr_auto] md:items-center">
           <div className="space-y-1 text-left">
-            <div className="flex items-center gap-1.5 text-xs font-black text-emerald-700">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
               <CheckCircle2 className="h-4 w-4 animate-bounce" />
               Sistem Pusat Kendali Siap Digunakan
             </div>
@@ -333,7 +325,7 @@ export default function LandingPage() {
             </p>
           </div>
           <Link href="/mitra-dashboard" className="w-full md:w-auto">
-            <Button className="w-full gap-2 md:w-auto bg-brand-navy hover:bg-brand-navy/90 text-white font-extrabold text-xs py-2.5 rounded-lg shadow-sm cursor-pointer h-10">
+            <Button className="w-full gap-2 md:w-auto bg-brand-navy hover:bg-brand-navy/90 text-white font-semibold text-xs py-2.5 rounded-lg shadow-sm cursor-pointer h-10">
               Mulai Eksplorasi Sekarang <Compass className="h-4 w-4 text-brand-cream" />
             </Button>
           </Link>
