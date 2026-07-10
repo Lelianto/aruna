@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
+import { cooperativeRepositoryServer } from '@/lib/repositories/cooperative.repository.server';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const insights = await cooperativeRepository.getInsights(cooperativeId);
+    const insights = await cooperativeRepositoryServer.getInsights(cooperativeId);
     return NextResponse.json(insights);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error';

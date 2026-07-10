@@ -1,6 +1,6 @@
 import React from 'react';
-import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
-import { commodityRepository } from '@/lib/repositories/commodity.repository';
+import { cooperativeRepositoryServer } from '@/lib/repositories/cooperative.repository.server';
+import { commodityRepositoryServer } from '@/lib/repositories/commodity.repository.server';
 import { marketRequestRepository } from '@/lib/repositories/market-request.repository';
 import DashboardClient from '@/components/dashboard/DashboardClient';
 
@@ -9,8 +9,8 @@ export const revalidate = 0; // Disable caching for demo data integrity
 export default async function DashboardPage() {
   // 1. Fetch all data via repositories
   const [cooperatives, commodities, requests] = await Promise.all([
-    cooperativeRepository.getAllWithDetails(),
-    commodityRepository.getAll(),
+    cooperativeRepositoryServer.getAllWithDetails(),
+    commodityRepositoryServer.getAll(),
     marketRequestRepository.getAllWithBuyer()
   ]);
 

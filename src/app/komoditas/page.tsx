@@ -1,6 +1,6 @@
 import React from 'react';
-import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
-import { commodityRepository } from '@/lib/repositories/commodity.repository';
+import { cooperativeRepositoryServer } from '@/lib/repositories/cooperative.repository.server';
+import { commodityRepositoryServer } from '@/lib/repositories/commodity.repository.server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Compass, Home, MapPin, Layers, ShieldAlert, Coins } from 'lucide-react';
 import Link from 'next/link';
@@ -33,8 +33,8 @@ interface CommodityAggregate {
 export default async function KomoditasPage() {
   // Fetch data
   const [cooperatives, commodities] = await Promise.all([
-    cooperativeRepository.getAllWithDetails(),
-    commodityRepository.getAll()
+    cooperativeRepositoryServer.getAllWithDetails(),
+    commodityRepositoryServer.getAll()
   ]);
 
   // Aggregate commodities by name

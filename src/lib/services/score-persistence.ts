@@ -1,4 +1,6 @@
-import { CooperativeScore } from '@/types';
+import 'server-only';
+
+import { CooperativeScore, CooperativeScoreInput } from '@/types';
 import { prisma } from '../prisma';
 import type { aruna_cooperative_scores } from '@prisma/client';
 
@@ -31,14 +33,7 @@ export async function loadAllCooperativeScores(): Promise<Record<string, Coopera
   return map;
 }
 
-export type CooperativeScoreInput = {
-  health_score: number;
-  growth_score: number;
-  supply_score: number;
-  final_score: number;
-  grade: CooperativeScore['grade'];
-  updated_at?: string;
-};
+export type { CooperativeScoreInput };
 
 export async function upsertCooperativeScore(
   cooperativeId: string,

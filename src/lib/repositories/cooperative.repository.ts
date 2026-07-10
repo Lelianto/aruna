@@ -1,17 +1,19 @@
-import { Cooperative, CooperativeScore, Insight, CooperativeWithCommodities, Commodity } from '@/types';
+import { Cooperative, CooperativeScore, CooperativeScoreInput, Insight, CooperativeWithCommodities, Commodity } from '@/types';
 import { db } from '../firebase/config';
 import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import { calculateCooperativeScore } from '../services/score-engine';
 import { generateCooperativeInsights } from '../services/insight-engine';
 import { commodityRepository } from './commodity.repository';
-import type { CooperativeScoreInput } from '../services/score-persistence';
 
 function getBaseUrl() {
   if (typeof window !== 'undefined') {
     return '';
   }
-  // Fallback for Vercel/production or dev environments
-  const host = process.env.VERCEL_URL || 'localhost:3000';
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+  }
+  const port = process.env.PORT || '3000';
+  const host = process.env.VERCEL_URL || `localhost:${port}`;
   const protocol = host.includes('localhost') ? 'http' : 'https';
   return `${protocol}://${host}`;
 }
@@ -91,22 +93,17 @@ export class HybridCooperativeRepository implements CooperativeRepository {
   async getScore(cooperativeId: string): Promise<CooperativeScore | null> {
     let stored: CooperativeScore | null = null;
 
-    if (typeof window !== 'undefined') {
-      try {
-        const baseUrl = getBaseUrl();
-        const res = await fetch(
-          `${baseUrl}/api/cooperative-scores?cooperativeId=${encodeURIComponent(cooperativeId)}`,
-          { cache: 'no-store' },
-        );
-        if (res.ok) {
-          stored = await res.json();
-        }
-      } catch (error) {
-        console.error(`Error in cooperativeRepository.getScore for ${cooperativeId}:`, error);
+    try {
+      const baseUrl = getBaseUrl();
+      const res = await fetch(
+        `${baseUrl}/api/cooperative-scores?cooperativeId=${encodeURIComponent(cooperativeId)}`,
+        { cache: 'no-store' },
+      );
+      if (res.ok) {
+        stored = await res.json();
       }
-    } else {
-      const { loadCooperativeScore } = await import('../services/score-persistence');
-      stored = await loadCooperativeScore(cooperativeId);
+    } catch (error) {
+      console.error(`Error in cooperativeRepository.getScore for ${cooperativeId}:`, error);
     }
 
     if (stored) return stored;
@@ -120,71 +117,41 @@ export class HybridCooperativeRepository implements CooperativeRepository {
   }
 
   async upsertCooperativeScore(cooperativeId: string, scoreData: CooperativeScoreInput): Promise<void> {
-    if (typeof window !== 'undefined') {
-      const baseUrl = getBaseUrl();
-      const res = await fetch(`${baseUrl}/api/cooperative-scores`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cooperativeId, ...scoreData }),
-      });
-      if (!res.ok) {
-        throw new Error(`Failed to upsert cooperative score: ${res.status}`);
-      }
-      return;
+    const baseUrl = getBaseUrl();
+    const res = await fetch(`${baseUrl}/api/cooperative-scores`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cooperativeId, ...scoreData }),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to upsert cooperative score: ${res.status}`);
     }
-
-    const { upsertCooperativeScore } = await import('../services/score-persistence');
-    await upsertCooperativeScore(cooperativeId, scoreData);
   }
 
   async deleteCooperativeScore(cooperativeId: string): Promise<void> {
-    if (typeof window !== 'undefined') {
-      const baseUrl = getBaseUrl();
-      const res = await fetch(
-        `${baseUrl}/api/cooperative-scores?cooperativeId=${encodeURIComponent(cooperativeId)}`,
-        { method: 'DELETE' },
-      );
-      if (!res.ok) {
-        throw new Error(`Failed to delete cooperative score: ${res.status}`);
-      }
-      return;
+    const baseUrl = getBaseUrl();
+    const res = await fetch(
+      `${baseUrl}/api/cooperative-scores?cooperativeId=${encodeURIComponent(cooperativeId)}`,
+      { method: 'DELETE' },
+    );
+    if (!res.ok) {
+      throw new Error(`Failed to delete cooperative score: ${res.status}`);
     }
-
-    const { deleteCooperativeScore } = await import('../services/score-persistence');
-    await deleteCooperativeScore(cooperativeId);
-  }
-
-  private async generateInsightsForCooperative(cooperativeId: string): Promise<Insight[]> {
-    const coop = await this.getById(cooperativeId);
-    if (!coop) return [];
-
-    const score = await this.getScore(cooperativeId);
-    if (!score) return [];
-
-    const commodities = await commodityRepository.getByCooperativeId(cooperativeId);
-    return generateCooperativeInsights(coop, commodities, score);
   }
 
   async getInsights(cooperativeId: string): Promise<Insight[]> {
-    const generate = () => this.generateInsightsForCooperative(cooperativeId);
-
-    if (typeof window !== 'undefined') {
-      try {
-        const baseUrl = getBaseUrl();
-        const res = await fetch(
-          `${baseUrl}/api/insights?cooperativeId=${encodeURIComponent(cooperativeId)}`,
-          { cache: 'no-store' },
-        );
-        if (!res.ok) return [];
-        return res.json();
-      } catch (error) {
-        console.error(`Error in cooperativeRepository.getInsights for ${cooperativeId}:`, error);
-        return [];
-      }
+    try {
+      const baseUrl = getBaseUrl();
+      const res = await fetch(
+        `${baseUrl}/api/insights?cooperativeId=${encodeURIComponent(cooperativeId)}`,
+        { cache: 'no-store' },
+      );
+      if (!res.ok) return [];
+      return await res.json();
+    } catch (error) {
+      console.error(`Error in cooperativeRepository.getInsights for ${cooperativeId}:`, error);
+      return [];
     }
-
-    const { loadOrGenerateCooperativeInsights } = await import('../services/insight-persistence');
-    return loadOrGenerateCooperativeInsights(cooperativeId, generate);
   }
 
   async getAllWithDetails(): Promise<CooperativeWithCommodities[]> {

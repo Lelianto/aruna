@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { Insight } from '@/types';
 import { prisma } from '../prisma';
 import type { aruna_insights } from '@prisma/client';

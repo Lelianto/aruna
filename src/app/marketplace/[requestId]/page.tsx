@@ -1,8 +1,8 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { marketRequestRepository } from '@/lib/repositories/market-request.repository';
-import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
-import { commodityRepository } from '@/lib/repositories/commodity.repository';
+import { cooperativeRepositoryServer } from '@/lib/repositories/cooperative.repository.server';
+import { commodityRepositoryServer } from '@/lib/repositories/commodity.repository.server';
 import { performGotongRoyongMatch } from '@/lib/services/supply-engine';
 import MatchDetailsClient from '@/components/marketplace/MatchDetailsClient';
 
@@ -24,8 +24,8 @@ export default async function MatchDetailsPage({ params }: PageProps) {
 
   // 2. Fetch all cooperatives & commodities
   const [cooperatives, commodities] = await Promise.all([
-    cooperativeRepository.getAllWithDetails(),
-    commodityRepository.getAll()
+    cooperativeRepositoryServer.getAllWithDetails(),
+    commodityRepositoryServer.getAll()
   ]);
 
   // 3. Buyer coordinate database mapping

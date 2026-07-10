@@ -85,6 +85,15 @@ export interface CooperativeScore {
   updated_at?: string;
 }
 
+export type CooperativeScoreInput = {
+  health_score: number;
+  growth_score: number;
+  supply_score: number;
+  final_score: number;
+  grade: CooperativeScore['grade'];
+  updated_at?: string;
+};
+
 export interface Insight {
   id: string;
   cooperative_id: string | null; // null for national insight
