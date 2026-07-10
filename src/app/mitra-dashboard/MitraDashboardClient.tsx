@@ -8,6 +8,8 @@ import {
   collection, query, where, getDocs, doc, getDoc,
   addDoc, updateDoc, deleteDoc, setDoc
 } from 'firebase/firestore';
+import { marketRequestRepository } from '@/lib/repositories/market-request.repository';
+import { supplyMatchRepository } from '@/lib/repositories/supply-match.repository';
 import {
   Cooperative,
   Commodity,
@@ -228,24 +230,12 @@ export default function MitraDashboardClient() {
     try {
       if (!online) return;
 
-      const reqSnap = await getDocs(collection(db, 'market_requests'));
-      const buyerSnap = await getDocs(collection(db, 'buyers'));
-      const buyers: Buyer[] = [];
-      buyerSnap.forEach(d => buyers.push({ id: d.id, ...d.data() } as Buyer));
-
+      // Market requests (with buyer joined) now come from Postgres via the repository.
+      const allWithBuyer = await marketRequestRepository.getAllWithBuyer();
       const commodityNames = new Set(commodities.map(c => c.name.toLowerCase()));
-      const reqList: MarketRequestWithBuyer[] = [];
-
-      reqSnap.forEach(d => {
-        const req = { id: d.id, ...d.data() } as MarketRequest;
-        if (commodityNames.has(req.commodity_name.toLowerCase())) {
-          const buyer = buyers.find(b => b.id === req.buyer_id);
-          reqList.push({
-            ...req,
-            buyer: buyer || { id: req.buyer_id, company_name: 'Industri Nasional', city: 'Indonesia', industry: 'Pangan' }
-          });
-        }
-      });
+      const reqList = allWithBuyer.filter(req =>
+        commodityNames.has(req.commodity_name.toLowerCase())
+      );
       setRequests(reqList);
     } catch (e) {
       console.error('Error refreshing requests:', e);
@@ -389,48 +379,24 @@ export default function MitraDashboardClient() {
       setSalesHistory(salesList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
       setPurchaseHistory(purchasesList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
 
-      // 3. Load requests & supply matches (Connector data - online only fallback)
+      // 3. Load requests & supply matches from Postgres (online only).
       if (online) {
-        const reqSnap = await getDocs(collection(db, 'market_requests'));
-        const buyerSnap = await getDocs(collection(db, 'buyers'));
-        const buyers: Buyer[] = [];
-        buyerSnap.forEach(d => buyers.push({ id: d.id, ...d.data() } as Buyer));
-
+        const allWithBuyer = await marketRequestRepository.getAllWithBuyer();
         const commodityNames = new Set(comList.map(c => c.name.toLowerCase()));
-        const reqList: MarketRequestWithBuyer[] = [];
-        const reqListAll: MarketRequest[] = [];
-
-        reqSnap.forEach(d => {
-          const req = { id: d.id, ...d.data() } as MarketRequest;
-          reqListAll.push(req);
-          if (commodityNames.has(req.commodity_name.toLowerCase())) {
-            const buyer = buyers.find(b => b.id === req.buyer_id);
-            reqList.push({
-              ...req,
-              buyer: buyer || { id: req.buyer_id, company_name: 'Industri Nasional', city: 'Indonesia', industry: 'Pangan' }
-            });
-          }
-        });
+        const reqList = allWithBuyer.filter(req =>
+          commodityNames.has(req.commodity_name.toLowerCase())
+        );
         setRequests(reqList);
 
-        // Matches
-        const matchesQ = query(collection(db, 'supply_matches'), where('cooperative_id', '==', coopId));
-        const matchesSnap = await getDocs(matchesQ);
-        const matchesList: any[] = [];
-        matchesSnap.forEach(d => {
-          const matchData = d.data();
-          const req = reqListAll.find(r => r.id === matchData.request_id);
-          if (req) {
-            const buyer = buyers.find(b => b.id === req.buyer_id);
-            matchesList.push({
-              id: d.id,
-              ...matchData,
-              request: {
-                ...req,
-                buyer: buyer || { id: req.buyer_id, company_name: 'Industri Nasional', city: 'Indonesia', industry: 'Pangan' }
-              }
-            });
-          }
+        const matches = await supplyMatchRepository.getByCooperativeId(coopId);
+        const matchesList = matches.flatMap((match) => {
+          const req = allWithBuyer.find(r => r.id === match.request_id);
+          if (!req) return [];
+          return [{
+            id: match.id,
+            ...match,
+            request: req,
+          }];
         });
         setCoopMatches(matchesList);
       }
@@ -3733,12 +3699,11 @@ function PesananTab({ requests, commodities, coopId, onRefresh, showToast }: {
     try {
       const matchQty = Math.min(req.quantity, matchedCom.available_stock);
 
-      const matchRef = collection(db, 'supply_matches');
-      await addDoc(matchRef, {
+      await supplyMatchRepository.create({
         request_id: req.id,
         cooperative_id: coopId,
         allocated_quantity: matchQty,
-        matched_at: new Date().toISOString()
+        matched_at: new Date().toISOString(),
       });
 
       const commRef = doc(db, 'commodities', matchedCom.id);
@@ -3746,10 +3711,10 @@ function PesananTab({ requests, commodities, coopId, onRefresh, showToast }: {
         available_stock: Math.max(0, matchedCom.available_stock - matchQty)
       });
 
-      const reqRef = doc(db, 'market_requests', req.id);
-      await updateDoc(reqRef, {
-        status: matchQty === req.quantity ? 'Terpenuhi' : 'Terpenuhi Sebagian'
-      });
+      await marketRequestRepository.updateStatus(
+        req.id,
+        matchQty === req.quantity ? 'Terpenuhi' : 'Terpenuhi Sebagian',
+      );
 
       showToast(`Berhasil menyetujui pemenuhan pasar! Mengalokasikan ${matchQty} ${req.unit} komoditas.`);
       onRefresh();

@@ -13,6 +13,7 @@ import {
   FileText, Check, Plus, Trash2, Users, TrendingUp, Boxes, X
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase/config';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 
@@ -186,6 +187,27 @@ export default function MatchDetailsClient({
   cooperatives,
   buyerCoords
 }: MatchDetailsClientProps) {
+  const { userData, loading: authLoading } = useAuth();
+
+  // Ownership gate for this gotong-royong match view:
+  //  - admin / pemerintah: full oversight access
+  //  - buyer / customer: only their own request (buyer_id === associatedId)
+  //  - koperasi: only if they are a recommended supplier in the match result
+  const isAuthorized = useMemo(() => {
+    const role = userData?.role;
+    if (role === 'admin' || role === 'pemerintah') return true;
+    if (role === 'buyer' || role === 'customer') {
+      return !!userData?.associatedId && request.buyer_id === userData.associatedId;
+    }
+    if (role === 'koperasi') {
+      return (
+        !!userData?.associatedId &&
+        result.matches.some((m) => m.cooperative.id === userData.associatedId)
+      );
+    }
+    return false;
+  }, [userData?.role, userData?.associatedId, request.buyer_id, result.matches]);
+
   // 1. Find all candidate cooperatives that produce this specific commodity
   const candidateCoops = useMemo(() => {
     return cooperatives.map(coop => {
@@ -352,6 +374,29 @@ export default function MatchDetailsClient({
 
   // Pricing helper (Rp 10.500 / kg standard demo pricing)
   const UNIT_PRICE = 10500;
+
+  // Block rendering of match details for users who don't own / supply this request.
+  if (!authLoading && !isAuthorized) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center py-24 px-6 text-center bg-slate-50">
+        <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
+          <AlertTriangle className="w-7 h-7 text-red-600" />
+        </div>
+        <h1 className="text-lg font-bold text-slate-900">Akses Ditolak</h1>
+        <p className="mt-2 max-w-md text-sm text-slate-500">
+          Anda tidak memiliki izin untuk melihat detail pemenuhan permintaan ini.
+          Hanya admin, pembeli terkait, dan koperasi pemasok yang direkomendasikan
+          yang dapat mengakses halaman ini.
+        </p>
+        <Link
+          href="/marketplace"
+          className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-900"
+        >
+          <ArrowLeft className="w-4 h-4" /> Kembali ke Pasar Digital
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col md:flex-row h-[calc(100dvh-68px)] overflow-hidden bg-slate-50">

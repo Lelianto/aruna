@@ -5,6 +5,8 @@ import { db } from '@/lib/firebase/config';
 import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import { calculateCooperativeScore } from '@/lib/services/score-engine';
 import { loadAllCooperativeScores } from '@/lib/services/score-persistence';
+import { loadBuyerById } from '@/lib/data/buyers.pg';
+import { loadAllMarketRequestsWithBuyer } from '@/lib/data/market-requests.pg';
 
 function getProductCategory(name: string): string {
   const cleanName = (name || '').toLowerCase();
@@ -143,6 +145,33 @@ async function getScoresInternal() {
   return loadAllCooperativeScores();
 }
 
+/** Active market requests with buyer names, sourced from Postgres. */
+async function getActiveMarketRequestsFromPg(buyerIdFilter?: string) {
+  const allWithBuyer = await loadAllMarketRequestsWithBuyer();
+  let filterBuyerId: string | null = null;
+  if (buyerIdFilter) {
+    const buyer = await loadBuyerById(buyerIdFilter);
+    filterBuyerId = buyer?.id ?? null;
+  }
+
+  const active = allWithBuyer
+    .filter((req) => {
+      if (filterBuyerId && req.buyer_id !== filterBuyerId) return false;
+      return req.status === 'Menunggu Pemenuhan' || req.status === 'Terpenuhi Sebagian';
+    })
+    .map((req) => ({
+      id: req.id,
+      buyer_name: req.buyer.company_name,
+      buyer_city: req.buyer.city,
+      commodity_name: req.commodity_name,
+      quantity: req.quantity,
+      unit: req.unit || 'ton',
+      status: req.status,
+    }));
+
+  return active;
+}
+
 async function getCooperativesWithDetailsInternal() {
   const coops = await getCooperativesInternal();
   const commodities = await getCommoditiesInternal();
@@ -188,42 +217,17 @@ export async function POST(request: NextRequest) {
 
     if (perspective === 'industry') {
       // --- PERSPECTIVE: INDUSTRY (Buyer looking for Cooperatives) ---
-      const requestsSnap = await getDocs(collection(db, 'market_requests'));
-      const buyersSnap = await getDocs(collection(db, 'buyers'));
-
-      const buyersMap: Record<string, any> = {};
-      buyersSnap.forEach(docSnap => {
-        buyersMap[docSnap.id] = docSnap.data();
-      });
-
-      const targetBuyer = buyerId ? buyersMap[buyerId] : null;
+      const targetBuyer = buyerId ? await loadBuyerById(buyerId) : null;
       const buyerName = targetBuyer ? targetBuyer.company_name : 'Semua';
 
-      const activeRequests: any[] = [];
-      requestsSnap.forEach(docSnap => {
-        const data = docSnap.data();
-        if (buyerId && data.buyer_id !== buyerId) return;
-
-        const buyer = buyersMap[data.buyer_id] || { company_name: 'Perusahaan Offtaker B2B', city: 'Nasional' };
-        if (data.status === 'Menunggu Pemenuhan' || data.status === 'Terpenuhi Sebagian') {
-          activeRequests.push({
-            id: docSnap.id,
-            buyer_name: buyer.company_name,
-            buyer_city: buyer.city,
-            commodity_name: data.commodity_name,
-            quantity: parseFloat(data.quantity) || 0,
-            unit: data.unit || 'ton',
-            status: data.status
-          });
-        }
-      });
+      let activeRequests = await getActiveMarketRequestsFromPg(buyerId);
 
       if (activeRequests.length === 0) {
-        activeRequests.push(
+        activeRequests = [
           { id: 'req-mock-1', buyer_name: buyerName !== 'Semua' ? buyerName : 'PT Indofood CBP', buyer_city: 'Jakarta', commodity_name: 'Singkong', quantity: 500, unit: 'ton', status: 'Menunggu Pemenuhan' },
           { id: 'req-mock-2', buyer_name: buyerName !== 'Semua' ? buyerName : 'PT Sinar Mas Agro', buyer_city: 'Surabaya', commodity_name: 'Kelapa', quantity: 1200, unit: 'ton', status: 'Menunggu Pemenuhan' },
-          { id: 'req-mock-3', buyer_name: buyerName !== 'Semua' ? buyerName : 'Kopi Kenangan Group', buyer_city: 'Bandung', commodity_name: 'Kopi', quantity: 80, unit: 'ton', status: 'Menunggu Pemenuhan' }
-        );
+          { id: 'req-mock-3', buyer_name: buyerName !== 'Semua' ? buyerName : 'Kopi Kenangan Group', buyer_city: 'Bandung', commodity_name: 'Kopi', quantity: 80, unit: 'ton', status: 'Menunggu Pemenuhan' },
+        ];
       }
 
       const coopsWithDetails = await getCooperativesWithDetailsInternal();
@@ -300,37 +304,14 @@ export async function POST(request: NextRequest) {
       const targetCoop = cooperativeId ? coopsWithDetails.find(c => c.id === cooperativeId) : null;
       const coopName = targetCoop ? targetCoop.name : 'Semua Koperasi';
 
-      const requestsSnap = await getDocs(collection(db, 'market_requests'));
-      const buyersSnap = await getDocs(collection(db, 'buyers'));
-
-      const buyersMap: Record<string, any> = {};
-      buyersSnap.forEach(docSnap => {
-        buyersMap[docSnap.id] = docSnap.data();
-      });
-
-      const activeRequests: any[] = [];
-      requestsSnap.forEach(docSnap => {
-        const data = docSnap.data();
-        const buyer = buyersMap[data.buyer_id] || { company_name: 'Perusahaan Offtaker B2B', city: 'Nasional' };
-        if (data.status === 'Menunggu Pemenuhan' || data.status === 'Terpenuhi Sebagian') {
-          activeRequests.push({
-            id: docSnap.id,
-            buyer_name: buyer.company_name,
-            buyer_city: buyer.city,
-            commodity_name: data.commodity_name,
-            quantity: parseFloat(data.quantity) || 0,
-            unit: data.unit || 'ton',
-            status: data.status
-          });
-        }
-      });
+      let activeRequests = await getActiveMarketRequestsFromPg();
 
       if (activeRequests.length === 0) {
-        activeRequests.push(
+        activeRequests = [
           { id: 'req-mock-1', buyer_name: 'PT Indofood CBP', buyer_city: 'Jakarta', commodity_name: 'Singkong', quantity: 500, unit: 'ton', status: 'Menunggu Pemenuhan' },
           { id: 'req-mock-2', buyer_name: 'PT Sinar Mas Agro', buyer_city: 'Surabaya', commodity_name: 'Kelapa', quantity: 1200, unit: 'ton', status: 'Menunggu Pemenuhan' },
-          { id: 'req-mock-3', buyer_name: 'Kopi Kenangan Group', buyer_city: 'Bandung', commodity_name: 'Kopi', quantity: 80, unit: 'ton', status: 'Menunggu Pemenuhan' }
-        );
+          { id: 'req-mock-3', buyer_name: 'Kopi Kenangan Group', buyer_city: 'Bandung', commodity_name: 'Kopi', quantity: 80, unit: 'ton', status: 'Menunggu Pemenuhan' },
+        ];
       }
 
       const simpleCoops = coopsWithDetails.filter(c => !cooperativeId || c.id === cooperativeId).map(c => ({
@@ -399,37 +380,14 @@ export async function POST(request: NextRequest) {
 
     } else {
       // --- PERSPECTIVE: GENERAL (System-wide Village Potential to Buyer Requests) ---
-      const requestsSnap = await getDocs(collection(db, 'market_requests'));
-      const buyersSnap = await getDocs(collection(db, 'buyers'));
-
-      const buyersMap: Record<string, any> = {};
-      buyersSnap.forEach(docSnap => {
-        buyersMap[docSnap.id] = docSnap.data();
-      });
-
-      const marketRequests: any[] = [];
-      requestsSnap.forEach(docSnap => {
-        const data = docSnap.data();
-        const buyer = buyersMap[data.buyer_id] || { company_name: 'Perusahaan Offtaker B2B', city: 'Nasional' };
-        if (data.status === 'Menunggu Pemenuhan' || data.status === 'Terpenuhi Sebagian') {
-          marketRequests.push({
-            id: docSnap.id,
-            buyer_name: buyer.company_name,
-            buyer_city: buyer.city,
-            commodity_name: data.commodity_name,
-            quantity: parseFloat(data.quantity) || 0,
-            unit: data.unit || 'ton',
-            status: data.status
-          });
-        }
-      });
+      let marketRequests = await getActiveMarketRequestsFromPg();
 
       if (marketRequests.length === 0) {
-        marketRequests.push(
+        marketRequests = [
           { id: 'req-mock-1', buyer_name: 'PT Indofood CBP', buyer_city: 'Jakarta', commodity_name: 'Singkong', quantity: 500, unit: 'ton', status: 'Menunggu Pemenuhan' },
           { id: 'req-mock-2', buyer_name: 'PT Sinar Mas Agro', buyer_city: 'Surabaya', commodity_name: 'Kelapa', quantity: 1200, unit: 'ton', status: 'Menunggu Pemenuhan' },
-          { id: 'req-mock-3', buyer_name: 'Kopi Kenangan Group', buyer_city: 'Bandung', commodity_name: 'Kopi', quantity: 80, unit: 'ton', status: 'Menunggu Pemenuhan' }
-        );
+          { id: 'req-mock-3', buyer_name: 'Kopi Kenangan Group', buyer_city: 'Bandung', commodity_name: 'Kopi', quantity: 80, unit: 'ton', status: 'Menunggu Pemenuhan' },
+        ];
       }
 
       const potentialsRes = await query(`
