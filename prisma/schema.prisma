@@ -1,0 +1,440 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model akun_bank_koperasi {
+  akun_bank_ref              String                     @id(map: "pk_akun_bank_koperasi_3314f99b")
+  koperasi_ref               String
+  nama_rekening              String?
+  nama_bank                  String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_akun_bank_koperasi_koperasi_ref_b79a5726")
+}
+
+model anggota_koperasi {
+  anggota_ref                String                     @id(map: "pk_anggota_koperasi_4fe6109d") @unique(map: "uq_anggota_koperasi_anggota_ref")
+  koperasi_ref               String
+  nama                       String?
+  nik                        String?
+  kode_wilayah               String?
+  jenis_kelamin              String?
+  status_keanggotaan         String?
+  tanggal_terdaftar          DateTime?                  @db.Date
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  file_ktp                   String?
+  status_akun                String?
+  pekerjaan                  String?
+  referensi_wilayah          referensi_wilayah?         @relation(fields: [kode_wilayah], references: [kode_wilayah], onDelete: NoAction, onUpdate: NoAction, map: "fk_anggota_koperasi_kode_wilayah_96a41cef")
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_anggota_koperasi_koperasi_ref_b8176ae0")
+  simpanan_anggota           simpanan_anggota[]
+}
+
+model aset_koperasi {
+  aset_ref                   String                     @id(map: "pk_aset_koperasi_b272e8a6")
+  koperasi_ref               String
+  nama_aset                  String?
+  tipe_aset                  String?
+  status                     String?
+  progres_pembangunan        Decimal?                   @db.Decimal
+  foto_utama                 String?
+  foto_sekunder              String?
+  dokumen_utama              String?
+  dokumen_sekunder           String?
+  dokumen_lainnya            String?
+  luas_lahan                 Decimal?                   @db.Decimal
+  panjang_lahan              Decimal?                   @db.Decimal
+  lebar_lahan                Decimal?                   @db.Decimal
+  akses_jalan                String?
+  koordinat_dibulatkan       String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_aset_koperasi_koperasi_ref_2ff5abd1")
+}
+
+model barang_keluar_produk {
+  row_id                     Int                        @id(map: "pk_barang_keluar_produk_d5471b08") @map("__row_id")
+  transaksi_sample_id        String
+  produk_sample_id           String
+  koperasi_ref               String
+  kode_barcode               String?
+  tanggal_keluar             DateTime?                  @db.Timestamp(6)
+  status                     String?
+  nama_produk                String?
+  nama_tampilan              String?
+  jumlah_keluar              Decimal?                   @db.Decimal
+  harga                      Decimal?                   @db.Decimal
+  total_nilai                Decimal?                   @db.Decimal
+  status_transaksi           String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_barang_keluar_produk_koperasi_ref_6dbc1a6c")
+  produk_koperasi            produk_koperasi            @relation(fields: [produk_sample_id], references: [produk_sample_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_barang_keluar_produk_produk_sample_id_05348b01")
+  transaksi_penjualan        transaksi_penjualan        @relation(fields: [transaksi_sample_id], references: [transaksi_sample_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_barang_keluar_produk_transaksi_sample_id_05bcac05")
+}
+
+model barang_masuk_produk {
+  barang_masuk_ref           String                     @id(map: "pk_barang_masuk_produk_018e5056")
+  produk_sample_id           String
+  koperasi_ref               String
+  kode_barcode               String?
+  nama_produk                String?
+  nama_tampilan              String?
+  jumlah_masuk               Decimal?                   @db.Decimal
+  jumlah_tersedia            Decimal?                   @db.Decimal
+  harga_beli                 Decimal?                   @db.Decimal
+  harga_jual                 Decimal?                   @db.Decimal
+  total_biaya                Decimal?                   @db.Decimal
+  keterangan                 String?
+  status                     String?
+  tanggal_masuk              DateTime?                  @db.Timestamp(6)
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_barang_masuk_produk_koperasi_ref_fbd3b8a5")
+  produk_koperasi            produk_koperasi            @relation(fields: [produk_sample_id], references: [produk_sample_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_barang_masuk_produk_produk_sample_id_491ee0a5")
+}
+
+model dokumen_koperasi {
+  dokumen_ref                String                     @id(map: "pk_dokumen_koperasi_f5f81f61")
+  koperasi_ref               String
+  jenis_dokumen_ref          String
+  nomor                      String?
+  tanggal_berlaku            DateTime?                  @db.Date
+  tanggal_kadaluarsa         DateTime?                  @db.Date
+  alamat_pada_dokumen        String?
+  unggahan_dokumen           String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_dokumen_koperasi referensi_dokumen_koperasi @relation(fields: [jenis_dokumen_ref], references: [jenis_dokumen_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_dokumen_koperasi_jenis_dokumen_ref_5df8ee5b")
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_dokumen_koperasi_koperasi_ref_22ac9c60")
+}
+
+model gerai_koperasi {
+  gerai_ref                     String                     @id(map: "pk_gerai_koperasi_2aac4c3c")
+  koperasi_ref                  String
+  jenis_gerai_ref               String
+  status_gerai                  String?
+  foto_gerai                    String?
+  pengisi                       String?
+  akses_internet                String?
+  akses_listrik                 String?
+  status_kepemilikan_aset_gerai String?
+  status_pemanfaatan_aset_gerai String?
+  sumber_air_bersih             String?
+  jenis_bangunan                String?
+  koordinat_dibulatkan          String?
+  dibuat_pada                   DateTime?                  @db.Timestamp(6)
+  diperbarui_pada               DateTime?                  @db.Timestamp(6)
+  referensi_gerai_koperasi      referensi_gerai_koperasi   @relation(fields: [jenis_gerai_ref], references: [jenis_gerai_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_gerai_koperasi_jenis_gerai_ref_57ac7e95")
+  referensi_koperasi_wilayah    referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_gerai_koperasi_koperasi_ref_9ea0835d")
+}
+
+model inventaris_produk {
+  inventaris_ref             String                     @id(map: "pk_inventaris_produk_5920d0e6")
+  produk_sample_id           String
+  koperasi_ref               String
+  nama_produk                String?
+  stok                       Decimal?                   @db.Decimal
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  kode_barcode               String?
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_inventaris_produk_koperasi_ref_934f6014")
+  produk_koperasi            produk_koperasi            @relation(fields: [produk_sample_id], references: [produk_sample_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_inventaris_produk_produk_sample_id_e49cff5a")
+}
+
+model karyawan_koperasi {
+  karyawan_ref               String                     @id(map: "pk_karyawan_koperasi_bffc535e")
+  koperasi_ref               String
+  nama                       String?
+  jabatan                    String?
+  nomor_hp_karyawan          String?
+  jenis_kelamin              String?
+  nik                        String?
+  email                      String?
+  status_karyawan            String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_karyawan_koperasi_koperasi_ref_4e47588f")
+}
+
+model kbli_koperasi {
+  row_id                     Int                        @id(map: "pk_kbli_koperasi_55bee0fc") @map("__row_id")
+  koperasi_ref               String
+  kode_kbli                  String?
+  nama_kbli                  String?
+  tipe_izin_usaha            String?
+  tahun_kbli                 Int?                       @db.SmallInt
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_kbli_koperasi_koperasi_ref_659f6886")
+}
+
+model modal_koperasi {
+  modal_ref                  String                     @id(map: "pk_modal_koperasi_a1180c73")
+  koperasi_ref               String
+  nomor_perjanjian           String?
+  tipe_sumber                String?
+  nama_sumber                String?
+  tipe_modal                 String?
+  jumlah                     Decimal?                   @db.Decimal
+  tanggal_diterima           DateTime?                  @db.Date
+  file_perjanjian            String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_modal_koperasi_koperasi_ref_1bb5cd3d")
+}
+
+model pengajuan_domain {
+  domain_ref                 String                     @id(map: "pk_pengajuan_domain_6763303c")
+  koperasi_ref               String
+  domain_koperasi            String?
+  status_verifikasi          String?
+  status_domain              String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_pengajuan_domain_koperasi_ref_980169cd")
+}
+
+model pengajuan_kemitraan {
+  pengajuan_kemitraan_ref    String                     @id(map: "pk_pengajuan_kemitraan_625d306d")
+  koperasi_ref               String
+  nik                        String?
+  penanggung_jawab           String?
+  nomor_penanggung_jawab     String?
+  status_permohonan          String?
+  bisnis_kemitraan           String?
+  paket_kemitraan            String?
+  formulir_permohonan        String?
+  ktp_penanggung_jawab       String?
+  tipe_kemitraan             String?
+  catatan                    String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_pengajuan_kemitraan_koperasi_ref_33626c2e")
+}
+
+model pengajuan_pembiayaan {
+  pengajuan_pembiayaan_ref       String                     @id(map: "pk_pengajuan_pembiayaan_28483833")
+  koperasi_ref                   String
+  nik                            String?
+  penanggung_jawab               String?
+  nomor_penanggung_jawab         String?
+  status_permohonan              String?
+  formulir_permohonan_pembiayaan String?
+  nominal_permohonan             Float?                     @db.Real
+  tenor                          Int?
+  tujuan_permohonan              String?
+  dibuat_pada                    DateTime?                  @db.Timestamp(6)
+  diperbarui_pada                DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah     referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_pengajuan_pembiayaan_koperasi_ref_cb273759")
+}
+
+model pengajuan_rekening_bank {
+  pengajuan_rekening_ref     String                     @id(map: "pk_pengajuan_rekening_bank_93255ee4")
+  koperasi_ref               String
+  nik                        String?
+  penanggung_jawab           String?
+  nomor_penanggung_jawab     String?
+  status                     String?
+  kode_bank                  String?
+  nama_bank                  String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_pengajuan_rekening_bank_koperasi_ref_fd7eef0a")
+}
+
+model pengurus_koperasi {
+  pengurus_ref               String                     @id(map: "pk_pengurus_koperasi_5b9a4e2c")
+  koperasi_ref               String
+  nama                       String?
+  jabatan                    String?
+  status                     String?
+  no_hp                      String?
+  nik                        String?
+  jenis_kelamin              String?
+  foto_profil                String?
+  email                      String?
+  alamat                     String?
+  kode_pos                   String?
+  tanggal_lahir              String?
+  status_pendidikan          String?
+  periode_mulai              String?
+  periode_selesai            DateTime?                  @db.Date
+  file_ktp                   String?
+  sumber_data                String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_pengurus_koperasi_koperasi_ref_762eb9ec")
+}
+
+model produk_koperasi {
+  produk_sample_id           String                     @id(map: "pk_produk_koperasi_4e63ea77")
+  koperasi_ref               String
+  kode_barcode               String?
+  nama_produk                String?
+  unit                       String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  barang_keluar_produk       barang_keluar_produk[]
+  barang_masuk_produk        barang_masuk_produk[]
+  inventaris_produk          inventaris_produk[]
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_produk_koperasi_koperasi_ref_5e27414b")
+}
+
+model profil_koperasi {
+  koperasi_ref               String                     @id(map: "pk_profil_koperasi_26375302")
+  nama_koperasi              String?
+  status_registrasi          String?
+  bentuk_koperasi            String?
+  kategori_usaha             String?
+  nik_koperasi               String?
+  alamat_lengkap             String?
+  kode_pos                   String?
+  koordinat_dibulatkan       String?
+  modal_awal                 String?
+  sumber_persetujuan         String?
+  tentang_koperasi           String?
+  pola_pengelolaan           String?
+  metode_pengisian           String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_profil_koperasi_koperasi_ref_2fda584b")
+}
+
+model rat_koperasi {
+  rat_sample_id              String                     @id(map: "pk_rat_koperasi_6272548f")
+  koperasi_ref               String
+  jenis_sektor_koperasi      String?
+  urutan_rat                 String?
+  tahun_buku                 Int?                       @db.SmallInt
+  tahun_rencana_kerja        Int?                       @db.SmallInt
+  tahun_rencana_anggaran     Int?                       @db.SmallInt
+  tanggal_rat                DateTime?                  @db.Date
+  jumlah_peserta_rat         Int?
+  status_rat                 String?
+  tahap_rat                  String?
+  laporan_posisi_keuangan    String?
+  laporan_hasil_usaha        String?
+  rapb_posisi_keuangan       String?
+  rapb_hasil_usaha           String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_rat_koperasi_koperasi_ref_7258ec7e")
+}
+
+model referensi_dokumen_koperasi {
+  jenis_dokumen_ref String             @id(map: "pk_referensi_dokumen_koperasi_4ea58f34")
+  nama_dokumen      String?
+  dibuat_pada       DateTime?          @db.Timestamp(6)
+  diperbarui_pada   DateTime?          @db.Timestamp(6)
+  dokumen_koperasi  dokumen_koperasi[]
+}
+
+model referensi_gerai_koperasi {
+  jenis_gerai_ref  String           @id(map: "pk_referensi_gerai_koperasi_e9d11ded")
+  nama_jenis_gerai String?
+  dibuat_pada      DateTime?        @db.Timestamp(6)
+  diperbarui_pada  DateTime?        @db.Timestamp(6)
+  gerai_koperasi   gerai_koperasi[]
+}
+
+model referensi_komoditas_desa {
+  komoditas_ref       String            @id(map: "pk_referensi_komoditas_desa_fdbdbdd4")
+  kode_wilayah        String
+  nama_komoditas      String?
+  luas_area           String?
+  volume              String?
+  jumlah_sdm_terlibat Float?            @db.Real
+  nilai_potensi_desa  BigInt?
+  dibuat_pada         DateTime?         @db.Timestamp(6)
+  diperbarui_pada     DateTime?         @db.Timestamp(6)
+  referensi_wilayah   referensi_wilayah @relation(fields: [kode_wilayah], references: [kode_wilayah], onDelete: NoAction, onUpdate: NoAction, map: "fk_referensi_komoditas_desa_kode_wilayah_ba3b0dad")
+}
+
+model referensi_koperasi_wilayah {
+  koperasi_ref            String                    @id(map: "pk_referensi_koperasi_aktif_778fe8ef")
+  kode_wilayah            String?
+  dibuat_pada             DateTime?                 @db.Timestamp(6)
+  diperbarui_pada         DateTime?                 @db.Timestamp(6)
+  akun_bank_koperasi      akun_bank_koperasi[]
+  anggota_koperasi        anggota_koperasi[]
+  aset_koperasi           aset_koperasi[]
+  barang_keluar_produk    barang_keluar_produk[]
+  barang_masuk_produk     barang_masuk_produk[]
+  dokumen_koperasi        dokumen_koperasi[]
+  gerai_koperasi          gerai_koperasi[]
+  inventaris_produk       inventaris_produk[]
+  karyawan_koperasi       karyawan_koperasi[]
+  kbli_koperasi           kbli_koperasi[]
+  modal_koperasi          modal_koperasi[]
+  pengajuan_domain        pengajuan_domain[]
+  pengajuan_kemitraan     pengajuan_kemitraan[]
+  pengajuan_pembiayaan    pengajuan_pembiayaan[]
+  pengajuan_rekening_bank pengajuan_rekening_bank[]
+  pengurus_koperasi       pengurus_koperasi[]
+  produk_koperasi         produk_koperasi[]
+  profil_koperasi         profil_koperasi?
+  rat_koperasi            rat_koperasi[]
+  referensi_wilayah       referensi_wilayah?        @relation(fields: [kode_wilayah], references: [kode_wilayah], onDelete: NoAction, onUpdate: NoAction, map: "fk_referensi_koperasi_aktif_kode_wilayah_93c6fdcd")
+  simpanan_anggota        simpanan_anggota[]
+  transaksi_penjualan     transaksi_penjualan[]
+}
+
+model referensi_profil_desa {
+  kode_wilayah       String            @id(map: "pk_referensi_profil_desa_ed7fcc83")
+  tahun_populasi     Int?
+  total_penduduk     Int?
+  penduduk_laki_laki Int?
+  penduduk_perempuan Int?
+  tahun_pendanaan    Int?
+  anggaran_dana_desa Decimal?          @db.Decimal
+  dibuat_pada        DateTime?         @db.Timestamp(6)
+  diperbarui_pada    DateTime?         @db.Timestamp(6)
+  referensi_wilayah  referensi_wilayah @relation(fields: [kode_wilayah], references: [kode_wilayah], onDelete: NoAction, onUpdate: NoAction, map: "fk_referensi_profil_desa_kode_wilayah_c5f8bf81")
+}
+
+model referensi_wilayah {
+  provinsi                   String?
+  kab_kota                   String?
+  kecamatan                  String?
+  desa_kelurahan             String?
+  kode_wilayah               String                       @id(map: "pk_referensi_wilayah_57bb55d7")
+  dibuat_pada                DateTime?                    @db.Timestamp(6)
+  diperbarui_pada            DateTime?                    @db.Timestamp(6)
+  anggota_koperasi           anggota_koperasi[]
+  referensi_komoditas_desa   referensi_komoditas_desa[]
+  referensi_koperasi_wilayah referensi_koperasi_wilayah[]
+  referensi_profil_desa      referensi_profil_desa?
+}
+
+model simpanan_anggota {
+  simpanan_ref               String                     @id(map: "pk_simpanan_anggota_a226bf54")
+  koperasi_ref               String
+  anggota_ref                String
+  periode_pembayaran         String?
+  jumlah_simpanan            Decimal?                   @db.Decimal
+  status                     String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  dibayar_pada               DateTime?                  @db.Timestamp(6)
+  anggota_koperasi           anggota_koperasi           @relation(fields: [anggota_ref], references: [anggota_ref], map: "fk_simpanan_anggota_anggota_koperasi")
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_simpanan_anggota_koperasi_ref_c7fd2f70")
+}
+
+model transaksi_penjualan {
+  transaksi_sample_id        String                     @id(map: "pk_transaksi_penjualan_2711f8e1")
+  koperasi_ref               String
+  nama_pelanggan             String?
+  tanggal_dibuat             DateTime?                  @db.Timestamp(6)
+  total_pembayaran           Decimal?                   @db.Decimal
+  status_transaksi           String?
+  metode_pembayaran          String?
+  dibuat_pada                DateTime?                  @db.Timestamp(6)
+  diperbarui_pada            DateTime?                  @db.Timestamp(6)
+  barang_keluar_produk       barang_keluar_produk[]
+  referensi_koperasi_wilayah referensi_koperasi_wilayah @relation(fields: [koperasi_ref], references: [koperasi_ref], onDelete: NoAction, onUpdate: NoAction, map: "fk_transaksi_penjualan_koperasi_ref_f99204f5")
+}
