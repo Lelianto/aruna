@@ -1,6 +1,8 @@
 # 🌾 ARUNA — Analitik Usaha Rakyat Nusantara
 
 > Platform digital yang memetakan potensi komoditas koperasi desa, menghubungkan koperasi untuk berkolaborasi secara gotong royong memenuhi permintaan pasar nasional, serta menyediakan analisis berbasis data sebagai pendukung pengambilan keputusan.
+>
+> 🗣️ **Materi Pitching & Presentasi:** [PITCH.md](PITCH.md)
 
 ---
 

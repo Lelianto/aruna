@@ -1,0 +1,154 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+
+export async function GET(request: NextRequest) {
+  try {
+    // 1. Fetch rough city coordinates lookup from profil_koperasi
+    const coordRes = await query(`
+      SELECT DISTINCT rw.kab_kota, pk.koordinat_dibulatkan
+      FROM profil_koperasi pk
+      LEFT JOIN referensi_koperasi_wilayah rkw ON pk.koperasi_ref = rkw.koperasi_ref
+      LEFT JOIN referensi_wilayah rw ON rkw.kode_wilayah = rw.kode_wilayah
+      WHERE pk.koordinat_dibulatkan IS NOT NULL AND rw.kab_kota IS NOT NULL
+    `);
+
+    const cityCoordMap: Record<string, [number, number]> = {};
+    coordRes.rows.forEach(row => {
+      const [latStr, lngStr] = row.koordinat_dibulatkan.split(',');
+      if (latStr && lngStr) {
+        cityCoordMap[row.kab_kota.trim().toUpperCase()] = [
+          parseFloat(latStr.trim()),
+          parseFloat(lngStr.trim())
+        ];
+      }
+    });
+
+    // Fallback coordinates for major Indonesian provinces/cities if lookup fails
+    const fallbackCoords: Record<string, [number, number]> = {
+      'ACEH': [4.69, 96.74],
+      'SUMATERA UTARA': [2.33, 98.98],
+      'SUMATERA BARAT': [-0.78, 100.65],
+      'RIAU': [0.50, 101.44],
+      'JAMBI': [-1.61, 103.61],
+      'SUMATERA SELATAN': [-3.31, 104.91],
+      'BENGKULU': [-3.79, 102.26],
+      'LAMPUNG': [-5.12, 105.26],
+      'JAWA BARAT': [-6.91, 107.60],
+      'JAWA TENGAH': [-7.53, 110.59],
+      'DI YOGYAKARTA': [-7.79, 110.36],
+      'JAWA TIMUR': [-7.25, 112.75],
+      'BALI': [-8.40, 115.18],
+      'NUSA TENGGARA BARAT': [-8.65, 116.32],
+      'NUSA TENGGARA TIMUR': [-10.17, 123.60],
+      'KALIMANTAN BARAT': [-0.02, 109.34],
+      'KALIMANTAN TENGAH': [-2.20, 113.92],
+      'KALIMANTAN SELATAN': [-3.31, 114.59],
+      'KALIMANTAN TIMUR': [-0.50, 117.14],
+      'SULAWESI UTARA': [1.47, 124.84],
+      'SULAWESI TENGAH': [-0.90, 119.87],
+      'SULAWESI SELATAN': [-5.14, 119.42],
+      'SULAWESI TENGGARA': [-3.97, 122.51],
+      'GORONTALO': [0.54, 123.05],
+      'SULAWESI BARAT': [-2.67, 118.88],
+      'MALUKU': [-3.65, 128.18],
+      'MALUKU UTARA': [0.78, 127.37],
+      'PAPUA': [-2.54, 140.70],
+      'PAPUA BARAT': [-0.86, 134.06]
+    };
+
+    // 2. Fetch potentials data
+    const potentialsRes = await query(`
+      SELECT 
+        rk.komoditas_ref AS id,
+        rk.nama_komoditas AS name,
+        rk.luas_area,
+        rk.volume,
+        rk.jumlah_sdm_terlibat,
+        rk.nilai_potensi_desa AS value,
+        rw.provinsi AS province,
+        rw.kab_kota AS city,
+        rw.kecamatan AS district,
+        rw.desa_kelurahan AS village,
+        rw.kode_wilayah
+      FROM referensi_komoditas_desa rk
+      LEFT JOIN referensi_wilayah rw ON rk.kode_wilayah = rw.kode_wilayah
+      WHERE rk.nilai_potensi_desa > 0
+      ORDER BY rk.nilai_potensi_desa DESC
+      LIMIT 150
+    `);
+
+    // 3. Populate coordinates and format list
+    const potentials = potentialsRes.rows.map(row => {
+      const cityKey = (row.city || '').trim().toUpperCase();
+      const provKey = (row.province || '').trim().toUpperCase();
+      
+      // Determine coordinate: exact city match, fallback province match, or default
+      let lat = -2.5;
+      let lng = 118.0;
+      if (cityCoordMap[cityKey]) {
+        // Add tiny random jitter so markers on the same city don't stack exactly on top of each other
+        lat = cityCoordMap[cityKey][0] + (Math.random() - 0.5) * 0.08;
+        lng = cityCoordMap[cityKey][1] + (Math.random() - 0.5) * 0.08;
+      } else if (fallbackCoords[provKey]) {
+        lat = fallbackCoords[provKey][0] + (Math.random() - 0.5) * 0.15;
+        lng = fallbackCoords[provKey][1] + (Math.random() - 0.5) * 0.15;
+      }
+
+      return {
+        id: row.id,
+        name: row.name,
+        category: getCommodityCategory(row.name),
+        volume: parseFloat(row.volume) || 0.0,
+        luas_area: parseFloat(row.luas_area) || 0.0,
+        sdm_terlibat: parseInt(row.jumlah_sdm_terlibat, 10) || 0,
+        value: parseFloat(row.value) || 0.0,
+        province: row.province || 'Jawa Tengah',
+        city: row.city || 'Boyolali',
+        district: row.district || 'Boyolali',
+        village: row.village || 'Desa Merah Putih',
+        latitude: lat,
+        longitude: lng
+      };
+    });
+
+    // 4. Calculate aggregates
+    const totalEconomicValue = potentials.reduce((acc, p) => acc + p.value, 0);
+    const totalVolume = potentials.reduce((acc, p) => acc + p.volume, 0);
+    const totalFarmers = potentials.reduce((acc, p) => acc + p.sdm_terlibat, 0);
+
+    return NextResponse.json({
+      success: true,
+      stats: {
+        total_economic_value: totalEconomicValue,
+        total_volume: totalVolume,
+        total_farmers: totalFarmers,
+        hotspot_count: potentials.length
+      },
+      potentials
+    });
+
+  } catch (error: any) {
+    console.error('Error fetching village potentials:', error);
+    return NextResponse.json({ error: 'Failed to fetch potentials: ' + error.message }, { status: 500 });
+  }
+}
+
+function getCommodityCategory(name: string): string {
+  const cleanName = (name || '').toLowerCase();
+  if (cleanName.includes('padi') || cleanName.includes('jagung') || cleanName.includes('beras') || cleanName.includes('kedelai') || cleanName.includes('singkong') || cleanName.includes('ubi') || cleanName.includes('sayur')) {
+    return 'Pertanian';
+  }
+  if (cleanName.includes('kopi') || cleanName.includes('teh') || cleanName.includes('kakao') || cleanName.includes('cengkeh') || cleanName.includes('kelapa') || cleanName.includes('sawit') || cleanName.includes('karet')) {
+    return 'Perkebunan';
+  }
+  if (cleanName.includes('sapi') || cleanName.includes('kambing') || cleanName.includes('ayam') || cleanName.includes('ternak') || cleanName.includes('susu')) {
+    return 'Peternakan';
+  }
+  if (cleanName.includes('ikan') || cleanName.includes('udang') || cleanName.includes('rumput laut') || cleanName.includes('kepiting') || cleanName.includes('perikanan')) {
+    return 'Perikanan';
+  }
+  if (cleanName.includes('wisata') || cleanName.includes('pantai') || cleanName.includes('desa wisata')) {
+    return 'Pariwisata';
+  }
+  return 'Industri Kreatif';
+}
