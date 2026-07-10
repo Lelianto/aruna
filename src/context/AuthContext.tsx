@@ -35,21 +35,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const mockFirebaseUser = {
-    uid: 'mock-user-123',
-    displayName: 'Admin Koperasi Lampung Makmur',
-    email: 'admin.lampung@koperasi.id',
-    emailVerified: true,
-  } as any;
-
-  const mockUserData: UserData = {
-    uid: 'mock-user-123',
-    name: 'Admin Koperasi Lampung Makmur',
-    email: 'admin.lampung@koperasi.id',
-    role: 'koperasi',
-    associatedId: 'coop-lampung-tani'
-  };
-
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,19 +45,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
+        // Coba baca cache lokal terlebih dahulu agar user experience instan
+        const cacheKey = `aruna_user_data_${firebaseUser.uid}`;
+        const cachedData = localStorage.getItem(cacheKey);
+        if (cachedData) {
+          try {
+            const data = JSON.parse(cachedData) as UserData;
+            setUserData(data);
+            setNeedsRoleSelection(false);
+          } catch (e) {
+            // Ignore parse error, fetch fresh instead
+          }
+        }
+
         try {
           const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDocSnap = await getDoc(userDocRef);
           if (userDocSnap.exists()) {
-            setUserData(userDocSnap.data() as UserData);
+            const data = userDocSnap.data() as UserData;
+            setUserData(data);
+            localStorage.setItem(cacheKey, JSON.stringify(data));
             setNeedsRoleSelection(false);
           } else {
             setUserData(null);
             setNeedsRoleSelection(true);
           }
         } catch (err) {
-          console.error("Error loading user profile from Firestore:", err);
-          setUserData(null);
+          console.error("Error loading user profile from Firestore, falling back to cache:", err);
+          // Jika offline dan belum dibaca dari cache sebelumnya
+          if (!cachedData) {
+            setUserData(null);
+          }
         }
       } else {
         setUserData(null);
@@ -98,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (userDocSnap.exists()) {
         const data = userDocSnap.data() as UserData;
         setUserData(data);
+        localStorage.setItem(`aruna_user_data_${firebaseUser.uid}`, JSON.stringify(data));
         setNeedsRoleSelection(false);
         if (data.role === 'koperasi' || data.role === 'admin') {
           router.push('/mitra-dashboard');
@@ -148,8 +152,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       updatedProfile.associatedId = associatedId;
     }
 
-    await setDoc(userDocRef, updatedProfile);
+    try {
+      await setDoc(userDocRef, updatedProfile);
+    } catch (err) {
+      console.warn("Offline setDoc failed, saving to local cache:", err);
+    }
     setUserData(updatedProfile);
+    localStorage.setItem(`aruna_user_data_${user.uid}`, JSON.stringify(updatedProfile));
     setNeedsRoleSelection(false);
   };
 
@@ -157,8 +166,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user || !userData) return;
     const userDocRef = doc(db, 'users', user.uid);
     const updatedProfile = { ...userData, address };
-    await setDoc(userDocRef, updatedProfile);
+    try {
+      await setDoc(userDocRef, updatedProfile);
+    } catch (err) {
+      console.warn("Offline address update failed, saving to local cache:", err);
+    }
     setUserData(updatedProfile);
+    localStorage.setItem(`aruna_user_data_${user.uid}`, JSON.stringify(updatedProfile));
   };
 
   return (

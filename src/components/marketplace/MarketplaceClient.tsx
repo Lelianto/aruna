@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { MarketRequestWithBuyer, Buyer, MarketRequest, Cooperative, Commodity } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { MarketRequestWithBuyer, Buyer, MarketRequest, Commodity, CooperativeWithCommodities, SupplyMatch } from '@/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CustomSelect } from '@/components/ui/CustomSelect';
-import { 
-  ShoppingBag, ArrowRight, Building2, MapPin, Compass, 
-  Plus, X, Search, Filter, Loader2, AlertCircle, CheckCircle2,
-  Navigation, Truck, Clock, ShieldAlert, Award, CreditCard, LogIn
+import {
+  ShoppingBag, ArrowRight, Building2, MapPin,
+  Plus, Search, CheckCircle2, Navigation, Truck, Clock,
+  X, AlertCircle, ShieldAlert, LogIn, CreditCard, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/firebase/config';
@@ -23,6 +23,47 @@ import { localDb, queueForSync } from '@/lib/services/local-db';
 
 interface MarketplaceClientProps {
   initialRequests: MarketRequestWithBuyer[];
+}
+
+type MarketTab = 'gotong_royong' | 'customer' | 'pesanan';
+type RequestStatusFilter = 'Semua' | 'Menunggu Pemenuhan' | 'Terpenuhi';
+
+interface MarketplaceProduct extends Commodity {
+  coopName: string;
+  city: string;
+  province: string;
+  grade: string;
+  coopPhone: string;
+  distance: number;
+  distanceSource: 'osrm' | 'haversine';
+  deliveryCost: number;
+  eta: string;
+  pricePerKg: number;
+}
+
+interface CartItem extends MarketplaceProduct {
+  quantity: number;
+}
+
+interface PaymentItem {
+  id: string;
+  name: string;
+  coopName: string;
+  coopPhone?: string;
+  cooperative_id: string;
+  cooperativeId?: string;
+  quantity: number;
+  pricePerKg: number;
+  unit: string;
+  deliveryCost: number;
+  invoice_number?: string;
+}
+
+interface ActivePaymentState {
+  items: PaymentItem[];
+  totalAmount: number;
+  isCart: boolean;
+  isReadOnly?: boolean;
 }
 
 // Haversine formula to compute distance in km
@@ -41,10 +82,15 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 
 export default function MarketplaceClient({ initialRequests }: MarketplaceClientProps) {
   const { user, userData, signInWithGoogle } = useAuth();
-  
+
   // Tab control: 'gotong_royong' (Industrial requests) or 'customer' (Direct consumer search) or 'pesanan' (My orders)
-  const [activeMarketTab, setActiveMarketTab] = useState<'gotong_royong' | 'customer' | 'pesanan'>('customer');
-  const [isUmkmUser, setIsUmkmUser] = useState(false);
+  const [activeMarketTab, setActiveMarketTab] = useState<MarketTab>(() => {
+    if (!user) return 'customer';
+    if (userData?.role === 'customer') return 'customer';
+    if (userData?.role === 'koperasi') return 'gotong_royong';
+    return 'customer';
+  });
+  const [isUmkmUser, setIsUmkmUser] = useState<boolean>(false);
 
   const showToggle = useMemo(() => {
     if (userData?.role === 'admin') return true;
@@ -52,71 +98,72 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     return false;
   }, [userData, isUmkmUser]);
 
-  // Set default view based on role and buyer scale
   useEffect(() => {
-    if (!user) {
-      // Unauthenticated visitors see the commodity listing
-      setActiveMarketTab('customer');
-    } else if (userData?.role === 'customer') {
-      setActiveMarketTab('customer');
-    } else if (userData?.role === 'koperasi') {
-      setActiveMarketTab('gotong_royong');
-    } else if (userData?.role === 'buyer' && userData.associatedId) {
-      const checkBuyerType = async () => {
-        try {
-          const docRef = doc(db, 'buyers', userData.associatedId!);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            if (data.buyer_type === 'umkm') {
-              setIsUmkmUser(true);
-              setActiveMarketTab('customer');
-            } else {
-              setActiveMarketTab('gotong_royong');
-            }
-          }
-        } catch (e) {
-          console.error("Error fetching buyer type:", e);
-        }
-      };
-      checkBuyerType();
+    if (userData?.role !== 'buyer' || !userData.associatedId) {
+      return;
     }
-  }, [user, userData]);
+
+    let isMounted = true;
+    const checkBuyerType = async () => {
+      try {
+        const docRef = doc(db, 'buyers', userData.associatedId!);
+        const docSnap = await getDoc(docRef);
+        if (!isMounted) return;
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const isUmkm = data.buyer_type === 'umkm';
+          setIsUmkmUser(isUmkm);
+          setActiveMarketTab(isUmkm ? 'customer' : 'gotong_royong');
+        }
+      } catch (error) {
+        console.error('Error fetching buyer type:', error);
+      }
+    };
+
+    void checkBuyerType();
+    return () => {
+      isMounted = false;
+    };
+  }, [userData?.role, userData?.associatedId]);
 
   // ─── STATE 1: GOTONG ROYONG ENGINE ──────────────────────────────────────────
   const [requests, setRequests] = useState<MarketRequestWithBuyer[]>(initialRequests);
   const [buyers, setBuyers] = useState<Buyer[]>([]);
-  const [supplyMatches, setSupplyMatches] = useState<any[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'Semua' | 'Menunggu Pemenuhan' | 'Terpenuhi'>('Semua');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedBuyerId, setSelectedBuyerId] = useState('');
-  const [commodityName, setCommodityName] = useState('Jagung');
-  const [quantity, setQuantity] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [successMsg, setSuccessMsg] = useState('');
+  const [supplyMatches, setSupplyMatches] = useState<SupplyMatch[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<RequestStatusFilter>('Semua');
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedBuyerId, setSelectedBuyerId] = useState<string>('');
+  const [commodityName, setCommodityName] = useState<string>('Jagung');
+  const [quantity, setQuantity] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string>('');
+  const [successMsg, setSuccessMsg] = useState<string>('');
 
   // ─── STATE 2: CUSTOMER CENTRIC MARKETPLACE ──────────────────────────────────
-  const [coops, setCoops] = useState<any[]>([]);
+  const [coops, setCoops] = useState<CooperativeWithCommodities[]>([]);
   const [allCommodities, setAllCommodities] = useState<Commodity[]>([]);
-  const [customerSearch, setCustomerSearch] = useState('');
+  const [customerSearch, setCustomerSearch] = useState<string>('');
 
-  // Reset to first page whenever search changes
-  useEffect(() => { setCurrentPage(0); }, [customerSearch]);
   const [coords, setCoords] = useState<{ lat: number; lng: number }>({ lat: -6.2088, lng: 106.8456 }); // Default: Jakarta
-  const [checkoutItem, setCheckoutItem] = useState<any | null>(null);
+  const [checkoutItem, setCheckoutItem] = useState<MarketplaceProduct | null>(null);
   const [checkoutQuantity, setCheckoutQuantity] = useState(1);
   const [shippingOption, setShippingOption] = useState<'single' | 'split'>('single');
 
   // Shopping Cart States
-  const [cart, setCart] = useState<any[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState<boolean>(false);
 
   // Pagination
   const PAGE_SIZE = 12;
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState<number>(0);
+
+  // Reset to first page whenever search changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [customerSearch]);
 
   // Initialize cart from localStorage on mount
   useEffect(() => {
@@ -139,7 +186,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     }
   }, [cart]);
 
-  const addToCart = (product: any) => {
+  const addToCart = (product: MarketplaceProduct) => {
     if (!user) {
       setShowLoginPrompt(true);
       return;
@@ -171,6 +218,10 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
   const removeFromCart = (id: string, name: string) => {
     setCart(prev => prev.filter(item => !(item.id === id && item.name === name)));
+  };
+
+  const handleRemoveCartItem = (id: string, name: string) => {
+    removeFromCart(id, name);
   };
 
   // Real-time listener for requests
@@ -434,18 +485,114 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     }
   };
 
-  // Active Payment State for Bank Transfer verification
-  const [activePayment, setActivePayment] = useState<{
-    items: any[];
-    totalAmount: number;
-    isCart: boolean;
-    isReadOnly?: boolean;
-  } | null>(null);
+  const handleSetMarketTab = (tab: MarketTab) => {
+    setActiveMarketTab(tab);
+  };
 
-  const [verifyingPayment, setVerifyingPayment] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [customAddress, setCustomAddress] = useState('');
-  const [useCustomAddress, setUseCustomAddress] = useState(false);
+  const handleOpenCreateModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleOpenCheckoutModal = () => {
+    setCheckoutItem(null);
+  };
+
+  const handleCloseCheckoutModal = () => {
+    setCheckoutItem(null);
+  };
+
+  const handleOpenCart = () => {
+    setIsCartOpen(true);
+  };
+
+  const handleCloseCart = () => {
+    setIsCartOpen(false);
+  };
+
+  const handleCloseLoginPrompt = () => {
+    setShowLoginPrompt(false);
+  };
+
+  const handleLoginWithGoogle = async () => {
+    await signInWithGoogle();
+    setShowLoginPrompt(false);
+  };
+
+  const handleAddToCart = (product: MarketplaceProduct) => {
+    addToCart(product);
+  };
+
+  const handleRemoveFromCart = (id: string, name: string) => {
+    removeFromCart(id, name);
+  };
+
+  const handleUpdateCartQty = (id: string, name: string, qty: number) => {
+    updateCartQty(id, name, qty);
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(0, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(Math.ceil(searchedProducts.length / PAGE_SIZE) - 1, prev + 1));
+  };
+
+  const handleSelectPage = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleClosePaymentModal = () => {
+    setActivePayment(null);
+  };
+
+  const handleSelectShippingOption = (option: 'single' | 'split') => {
+    setShippingOption(option);
+  };
+
+  const handleShowAddressPrompt = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    alert("Silakan gunakan tombol 'Atur Alamat' di bagian kanan atas (Navbar) untuk mengubah alamat pengiriman utama Anda.");
+  };
+
+  const handleApprovePaymentRequest = (req: MarketRequestWithBuyer) => {
+    void handleAdminApprovePayment(req);
+  };
+
+  const handleShowOrderPaymentDetails = (order: MarketRequestWithBuyer & { coopName: string; coopCity: string; coopPhone?: string }) => {
+    const mockCommodityPrice = 12000;
+    const deliveryCost = 25000;
+    const totalAmount = order.quantity * mockCommodityPrice + deliveryCost;
+    setActivePayment({
+      items: [{
+        id: order.id,
+        name: order.commodity_name,
+        coopName: order.coopName,
+        coopPhone: order.coopPhone,
+        cooperative_id: order.coopName || 'coop-jabar-garut',
+        quantity: order.quantity,
+        pricePerKg: mockCommodityPrice,
+        unit: order.unit,
+        deliveryCost: deliveryCost,
+        invoice_number: order.invoice_number || order.id.slice(0, 8).toUpperCase()
+      }],
+      totalAmount,
+      isCart: false,
+      isReadOnly: true
+    });
+  };
+
+  // Active Payment State for Bank Transfer verification
+  const [activePayment, setActivePayment] = useState<ActivePaymentState | null>(null);
+
+  const [verifyingPayment, setVerifyingPayment] = useState<boolean>(false);
+  const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
+  const [customAddress, setCustomAddress] = useState<string>('');
+  const [useCustomAddress, setUseCustomAddress] = useState<boolean>(false);
 
   const initiateDirectPayment = () => {
     if (!checkoutItem) return;
@@ -477,7 +624,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     setActivePayment({
       items: cart.map(item => ({
         ...item,
-        cooperative_id: item.cooperative_id || item.cooperativeId || (coops.length > 0 ? coops[0].id : 'coop-jabar-garut')
+        cooperative_id: item.cooperative_id || (coops.length > 0 ? coops[0].id : 'coop-jabar-garut')
       })),
       totalAmount,
       isCart: true
@@ -653,19 +800,19 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
           {user && (showToggle ? (
             <div className="flex bg-slate-100 p-0.5 rounded-lg text-xs font-bold shrink-0">
               <button 
-                onClick={() => setActiveMarketTab('gotong_royong')}
+                onClick={() => handleSetMarketTab('gotong_royong')}
                 className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'gotong_royong' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
                 Gotong Royong Industri
               </button>
               <button 
-                onClick={() => setActiveMarketTab('customer')}
+                onClick={() => handleSetMarketTab('customer')}
                 className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'customer' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
                 Belanja Komoditas
               </button>
               <button 
-                onClick={() => setActiveMarketTab('pesanan')}
+                onClick={() => handleSetMarketTab('pesanan')}
                 className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'pesanan' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
                 Pesanan Saya
@@ -674,13 +821,13 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
           ) : (
             <div className="flex bg-slate-100 p-0.5 rounded-lg text-xs font-bold shrink-0">
               <button 
-                onClick={() => setActiveMarketTab('customer')}
+                onClick={() => handleSetMarketTab('customer')}
                 className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'customer' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
                 Belanja Komoditas
               </button>
               <button 
-                onClick={() => setActiveMarketTab('pesanan')}
+                onClick={() => handleSetMarketTab('pesanan')}
                 className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'pesanan' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
                 Pesanan Saya
@@ -714,7 +861,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       { value: 'Terpenuhi', label: 'Terpenuhi' }
                     ]}
                     value={statusFilter}
-                    onChange={(val) => setStatusFilter(val as any)}
+                    onChange={(val) => setStatusFilter(val as RequestStatusFilter)}
                     className="w-40"
                   />
                 </div>
@@ -722,7 +869,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
               {canCreate && (
                 <Button
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={handleOpenCreateModal}
                   className="w-full sm:w-auto bg-brand-red hover:bg-brand-red/90 text-white font-black text-xs px-5 py-2.5 rounded-xl shadow-md cursor-pointer flex items-center gap-1.5 justify-center"
                 >
                   <Plus className="h-4.5 w-4.5" /> Posting Kebutuhan Baru
@@ -770,7 +917,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       <div className="space-y-2">
                         {userData?.role === 'admin' ? (
                           <Button 
-                            onClick={() => handleAdminApprovePayment(req)}
+                            onClick={() => handleApprovePaymentRequest(req)}
                             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl"
                           >
                             <CheckCircle2 className="h-4 w-4" /> Verifikasi Pembayaran
@@ -918,7 +1065,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       {/* CTA */}
                       <div className="mt-auto flex justify-end">
                         <button
-                          onClick={() => addToCart(prod)}
+                          onClick={() => handleAddToCart(prod)}
                           className="flex items-center gap-1 text-[11px] font-semibold text-brand-navy hover:text-white hover:bg-brand-navy border border-brand-navy/30 hover:border-brand-navy px-2.5 py-1 rounded-lg transition-all duration-150 cursor-pointer"
                         >
                           <ShoppingBag className="h-3 w-3" />
@@ -935,7 +1082,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
             {searchedProducts.length > PAGE_SIZE && (
               <div className="flex items-center justify-center gap-2 pt-2">
                 <button
-                  onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                  onClick={handlePreviousPage}
                   disabled={currentPage === 0}
                   className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                 >
@@ -946,7 +1093,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                   {Array.from({ length: Math.ceil(searchedProducts.length / PAGE_SIZE) }).map((_, i) => (
                     <button
                       key={i}
-                      onClick={() => setCurrentPage(i)}
+                      onClick={() => handleSelectPage(i)}
                       className={`w-7 h-7 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
                         i === currentPage
                           ? 'bg-brand-navy text-white'
@@ -959,7 +1106,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 </div>
 
                 <button
-                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(searchedProducts.length / PAGE_SIZE) - 1, p + 1))}
+                  onClick={handleNextPage}
                   disabled={currentPage >= Math.ceil(searchedProducts.length / PAGE_SIZE) - 1}
                   className="px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                 >
@@ -1047,7 +1194,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                         {/* If Admin and pending payment, show Verify Payment button */}
                         {order.status === 'Menunggu Pembayaran' && userData?.role === 'admin' && (
                           <Button 
-                            onClick={() => handleAdminApprovePayment(order)}
+                            onClick={() => handleApprovePaymentRequest(order)}
                             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
                           >
                             <CheckCircle2 className="h-4.5 w-4.5" /> Verifikasi Pembayaran
@@ -1061,22 +1208,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                               const mockCommodityPrice = 12000; 
                               const deliveryCost = 25000;
                               const totalAmount = order.quantity * mockCommodityPrice + deliveryCost;
-                              setActivePayment({
-                                items: [{
-                                  id: order.id,
-                                  name: order.commodity_name,
-                                  coopName: order.coopName,
-                                  coopPhone: order.coopPhone,
-                                  quantity: order.quantity,
-                                  pricePerKg: mockCommodityPrice,
-                                  unit: order.unit,
-                                  deliveryCost: deliveryCost,
-                                  invoice_number: order.invoice_number || order.id.slice(0, 8).toUpperCase()
-                                }],
-                                totalAmount,
-                                isCart: false,
-                                isReadOnly: true
-                              });
+                              handleShowOrderPaymentDetails(order);
                             }}
                             className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
                           >
@@ -1097,7 +1229,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
             <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-black text-slate-900">Posting Permintaan Komoditas Baru</h3>
-                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
+                <button onClick={handleCloseCreateModal} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
               </div>
 
               <form onSubmit={handleSubmitRequest} className="space-y-4">
@@ -1144,7 +1276,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                   <Button 
                     type="button" 
                     variant="outline" 
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={handleCloseCreateModal}
                     className="text-xs cursor-pointer rounded-xl h-10 px-4"
                   >
                     Batal
@@ -1168,7 +1300,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
             <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-base font-black text-slate-900">Simulasi Checkout Pelanggan</h3>
-                <button onClick={() => setCheckoutItem(null)} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
+                <button onClick={handleCloseCheckoutModal} className="text-slate-400 hover:text-slate-700"><X className="h-5 w-5" /></button>
               </div>
 
               <div className="space-y-4 text-xs font-semibold">
@@ -1209,7 +1341,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                           type="radio" 
                           name="shipping_opt" 
                           checked={shippingOption === 'single'}
-                          onChange={() => setShippingOption('single')}
+                          onChange={() => handleSelectShippingOption('single')}
                           className="accent-brand-navy h-4 w-4"
                         />
                         Single Kirim (Satu Kargo Lebih Lambat)
@@ -1219,7 +1351,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                           type="radio" 
                           name="shipping_opt" 
                           checked={shippingOption === 'split'}
-                          onChange={() => setShippingOption('split')}
+                          onChange={() => handleSelectShippingOption('split')}
                           className="accent-brand-navy h-4 w-4"
                         />
                         Split Kirim (Gudang Bogor + Cianjur, Ongkir Berbeda)
@@ -1245,7 +1377,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
                 <div className="flex justify-end gap-2 pt-2">
                   <Button 
-                    onClick={() => setCheckoutItem(null)} 
+                    onClick={handleCloseCheckoutModal} 
                     variant="outline"
                     className="text-xs cursor-pointer rounded-xl h-10 px-4"
                   >
@@ -1266,7 +1398,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
       {/* ─── LOGIN PROMPT MODAL ──────────────────────────────────────────────── */}
       {showLoginPrompt && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowLoginPrompt(false)} />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCloseLoginPrompt} />
           <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
             <div className="h-16 w-16 bg-brand-red/10 rounded-full flex items-center justify-center mx-auto">
               <ShoppingBag className="h-8 w-8 text-brand-red" />
@@ -1279,14 +1411,14 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
             </div>
             <div className="space-y-2">
               <Button
-                onClick={() => { signInWithGoogle(); setShowLoginPrompt(false); }}
+                onClick={handleLoginWithGoogle}
                 className="w-full py-3 bg-brand-red hover:bg-brand-red/90 text-white font-black text-sm flex items-center justify-center gap-2 rounded-xl cursor-pointer"
               >
                 <LogIn className="h-4 w-4" />
                 Masuk dengan Google
               </Button>
               <button
-                onClick={() => setShowLoginPrompt(false)}
+                onClick={handleCloseLoginPrompt}
                 className="w-full py-2 text-xs text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
               >
                 Lanjut melihat produk
@@ -1299,7 +1431,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
       {/* ─── SHOPPING CART FLOATING BUBBLE AND DRAWER ────────────────────────── */}
       {/* Floating Bubble */}
       <button 
-        onClick={() => setIsCartOpen(true)}
+        onClick={handleOpenCart}
         className="fixed bottom-24 right-6 h-14 w-14 rounded-full bg-brand-red hover:bg-brand-red/95 text-white shadow-2xl flex items-center justify-center cursor-pointer z-40 transition-transform active:scale-95 group"
         title="Keranjang Belanja"
       >
@@ -1315,7 +1447,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
       {isCartOpen && (
         <div className="fixed inset-0 z-50 overflow-hidden font-sans">
           {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity" onClick={() => setIsCartOpen(false)} />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity" onClick={handleCloseCart} />
           
           <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
             <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col h-full rounded-l-3xl overflow-hidden border-l border-slate-200">
@@ -1329,7 +1461,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                     {cart.reduce((sum, item) => sum + item.quantity, 0)} item
                   </Badge>
                 </div>
-                <button onClick={() => setIsCartOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                <button onClick={handleCloseCart} className="text-slate-400 hover:text-slate-600 cursor-pointer">
                   <X className="h-5 w-5" />
                 </button>
               </div>
@@ -1357,20 +1489,20 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                         <p className="text-[10px] text-slate-400 font-extrabold">Rp {item.pricePerKg.toLocaleString('id-ID')} / kg</p>
                       </div>
                       <div className="flex flex-col items-end justify-between shrink-0">
-                        <button onClick={() => removeFromCart(item.id, item.name)} className="text-slate-350 hover:text-red-500 cursor-pointer">
+                        <button onClick={() => handleRemoveCartItem(item.id, item.name)} className="text-slate-350 hover:text-red-500 cursor-pointer">
                           <X className="h-4 w-4" />
                         </button>
                         {/* Qty Adjuster */}
                         <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden text-xs">
                           <button 
-                            onClick={() => updateCartQty(item.id, item.name, item.quantity - 1)}
+                            onClick={() => handleUpdateCartQty(item.id, item.name, item.quantity - 1)}
                             className="px-2 py-1 bg-slate-50 hover:bg-slate-100 font-bold border-r border-slate-200 cursor-pointer"
                           >
                             -
                           </button>
                           <span className="px-2.5 font-bold text-slate-700 min-w-[20px] text-center">{item.quantity}</span>
                           <button 
-                            onClick={() => updateCartQty(item.id, item.name, item.quantity + 1)}
+                            onClick={() => handleUpdateCartQty(item.id, item.name, item.quantity + 1)}
                             className="px-2 py-1 bg-slate-50 hover:bg-slate-100 font-bold border-l border-slate-200 cursor-pointer"
                           >
                             +
@@ -1424,7 +1556,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
       {/* ─── MODAL 3: PAYMENT ESCROW VERIFICATION ────────────────────────── */}
       {activePayment && (() => {
-        const coopSplits = activePayment.items.reduce((acc: any, it: any) => {
+        const coopSplits = activePayment.items.reduce<Record<string, { coopName: string; subtotal: number; delivery: number }>>((acc, it) => {
           const key = it.coopName || 'Koperasi Desa Merah Putih';
           if (!acc[key]) {
             acc[key] = {
@@ -1450,7 +1582,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                       Gerbang Pembayaran QRIS (ARUNA Hub)
                     </h3>
                     {!verifyingPayment && (
-                      <button onClick={() => setActivePayment(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+                      <button onClick={handleClosePaymentModal} className="text-slate-400 hover:text-slate-700 cursor-pointer">
                         <X className="h-5 w-5" />
                       </button>
                     )}
@@ -1489,7 +1621,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                   <div className="space-y-2">
                     <span className="text-[9.5px] text-slate-400 block font-black uppercase tracking-wide">Rincian Split Payment (Sistem Otomatis)</span>
                     <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
-                      {Object.values(coopSplits).map((split: any, idx) => (
+                      {Object.values(coopSplits).map((split, idx) => (
                         <div key={idx} className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex justify-between items-center gap-2">
                           <div className="flex items-center gap-2 min-w-0">
                             <div className="h-7 w-7 rounded-lg bg-brand-navy/5 flex items-center justify-center font-black text-brand-navy text-[10px] shrink-0">
@@ -1525,10 +1657,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                             </span>
                             {userData?.role === 'customer' && (
                               <button 
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  alert("Silakan gunakan tombol 'Atur Alamat' di bagian kanan atas (Navbar) untuk mengubah alamat pengiriman utama Anda.");
-                                }}
+                                onClick={handleShowAddressPrompt}
                                 className="text-[9px] text-brand-red font-black hover:underline cursor-pointer bg-transparent border-0 p-0"
                               >
                                 Ubah Alamat Utama
@@ -1567,7 +1696,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                   {activePayment.isReadOnly ? (
                     <div className="space-y-3 pt-2">
                       <Button 
-                        onClick={() => setActivePayment(null)}
+                        onClick={handleClosePaymentModal}
                         className="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs py-3 rounded-xl cursor-pointer"
                       >
                         Tutup

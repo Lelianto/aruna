@@ -4,6 +4,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import { AuthProvider } from '@/context/AuthContext';
 import AuthGuard from '@/components/AuthGuard';
+import PwaRegistration from '@/components/PwaRegistration';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -16,8 +17,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: 'ARUNA - Analitik Usaha Rakyat Nusantara',
   description: 'Menghubungkan Potensi Komoditas Desa ke Pasar Nasional Melalui Gotong Royong Digital - Koperasi Indonesia 2026',
+  manifest: '/manifest.webmanifest',
+  applicationName: 'ARUNA',
+  themeColor: '#003049',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'ARUNA',
+  },
 };
 
 export default function RootLayout({
@@ -32,6 +42,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[var(--bg-base)] text-slate-900">
+        <PwaRegistration />
         <AuthProvider>
           <Navbar />
 
