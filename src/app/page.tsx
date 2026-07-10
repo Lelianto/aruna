@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -13,9 +13,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export default function LandingPage() {
-  const { user, signInWithGoogle } = useAuth();
+  const { user, userData, loading, signInWithGoogle } = useAuth();
   const router = useRouter();
   const [simulateValue, setSimulateValue] = useState<number>(500);
+
+  // Customer umum & Buyer Industri: halaman fungsional utama mereka adalah
+  // Pasar Digital, bukan landing page marketing ini. Redirect otomatis jika
+  // mereka membuka "/" secara langsung saat sudah login (mis. klik logo/bookmark).
+  useEffect(() => {
+    if (!loading && user && (userData?.role === 'customer' || userData?.role === 'buyer')) {
+      router.replace('/marketplace');
+    }
+  }, [loading, user, userData, router]);
 
   const splits = useMemo(() => {
     return [
@@ -38,6 +47,18 @@ export default function LandingPage() {
       signInWithGoogle();
     }
   };
+
+  // Cegah kedipan konten landing page sesaat sebelum redirect ke Marketplace
+  if (!loading && user && (userData?.role === 'customer' || userData?.role === 'buyer')) {
+    return (
+      <div className="flex h-[calc(100vh-68px)] items-center justify-center bg-[#faf9f6]">
+        <div className="text-center space-y-2">
+          <div className="h-10 w-10 border-4 border-brand-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider animate-pulse">Mengalihkan ke Pasar Digital...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-[#faf9f6] font-sans overflow-hidden">

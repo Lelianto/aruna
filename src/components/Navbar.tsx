@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, BarChart3, Map, MapPin, ShoppingBag, Award, Lightbulb, Compass, Presentation, ArrowUpRight, LogIn, LogOut, UserPlus, LayoutDashboard, Landmark } from 'lucide-react';
+import { Menu, X, BarChart3, Map, MapPin, ShoppingBag, Award, Lightbulb, Compass, LogIn, LogOut, UserPlus, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
@@ -15,8 +15,7 @@ export default function Navbar() {
   const { user, userData, signInWithGoogle, logout, updateUserAddress } = useAuth();
 
   const navItems = [
-    { name: 'Potensi Desa', href: '/potensi-desa', icon: Landmark },
-    { name: 'Peta Potensi', href: '/peta', icon: Map },
+    { name: 'Peta Potensi', href: '/potensi-desa', icon: Map },
     { name: 'Dashboard Nasional', href: '/dashboard', icon: BarChart3 },
     { name: 'Komoditas', href: '/komoditas', icon: Compass },
     { name: 'Pasar Digital', href: '/marketplace', icon: ShoppingBag },
@@ -28,23 +27,30 @@ export default function Navbar() {
 
   const filteredNavItems = navItems.filter(item => {
     // Tamu tanpa login / belum pilih peran
+    // Hanya halaman yang benar-benar publik (tanpa guard redirect):
+    // Pasar Digital & Komoditas. /peta, /potensi-desa, /dashboard dsb.
+    // memaksa redirect ke "/" untuk non-admin/pemerintah, jadi tidak ditampilkan.
     if (!user || !userData?.role) {
-      return item.href === '/marketplace' || item.href === '/komoditas' || item.href === '/potensi-desa';
+      return item.href === '/marketplace' || item.href === '/komoditas';
     }
-    // Buyer
+    // Buyer — hanya bisa mengakses katalog publik & pasar digital.
+    // (potensi-desa di-guard admin/pemerintah, jadi dihapus agar bukan dead link)
     if (userData.role === 'buyer') {
-      return item.href === '/marketplace' || item.href === '/komoditas' || item.href === '/potensi-desa';
+      return item.href === '/marketplace' || item.href === '/komoditas';
     }
-    // Customer
+    // Customer (pembeli eceran) — hanya diizinkan mengakses Pasar Digital
+    // sesuai matriks akses di ROLE_MAPPING.md (Komoditas & Potensi Desa: ❌)
     if (userData.role === 'customer') {
-      return item.href === '/marketplace' || item.href === '/komoditas' || item.href === '/potensi-desa';
+      return item.href === '/marketplace';
     }
-    // Koperasi
+    // Koperasi — Portal Mitra, katalog publik, pasar, & analisis AI.
+    // /peta & /potensi-desa di-guard admin/pemerintah (redirect ke "/"),
+    // jadi tidak ditampilkan agar tidak menjadi dead link.
     if (userData.role === 'koperasi') {
       return (
         item.href === '/komoditas' ||
         item.href === '/marketplace' ||
-        item.href === '/potensi-desa' ||
+        item.href === '/insights' ||
         item.href === '/mitra-dashboard'
       );
     }
@@ -52,7 +58,6 @@ export default function Navbar() {
     if (userData.role === 'pemerintah') {
       return (
         item.href === '/potensi-desa' ||
-        item.href === '/peta' ||
         item.href === '/dashboard' ||
         item.href === '/scoring' ||
         item.href === '/insights' ||
@@ -93,8 +98,8 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   className={`flex items-center gap-1.5 whitespace-nowrap px-2.5 py-2 rounded-md text-xs font-bold transition-all duration-200 ${isActive
-                      ? 'bg-brand-navy text-white shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                    ? 'bg-brand-navy text-white shadow-sm'
+                    : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
                     }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -126,7 +131,7 @@ export default function Navbar() {
                     {userData?.role === 'customer' && (
                       <>
                         <span className="text-slate-200 text-[9px]">|</span>
-                        <button 
+                        <button
                           onClick={() => {
                             setNewAddress(userData?.address || '');
                             setShowAddressModal(true);
@@ -180,8 +185,8 @@ export default function Navbar() {
                 href={item.href}
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-md text-sm font-bold ${isActive
-                    ? 'bg-brand-navy text-white'
-                    : 'text-slate-600 hover:bg-slate-100'
+                  ? 'bg-brand-navy text-white'
+                  : 'text-slate-600 hover:bg-slate-100'
                   }`}
               >
                 <Icon className="h-5 w-5" />
@@ -215,7 +220,7 @@ export default function Navbar() {
                     {userData?.role === 'customer' && (
                       <>
                         <span className="text-slate-300 text-[10px]">|</span>
-                        <button 
+                        <button
                           onClick={() => {
                             setNewAddress(userData?.address || '');
                             setShowAddressModal(true);
@@ -262,7 +267,7 @@ export default function Navbar() {
                 <MapPin className="h-5 w-5 text-brand-red animate-bounce" />
                 Atur Alamat Utama Pengiriman
               </h3>
-              <button 
+              <button
                 onClick={() => setShowAddressModal(false)}
                 className="text-slate-400 hover:text-slate-700 cursor-pointer"
               >
@@ -282,13 +287,13 @@ export default function Navbar() {
             </div>
 
             <div className="flex gap-2">
-              <button 
+              <button
                 onClick={() => setShowAddressModal(false)}
                 className="flex-1 border border-slate-200 hover:bg-slate-50 font-bold py-2 rounded-xl text-xs cursor-pointer text-slate-600 transition-colors"
               >
                 Batal
               </button>
-              <button 
+              <button
                 onClick={async () => {
                   if (!newAddress.trim()) {
                     alert("Alamat tidak boleh kosong.");
