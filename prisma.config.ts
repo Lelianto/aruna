@@ -32,13 +32,15 @@ const SIMKOPDES_TABLES = [
 
 export default defineConfig({
   schema: 'prisma/schema.prisma',
-  experimental: {
-    externalTables: true,
-  },
+  // Competition shared DB only — externalTables keeps SIMKOPDES tables read-only
+  // during db push. Not needed for local Postgres (all tables managed by migrate).
+  // experimental: {
+  //   externalTables: true,
+  // },
   datasource: {
     url: env('DATABASE_URL'),
   },
-  tables: {
-    external: [...SIMKOPDES_TABLES],
-  },
+  // tables: {
+  //   external: [...SIMKOPDES_TABLES],
+  // },
 });
