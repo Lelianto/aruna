@@ -589,6 +589,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
   const handleClosePaymentModal = () => {
     setActivePayment(null);
+    setPaymentTimer(300);
   };
 
   const handleSelectShippingOption = (option: 'single' | 'split') => {
@@ -632,13 +633,36 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
   const [verifyingPayment, setVerifyingPayment] = useState<boolean>(false);
   const [paymentSuccess, setPaymentSuccess] = useState<boolean>(false);
+  const [paymentTimer, setPaymentTimer] = useState(300); // 5 minutes in seconds
   const [customAddress, setCustomAddress] = useState<string>('');
   const [useCustomAddress, setUseCustomAddress] = useState<boolean>(false);
+
+  // Payment timer countdown
+  useEffect(() => {
+    if (activePayment && paymentTimer > 0) {
+      const interval = setInterval(() => {
+        setPaymentTimer(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    } else if (activePayment && paymentTimer === 0) {
+      // Auto-close when timer expires
+      setActivePayment(null);
+      setPaymentTimer(300);
+    }
+  }, [activePayment, paymentTimer]);
+
+  // Format timer as MM:SS
+  const formatPaymentTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const initiateDirectPayment = () => {
     if (!checkoutItem) return;
     setUseCustomAddress(false);
     setCustomAddress('');
+    setPaymentTimer(300); // Reset timer to 5 minutes
     const totalAmount = checkoutQuantity * checkoutItem.pricePerKg + (shippingOption === 'split' ? checkoutItem.deliveryCost * 1.5 : checkoutItem.deliveryCost);
     setActivePayment({
       items: [{
@@ -661,6 +685,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     if (cart.length === 0) return;
     setUseCustomAddress(false);
     setCustomAddress('');
+    setPaymentTimer(300); // Reset timer to 5 minutes
     const totalAmount = cart.reduce((sum, item) => sum + (item.pricePerKg * item.quantity), 0) + cart.reduce((sum, item) => sum + item.deliveryCost, 0);
     setActivePayment({
       items: cart.map(item => ({
@@ -1662,7 +1687,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
                       <div className="text-center space-y-0.5">
                         <span className="text-[9px] text-slate-400 block font-semibold uppercase">Sisa Waktu Pembayaran</span>
-                        <span className="text-sm font-semibold text-brand-navy font-mono animate-pulse">04:59</span>
+                        <span className="text-sm font-semibold text-brand-navy font-mono animate-pulse">{formatPaymentTimer(paymentTimer)}</span>
                       </div>
                     </div>
 

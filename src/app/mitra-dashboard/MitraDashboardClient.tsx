@@ -129,6 +129,160 @@ export default function MitraDashboardClient() {
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => setToast({ message, type });
 
+  // ── Selective refresh functions ─────────────────────────────────────────────────
+  const refreshCommodities = useCallback(async () => {
+    if (!coopId) return;
+    try {
+      let comList: Commodity[] = [];
+      if (online) {
+        const comQ = query(collection(db, 'commodities'), where('cooperative_id', '==', coopId));
+        const comSnap = await getDocs(comQ);
+        comSnap.forEach(d => comList.push({ id: d.id, ...d.data() } as Commodity));
+
+        if (localDb) {
+          const localUnsynced = (await localDb.commodities.toArray()).filter((c: any) => c.id.startsWith('new-prod-'));
+          await localDb.commodities.clear();
+          await localDb.commodities.bulkPut(localUnsynced);
+          comList = [...comList, ...localUnsynced];
+        }
+      } else {
+        if (localDb) {
+          comList = await localDb.commodities.toArray();
+        }
+      }
+      setCommodities(comList);
+    } catch (e) {
+      console.error('Error refreshing commodities:', e);
+    }
+  }, [coopId, online]);
+
+  const refreshMembers = useCallback(async () => {
+    if (!coopId) return;
+    try {
+      let memList: Member[] = [];
+      if (online) {
+        const memQ = query(collection(db, 'members'), where('cooperative_id', '==', coopId));
+        const memSnap = await getDocs(memQ);
+        memSnap.forEach(d => memList.push({ id: d.id, ...d.data() } as Member));
+
+        if (localDb) {
+          const localUnsyncedMembers = (await localDb.members.toArray()).filter((m: any) => m.id.startsWith('mem-'));
+          await localDb.members.clear();
+          await localDb.members.bulkPut(localUnsyncedMembers);
+          memList = [...memList, ...localUnsyncedMembers];
+        }
+      } else {
+        if (localDb) {
+          memList = await localDb.members.toArray();
+        }
+      }
+      setMembers(memList);
+    } catch (e) {
+      console.error('Error refreshing members:', e);
+    }
+  }, [coopId, online]);
+
+  const refreshTransactions = useCallback(async () => {
+    if (!coopId) return;
+    try {
+      let salesList: POSTransaction[] = [];
+      let purchasesList: PurchaseTransaction[] = [];
+
+      if (online) {
+        const salesQ = query(collection(db, 'sales'), where('cooperative_id', '==', coopId));
+        const salesSnap = await getDocs(salesQ);
+        salesSnap.forEach(d => salesList.push({ id: d.id, ...d.data() } as POSTransaction));
+
+        const purchasesQ = query(collection(db, 'purchases'), where('cooperative_id', '==', coopId));
+        const purchasesSnap = await getDocs(purchasesQ);
+        purchasesSnap.forEach(d => purchasesList.push({ id: d.id, ...d.data() } as PurchaseTransaction));
+
+        if (localDb) {
+          const localUnsyncedSales = (await localDb.transactions.toArray()).filter((t: any) => t.id.startsWith('sale-'));
+          await localDb.transactions.clear();
+          await localDb.transactions.bulkPut(localUnsyncedSales);
+          salesList = [...salesList, ...localUnsyncedSales];
+
+          const localUnsyncedPurchases = (await localDb.purchases.toArray()).filter((p: any) => p.id.startsWith('purchase-'));
+          await localDb.purchases.clear();
+          await localDb.purchases.bulkPut(localUnsyncedPurchases);
+          purchasesList = [...purchasesList, ...localUnsyncedPurchases];
+        }
+      } else {
+        if (localDb) {
+          salesList = await localDb.transactions.toArray();
+          purchasesList = await localDb.purchases.toArray();
+        }
+      }
+
+      setSalesHistory(salesList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      setPurchaseHistory(purchasesList.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+    } catch (e) {
+      console.error('Error refreshing transactions:', e);
+    }
+  }, [coopId, online]);
+
+  const refreshRequests = useCallback(async () => {
+    if (!coopId) return;
+    try {
+      if (!online) return;
+
+      const reqSnap = await getDocs(collection(db, 'market_requests'));
+      const buyerSnap = await getDocs(collection(db, 'buyers'));
+      const buyers: Buyer[] = [];
+      buyerSnap.forEach(d => buyers.push({ id: d.id, ...d.data() } as Buyer));
+
+      const commodityNames = new Set(commodities.map(c => c.name.toLowerCase()));
+      const reqList: MarketRequestWithBuyer[] = [];
+
+      reqSnap.forEach(d => {
+        const req = { id: d.id, ...d.data() } as MarketRequest;
+        if (commodityNames.has(req.commodity_name.toLowerCase())) {
+          const buyer = buyers.find(b => b.id === req.buyer_id);
+          reqList.push({
+            ...req,
+            buyer: buyer || { id: req.buyer_id, company_name: 'Industri Nasional', city: 'Indonesia', industry: 'Pangan' }
+          });
+        }
+      });
+      setRequests(reqList);
+    } catch (e) {
+      console.error('Error refreshing requests:', e);
+    }
+  }, [coopId, online, commodities]);
+
+  const refreshCoopProfile = useCallback(async () => {
+    if (!coopId) return;
+    try {
+      let loadedCoop: Cooperative | null = null;
+      if (online) {
+        const coopSnap = await getDoc(doc(db, 'cooperatives', coopId));
+        if (coopSnap.exists()) {
+          loadedCoop = { id: coopSnap.id, ...coopSnap.data() } as Cooperative;
+          setCoop(loadedCoop);
+        }
+      } else {
+        loadedCoop = {
+          id: coopId,
+          name: 'KDKMP Desa Merah Putih',
+          province: 'Jawa Barat',
+          city: 'Garut',
+          latitude: -7.227906,
+          longitude: 107.908699,
+          member_count: 150,
+          active_members: 95,
+          annual_revenue: 550000000,
+          cash_reserve: 85000000,
+          nib_status: 'verified',
+          sk_status: 'verified'
+        };
+        setCoop(loadedCoop);
+      }
+    } catch (e) {
+      console.error('Error refreshing cooperative profile:', e);
+    }
+  }, [coopId, online]);
+
   // ── Fetch all data (Offline first wrapper) ────────────────────────────────────
   const fetchData = useCallback(async () => {
     if (!coopId) { setLoading(false); return; }
@@ -545,7 +699,7 @@ export default function MitraDashboardClient() {
                   coop={coop}
                   commodities={commodities}
                   members={members}
-                  onRefresh={fetchData}
+                  onRefresh={refreshTransactions}
                   showToast={showToast}
                 />
               )}
@@ -553,7 +707,7 @@ export default function MitraDashboardClient() {
                 <InventoryModule
                   coopId={coopId}
                   commodities={commodities}
-                  onRefresh={fetchData}
+                  onRefresh={refreshCommodities}
                   showToast={showToast}
                 />
               )}
@@ -561,7 +715,7 @@ export default function MitraDashboardClient() {
                 <PurchaseModule
                   coopId={coopId}
                   commodities={commodities}
-                  onRefresh={fetchData}
+                  onRefresh={refreshCommodities}
                   showToast={showToast}
                 />
               )}
@@ -575,7 +729,7 @@ export default function MitraDashboardClient() {
                 <MemberModule
                   coopId={coopId}
                   members={members}
-                  onRefresh={fetchData}
+                  onRefresh={refreshMembers}
                   showToast={showToast}
                 />
               )}
@@ -595,7 +749,7 @@ export default function MitraDashboardClient() {
                   requests={requests}
                   commodities={commodities}
                   coopId={coopId}
-                  onRefresh={fetchData}
+                  onRefresh={refreshRequests}
                   showToast={showToast}
                 />
               )}
@@ -604,7 +758,7 @@ export default function MitraDashboardClient() {
                   coop={coop}
                   coopId={coopId}
                   matches={coopMatches}
-                  onRefresh={fetchData}
+                  onRefresh={refreshRequests}
                   showToast={showToast}
                 />
               )}
@@ -612,7 +766,7 @@ export default function MitraDashboardClient() {
                 <ProfilTab
                   coop={coop}
                   coopId={coopId}
-                  onSave={fetchData}
+                  onSave={refreshCoopProfile}
                   showToast={showToast}
                 />
               )}
@@ -1154,6 +1308,7 @@ function POSModule({ coopId, coop, commodities, members, onRefresh, showToast }:
   const [amountPaid, setAmountPaid] = useState<number>(0);
   const [showQrisModal, setShowQrisModal] = useState(false);
   const [qrisVerifying, setQrisVerifying] = useState(false);
+  const [qrisTimer, setQrisTimer] = useState(180); // 3 minutes in seconds
   const [search, setSearch] = useState('');
   const [saving, setSaving] = useState(false);
   const [isMobileCartOpen, setIsMobileCartOpen] = useState(false);
@@ -1161,6 +1316,37 @@ function POSModule({ coopId, coop, commodities, members, onRefresh, showToast }:
   const filteredCommodities = commodities.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase()) && c.available_stock > 0
   );
+
+  // QRIS Timer countdown
+  useEffect(() => {
+    if (showQrisModal && qrisTimer > 0) {
+      const interval = setInterval(() => {
+        setQrisTimer(prev => prev - 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    } else if (showQrisModal && qrisTimer === 0) {
+      // Auto-close when timer expires and reset to allow direct payment
+      setShowQrisModal(false);
+      setQrisTimer(180);
+      setPaymentMethod('Tunai'); // Reset to default payment method
+      setQrisVerifying(false);
+      showToast('Waktu pembayaran QRIS habis. Silakan gunakan metode pembayaran lain.', 'error');
+    }
+  }, [showQrisModal, qrisTimer]);
+
+  // Reset timer when modal opens
+  useEffect(() => {
+    if (showQrisModal) {
+      setQrisTimer(180);
+    }
+  }, [showQrisModal]);
+
+  // Format timer as MM:SS
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const addToCart = (commodity: Commodity) => {
     setCart(prev => {
@@ -1651,7 +1837,7 @@ function POSModule({ coopId, coop, commodities, members, onRefresh, showToast }:
 
               <div className="text-center space-y-0.5">
                 <span className="text-[9px] text-slate-400 block font-semibold uppercase">Sisa Waktu Pembayaran</span>
-                <span className="text-xs font-semibold text-brand-navy font-mono animate-pulse">02:59</span>
+                <span className="text-xs font-semibold text-brand-navy font-mono animate-pulse">{formatTimer(qrisTimer)}</span>
               </div>
             </div>
 

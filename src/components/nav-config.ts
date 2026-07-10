@@ -49,11 +49,10 @@ export function filterNavItems(hasUser: boolean, role: UserRole): NavItem[] {
     if (role === 'customer') {
       return item.href === '/marketplace';
     }
-    // Koperasi — partner portal, catalog, market & AI analysis.
+    // Koperasi — partner portal, catalog & AI analysis.
     if (role === 'koperasi') {
       return (
         item.href === '/komoditas' ||
-        item.href === '/marketplace' ||
         item.href === '/insights' ||
         item.href === '/mitra-dashboard'
       );

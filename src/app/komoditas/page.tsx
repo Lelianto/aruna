@@ -1,14 +1,16 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
 import { commodityRepository } from '@/lib/repositories/commodity.repository';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Accordion } from '@/components/ui/accordion';
 import { Compass, Home, MapPin, Layers, ShieldAlert, Coins } from 'lucide-react';
 import Link from 'next/link';
 
-export const revalidate = 0;
-
 interface SupplierDetail {
   coopId: string;
+  commodityId: string;
   name: string;
   city: string;
   province: string;
@@ -30,61 +32,87 @@ interface CommodityAggregate {
   suppliers: SupplierDetail[];
 }
 
-export default async function KomoditasPage() {
-  // Fetch data
-  const [cooperatives, commodities] = await Promise.all([
-    cooperativeRepository.getAllWithDetails(),
-    commodityRepository.getAll()
-  ]);
+export default function KomoditasPage() {
+  const [aggregates, setAggregates] = useState<CommodityAggregate[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Aggregate commodities by name
-  const aggregatesMap: Record<string, CommodityAggregate> = {};
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [cooperatives, commodities] = await Promise.all([
+          cooperativeRepository.getAllWithDetails(),
+          commodityRepository.getAll()
+        ]);
 
-  commodities.forEach(com => {
-    const coop = cooperatives.find(c => c.id === com.cooperative_id);
-    if (!coop) return;
+        // Aggregate commodities by name
+        const aggregatesMap: Record<string, CommodityAggregate> = {};
 
-    if (!aggregatesMap[com.name]) {
-      aggregatesMap[com.name] = {
-        name: com.name,
-        category: com.category,
-        totalCapacity: 0,
-        totalStock: 0,
-        unit: com.unit,
-        coopCount: 0,
-        provinces: [],
-        suppliers: []
-      };
+        commodities.forEach(com => {
+          const coop = cooperatives.find(c => c.id === com.cooperative_id);
+          if (!coop) return;
+
+          if (!aggregatesMap[com.name]) {
+            aggregatesMap[com.name] = {
+              name: com.name,
+              category: com.category,
+              totalCapacity: 0,
+              totalStock: 0,
+              unit: com.unit,
+              coopCount: 0,
+              provinces: [],
+              suppliers: []
+            };
+          }
+
+          const agg = aggregatesMap[com.name];
+          agg.totalCapacity += com.monthly_capacity;
+          agg.totalStock += com.available_stock;
+          agg.coopCount += 1;
+
+          if (!agg.provinces.includes(coop.province)) {
+            agg.provinces.push(coop.province);
+          }
+
+          agg.suppliers.push({
+            coopId: coop.id,
+            commodityId: com.id,
+            name: coop.name,
+            city: coop.city,
+            province: coop.province,
+            stock: com.available_stock,
+            capacity: com.monthly_capacity,
+            grade: coop.score?.grade || 'D',
+            price: com.price_per_unit || 12000,
+            minimumStock: com.minimum_stock || 0
+          });
+        });
+
+        // Convert map to sorted array
+        const sortedAggregates = Object.values(aggregatesMap).sort((a, b) => b.totalCapacity - a.totalCapacity);
+        setAggregates(sortedAggregates);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
     }
 
-    const agg = aggregatesMap[com.name];
-    agg.totalCapacity += com.monthly_capacity;
-    agg.totalStock += com.available_stock;
-    agg.coopCount += 1;
-
-    if (!agg.provinces.includes(coop.province)) {
-      agg.provinces.push(coop.province);
-    }
-
-    agg.suppliers.push({
-      coopId: coop.id,
-      name: coop.name,
-      city: coop.city,
-      province: coop.province,
-      stock: com.available_stock,
-      capacity: com.monthly_capacity,
-      grade: coop.score?.grade || 'D',
-      price: com.price_per_unit || 12000, // standard fallback price
-      minimumStock: com.minimum_stock || 0
-    });
-  });
-
-  // Convert map to sorted array
-  const aggregates = Object.values(aggregatesMap).sort((a, b) => b.totalCapacity - a.totalCapacity);
+    fetchData();
+  }, []);
 
   // General statistics
   const totalCapacityAll = aggregates.reduce((sum, a) => sum + a.totalCapacity, 0);
   const totalStockAll = aggregates.reduce((sum, a) => sum + a.totalStock, 0);
+
+  if (loading) {
+    return (
+      <div className="page-shell flex-1 py-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center text-slate-500">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-shell flex-1 py-8">
@@ -166,7 +194,7 @@ export default async function KomoditasPage() {
                   <div className="text-right">
                     <span className="text-[9px] text-slate-400 block font-semibold uppercase">Kapasitas/Bln</span>
                     <span className="text-sm font-semibold text-brand-red">
-                      {agg.totalCapacity} {agg.unit}
+                      {Math.round(agg.totalCapacity).toLocaleString('id-ID')} {agg.unit}
                     </span>
                   </div>
                 </CardHeader>
@@ -177,7 +205,7 @@ export default async function KomoditasPage() {
                     <div>
                       <span className="text-[9px] text-slate-400 block font-semibold uppercase">Stok Tersedia</span>
                       <span className="font-semibold text-slate-800">
-                        {agg.totalStock} {agg.unit}
+                        {Math.round(agg.totalStock).toLocaleString('id-ID')} {agg.unit}
                       </span>
                     </div>
                     <div>
@@ -195,8 +223,7 @@ export default async function KomoditasPage() {
                   </div>
 
                   {/* Sebaran Wilayah */}
-                  <div>
-                    <span className="text-[9px] text-slate-450 font-semibold block uppercase mb-2">Sebaran Geografis</span>
+                  <Accordion title="Sebaran Geografis" count={agg.provinces.length} countLabel="Wilayah">
                     <div className="flex flex-wrap gap-1.5">
                       {agg.provinces.map(prov => (
                         <span
@@ -208,16 +235,15 @@ export default async function KomoditasPage() {
                         </span>
                       ))}
                     </div>
-                  </div>
+                  </Accordion>
 
                   {/* Suppliers List */}
                   <div className="border-t border-slate-100 pt-3">
-                    <span className="text-[9px] text-slate-450 font-semibold block uppercase mb-2">Daftar Koperasi Mitra</span>
-                    <div className="space-y-1.5">
+                    <Accordion title="Daftar Koperasi Mitra" count={agg.coopCount}>
                       {agg.suppliers.map(sup => {
                         const isLow = sup.stock <= sup.minimumStock;
                         return (
-                          <div key={sup.coopId} className="flex justify-between items-center text-xs p-2.5 hover:bg-slate-50 rounded-lg transition-colors">
+                          <div key={`${sup.coopId}-${sup.commodityId}`} className="flex justify-between items-center text-xs p-2.5 hover:bg-slate-50 rounded-lg transition-colors">
                             <div className="flex items-center gap-2">
                               <span className={`inline-block font-semibold text-[9px] px-1.5 py-0.5 rounded text-white ${sup.grade === 'A' ? 'bg-emerald-500' :
                                 sup.grade === 'B' ? 'bg-blue-500' :
@@ -238,7 +264,7 @@ export default async function KomoditasPage() {
                               )}
                               <div className="text-right">
                                 <span className="font-semibold text-slate-850">
-                                  {sup.stock} {agg.unit}
+                                  {Math.round(sup.stock).toLocaleString('id-ID')} {agg.unit}
                                 </span>
                                 <span className="text-[10px] text-slate-400 block mt-0.5 font-semibold">
                                   Rp {sup.price.toLocaleString('id-ID')}
@@ -248,7 +274,7 @@ export default async function KomoditasPage() {
                           </div>
                         );
                       })}
-                    </div>
+                    </Accordion>
                   </div>
                 </CardContent>
               </Card>
