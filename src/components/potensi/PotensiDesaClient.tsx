@@ -3,19 +3,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import PotensiMapWrapper from './PotensiMapWrapper';
+import CooperativeExplorerPanel from '@/components/map/CooperativeExplorerPanel';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CustomSelect } from '@/components/ui/CustomSelect';
 import {
   Lightbulb, AlertCircle, Compass, Search, MapPin,
   TrendingUp, Users, Sprout, Landmark, ArrowRight,
-  BrainCircuit, Lock, LogIn, BarChart3
+  BrainCircuit, Lock, LogIn, BarChart3, Layers
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { buyerRepository } from '@/lib/repositories/buyer.repository';
 import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
-import { Buyer, Cooperative } from '@/types';
+import { Buyer, Cooperative, CooperativeWithCommodities } from '@/types';
 
 interface PotentialItem {
   id: string;
@@ -42,9 +43,12 @@ interface Stats {
 interface PotensiDesaClientProps {
   initialStats: Stats;
   initialPotentials: PotentialItem[];
+  detailedCooperatives: CooperativeWithCommodities[];
+  provinces: string[];
+  commodityNames: string[];
 }
 
-export default function PotensiDesaClient({ initialStats, initialPotentials }: PotensiDesaClientProps) {
+export default function PotensiDesaClient({ initialStats, initialPotentials, detailedCooperatives, provinces, commodityNames }: PotensiDesaClientProps) {
   const { user, userData, loading, signInWithGoogle } = useAuth();
   const router = useRouter();
 
@@ -57,7 +61,7 @@ export default function PotensiDesaClient({ initialStats, initialPotentials }: P
   }, [user, userData, loading, router]);
 
   // Dashboard states
-  const [activeTab, setActiveTab] = useState<'map' | 'matching'>('map');
+  const [activeTab, setActiveTab] = useState<'map' | 'koperasi' | 'matching'>('map');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedPotentialId, setSelectedPotentialId] = useState<string | undefined>(undefined);
@@ -384,13 +388,23 @@ export default function PotensiDesaClient({ initialStats, initialPotentials }: P
           </button>
 
           <button
+            onClick={() => setActiveTab('koperasi')}
+            className={`px-5 py-2.5 rounded-lg text-xs font-black flex items-center gap-2 transition-all ${activeTab === 'koperasi'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-800'
+              }`}
+          >
+            <Layers className="h-4 w-4" /> 2. Sebaran Koperasi
+          </button>
+
+          <button
             onClick={() => setActiveTab('matching')}
             className={`px-5 py-2.5 rounded-lg text-xs font-black flex items-center gap-2 transition-all relative ${activeTab === 'matching'
               ? 'bg-white text-slate-900 shadow-sm'
               : 'text-slate-500 hover:text-slate-800'
               }`}
           >
-            <BrainCircuit className="h-4 w-4" /> 2. AI Business Matching (B2B)
+            <BrainCircuit className="h-4 w-4" /> 3. AI Business Matching (B2B)
           </button>
         </div>
 
@@ -489,7 +503,16 @@ export default function PotensiDesaClient({ initialStats, initialPotentials }: P
           </div>
         )}
 
-        {/* Tab 2: AI Business Matching */}
+        {/* Tab 2: Sebaran Koperasi (peta koperasi + inspector) */}
+        {activeTab === 'koperasi' && (
+          <CooperativeExplorerPanel
+            cooperatives={detailedCooperatives}
+            provinces={provinces}
+            commodityNames={commodityNames}
+          />
+        )}
+
+        {/* Tab 3: AI Business Matching */}
         {activeTab === 'matching' && (
           <div className="space-y-6">
 

@@ -2,12 +2,12 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { 
-  GoogleAuthProvider, 
-  signInWithPopup, 
-  signOut, 
-  onAuthStateChanged, 
-  User 
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut,
+  onAuthStateChanged,
+  User
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase/config';
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       const result = await signInWithPopup(auth, provider);
       const firebaseUser = result.user;
-      
+
       const userDocRef = doc(db, 'users', firebaseUser.uid);
       const userDocSnap = await getDoc(userDocRef);
       if (userDocSnap.exists()) {
@@ -107,6 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           router.push('/mitra-dashboard');
         } else if (data.role === 'pemerintah') {
           router.push('/potensi-desa');
+        } else if (data.role === 'buyer' || data.role === 'customer') {
+          // Customer umum & Buyer Industri langsung diarahkan ke Pasar Digital
+          // sebagai halaman fungsional utama mereka (lihat riset marketplace UX).
+          router.push('/marketplace');
         } else {
           router.push('/');
         }
@@ -139,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const setRoleForUser = async (role: 'admin' | 'buyer' | 'koperasi' | 'customer' | 'pemerintah', associatedId?: string) => {
     if (!user) return;
-    
+
     const userDocRef = doc(db, 'users', user.uid);
     const updatedProfile: UserData = {
       uid: user.uid,

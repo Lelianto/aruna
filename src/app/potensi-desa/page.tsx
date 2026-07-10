@@ -1,6 +1,9 @@
 import React from 'react';
 import PotensiDesaClient from '@/components/potensi/PotensiDesaClient';
 import { query } from '@/lib/db';
+import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
+import { commodityRepository } from '@/lib/repositories/commodity.repository';
+import { CooperativeWithCommodities } from '@/types';
 
 export const revalidate = 0; // Refresh data on demand
 
@@ -12,6 +15,22 @@ export default async function PotensiDesaPage() {
     hotspot_count: 0
   };
   let potentials: any[] = [];
+
+  // Data for the "Sebaran Koperasi" map tab (merged from the former /peta page)
+  let detailedCooperatives: CooperativeWithCommodities[] = [];
+  let provinces: string[] = [];
+  let commodityNames: string[] = [];
+  try {
+    const [coops, comNames] = await Promise.all([
+      cooperativeRepository.getAllWithDetails(),
+      commodityRepository.getUniqueNames()
+    ]);
+    detailedCooperatives = coops;
+    commodityNames = comNames;
+    provinces = Array.from(new Set(coops.map((c) => c.province))).sort();
+  } catch (error) {
+    console.error('Error loading cooperatives for Sebaran Koperasi tab:', error);
+  }
 
   try {
     // 1. Fetch city coordinates lookup
@@ -91,7 +110,7 @@ export default async function PotensiDesaPage() {
     potentials = potentialsRes.rows.map(row => {
       const cityKey = (row.city || '').trim().toUpperCase();
       const provKey = (row.province || '').trim().toUpperCase();
-      
+
       let lat = -2.5;
       let lng = 118.0;
       if (cityCoordMap[cityKey]) {
@@ -129,9 +148,12 @@ export default async function PotensiDesaPage() {
   }
 
   return (
-    <PotensiDesaClient 
+    <PotensiDesaClient
       initialStats={stats}
       initialPotentials={potentials}
+      detailedCooperatives={detailedCooperatives}
+      provinces={provinces}
+      commodityNames={commodityNames}
     />
   );
 }

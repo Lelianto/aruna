@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
@@ -22,12 +22,23 @@ export const metadata: Metadata = {
   description: 'Menghubungkan Potensi Komoditas Desa ke Pasar Nasional Melalui Gotong Royong Digital - Koperasi Indonesia 2026',
   manifest: '/manifest.webmanifest',
   applicationName: 'ARUNA',
-  themeColor: '#003049',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'ARUNA',
   },
+};
+
+// Native-app feel: lock the viewport so the page cannot be pinch/double-tap
+// zoomed. NOTE: disabling user scaling reduces accessibility for low-vision
+// users; kept per product requirement for an app-like experience.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#003049',
 };
 
 export default function RootLayout({
@@ -41,7 +52,7 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[var(--bg-base)] text-slate-900">
+      <body className="min-h-full flex flex-col bg-[var(--bg-base)] text-slate-900 pb-16 lg:pb-0">
         <PwaRegistration />
         <AuthProvider>
           <Navbar />

@@ -71,11 +71,11 @@ function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
   const R = 6371; // Radius of the earth in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const d = R * c;
   return Math.round(d * 10) / 10; // 1 decimal place
 }
@@ -194,8 +194,8 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id && item.name === product.name);
       if (existing) {
-        return prev.map(item => 
-          (item.id === product.id && item.name === product.name) 
+        return prev.map(item =>
+          (item.id === product.id && item.name === product.name)
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
@@ -208,8 +208,8 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     if (qty <= 0) {
       setCart(prev => prev.filter(item => !(item.id === id && item.name === name)));
     } else {
-      setCart(prev => prev.map(item => 
-        (item.id === id && item.name === name) 
+      setCart(prev => prev.map(item =>
+        (item.id === id && item.name === name)
           ? { ...item, quantity: qty }
           : item
       ));
@@ -367,13 +367,13 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   // 1. Gotong Royong Industrial search filters
   const filteredRequests = useMemo(() => {
     return requests.filter((req) => {
-      const matchesSearch = 
+      const matchesSearch =
         req.commodity_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         req.buyer.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         req.buyer.city.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesStatus = 
-        statusFilter === 'Semua' || 
+      const matchesStatus =
+        statusFilter === 'Semua' ||
         req.status === statusFilter;
 
       return matchesSearch && matchesStatus;
@@ -384,9 +384,9 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   const searchedProducts = useMemo(() => {
     const matchingComs = customerSearch.trim()
       ? allCommodities.filter(c =>
-          c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-          c.category.toLowerCase().includes(customerSearch.toLowerCase())
-        )
+        c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+        c.category.toLowerCase().includes(customerSearch.toLowerCase())
+      )
       : allCommodities.filter(c => c.available_stock > 0);
 
     return matchingComs.map(com => {
@@ -423,10 +423,10 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   const myOrdersWithCoops = useMemo(() => {
     const isUserAdmin = userData?.role === 'admin';
     const targetBuyerId = userData?.associatedId || 'guest_customer';
-    
+
     // Filter requests
     const filtered = requests.filter(req => isUserAdmin || req.buyer_id === targetBuyerId);
-    
+
     return filtered.map(req => {
       const match = supplyMatches.find(m => m.request_id === req.id);
       const coop = match ? coops.find(c => c.id === match.cooperative_id) : null;
@@ -635,10 +635,10 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   const confirmPaymentTransfer = async () => {
     if (!activePayment) return;
     setVerifyingPayment(true);
-    
+
     // Simulate payment gateway settlement check for 2 seconds
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     try {
       const buyerId = userData?.associatedId || 'guest_customer';
       const currentBuyer = buyers.find(b => b.id === buyerId);
@@ -646,7 +646,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         ? (userData?.address || 'Alamat tidak diatur')
         : (currentBuyer?.address || currentBuyer?.city || 'Alamat profil');
       const resolvedAddress = useCustomAddress ? customAddress : defaultAddress;
-      
+
       const now = new Date();
       const dateStr = now.toISOString().slice(2, 10).replace(/-/g, '');
       const randomHex = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -711,7 +711,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
       if (activePayment.isCart) {
         setCart([]); // Clear cart
       }
-      
+
       // Auto-close after 3 seconds
       setTimeout(() => {
         setActivePayment(null);
@@ -746,7 +746,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
           const comSnap = await getDocs(collection(db, 'commodities'));
           let targetComDocId: string | null = null;
           let currentStock = 0;
-          
+
           comSnap.forEach(docSnap => {
             const d = docSnap.data();
             if (d.cooperative_id === matchDoc.cooperative_id && d.name.toLowerCase() === req.commodity_name.toLowerCase()) {
@@ -784,51 +784,51 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   return (
     <div className="page-shell flex-1 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-6">
-        
+
         {/* Toggle Marketplace mode tab */}
-        <div className="flex justify-between items-center border-b border-slate-200 pb-4">
-          <div>
-            <h1 className="text-2xl font-black text-slate-900 flex items-center gap-2">
-              <ShoppingBag className="h-6 w-6 text-brand-red" />
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center border-b border-slate-200 pb-4">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+              <ShoppingBag className="h-5 w-5 sm:h-6 sm:w-6 text-brand-red shrink-0" />
               ARUNA Commerce Network
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               Jaringan logistik nasional yang mempertemukan Koperasi, Industri, dan Pelanggan Umum.
             </p>
           </div>
-          
+
           {user && (showToggle ? (
-            <div className="flex bg-slate-100 p-0.5 rounded-lg text-xs font-bold shrink-0">
-              <button 
+            <div className="flex bg-slate-100 p-0.5 rounded-lg text-[11px] sm:text-xs font-bold w-full sm:w-auto overflow-x-auto no-scrollbar sm:shrink-0">
+              <button
                 onClick={() => handleSetMarketTab('gotong_royong')}
-                className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'gotong_royong' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
+                className={`px-3 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap flex-1 sm:flex-none ${activeMarketTab === 'gotong_royong' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
                 Gotong Royong Industri
               </button>
-              <button 
+              <button
                 onClick={() => handleSetMarketTab('customer')}
-                className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'customer' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
+                className={`px-3 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap flex-1 sm:flex-none ${activeMarketTab === 'customer' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
                 Belanja Komoditas
               </button>
-              <button 
+              <button
                 onClick={() => handleSetMarketTab('pesanan')}
-                className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'pesanan' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
+                className={`px-3 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap flex-1 sm:flex-none ${activeMarketTab === 'pesanan' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
                 Pesanan Saya
               </button>
             </div>
           ) : (
-            <div className="flex bg-slate-100 p-0.5 rounded-lg text-xs font-bold shrink-0">
-              <button 
+            <div className="flex bg-slate-100 p-0.5 rounded-lg text-[11px] sm:text-xs font-bold w-full sm:w-auto overflow-x-auto no-scrollbar sm:shrink-0">
+              <button
                 onClick={() => handleSetMarketTab('customer')}
-                className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'customer' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
+                className={`px-3 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap flex-1 sm:flex-none ${activeMarketTab === 'customer' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
                 Belanja Komoditas
               </button>
-              <button 
+              <button
                 onClick={() => handleSetMarketTab('pesanan')}
-                className={`px-3 py-1.5 rounded-md cursor-pointer transition-all ${activeMarketTab === 'pesanan' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
+                className={`px-3 py-1.5 rounded-md cursor-pointer transition-all whitespace-nowrap flex-1 sm:flex-none ${activeMarketTab === 'pesanan' ? 'bg-white text-brand-navy shadow-sm' : 'text-slate-500'}`}
               >
                 Pesanan Saya
               </button>
@@ -882,11 +882,10 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 <Card key={req.id} className="border-slate-200 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex flex-col justify-between">
                   <CardHeader className="pb-3 flex flex-row justify-between items-start gap-3">
                     <div className="space-y-1">
-                      <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${
-                        req.status === 'Menunggu Pembayaran' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                        req.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' : 
-                        'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      }`}>
+                      <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${req.status === 'Menunggu Pembayaran' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                          req.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' :
+                            'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        }`}>
                         {req.status}
                       </span>
                       <h3 className="text-base font-black text-slate-900 pt-1.5">
@@ -916,7 +915,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                     {req.status === 'Menunggu Pembayaran' && (
                       <div className="space-y-2">
                         {userData?.role === 'admin' ? (
-                          <Button 
+                          <Button
                             onClick={() => handleApprovePaymentRequest(req)}
                             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl"
                           >
@@ -980,101 +979,99 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 searchedProducts
                   .slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE)
                   .map(prod => (
-                  <div
-                    key={prod.id}
-                    className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
-                  >
-                    {/* Product image area — shows real photo when available, emoji fallback */}
-                    <div className="bg-gradient-to-br from-slate-50 to-slate-100 h-36 flex flex-col items-center justify-center gap-1 relative overflow-hidden">
-                      {prod.image_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={prod.image_url}
-                          alt={prod.name}
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
-                      ) : (
-                        <>
-                          <span className="text-4xl select-none">
-                            {prod.category === 'Pertanian' ? '🌾' :
-                             prod.category === 'Perkebunan' ? '🌿' :
-                             prod.category === 'Perikanan' ? '🐟' :
-                             prod.category === 'Peternakan' ? '🐄' :
-                             prod.category === 'Kehutanan' ? '🌳' : '📦'}
-                          </span>
-                          <Badge className="bg-white/80 text-slate-600 border border-slate-200 font-semibold text-[9px] uppercase px-2">
-                            {prod.category}
-                          </Badge>
-                        </>
-                      )}
-                      {/* Distance chip */}
-                      <span className={`absolute top-2 right-2 backdrop-blur-sm border text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 z-10 ${
-                        osrmLoading
-                          ? 'bg-white/70 border-slate-200 text-slate-400 animate-pulse'
-                          : prod.distanceSource === 'osrm'
-                          ? 'bg-emerald-50/90 border-emerald-200 text-emerald-700'
-                          : 'bg-white/90 border-slate-200 text-slate-600'
-                      }`}>
-                        <MapPin className="h-2.5 w-2.5 text-brand-red" />
-                        {osrmLoading ? '...' : `${prod.distance} km`}
-                        {!osrmLoading && prod.distanceSource === 'osrm' && (
-                          <span className="text-[8px] text-emerald-600 font-black">via jalan</span>
+                    <div
+                      key={prod.id}
+                      className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex flex-col"
+                    >
+                      {/* Product image area — shows real photo when available, emoji fallback */}
+                      <div className="bg-gradient-to-br from-slate-50 to-slate-100 h-36 flex flex-col items-center justify-center gap-1 relative overflow-hidden">
+                        {prod.image_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={prod.image_url}
+                            alt={prod.name}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        ) : (
+                          <>
+                            <span className="text-4xl select-none">
+                              {prod.category === 'Pertanian' ? '🌾' :
+                                prod.category === 'Perkebunan' ? '🌿' :
+                                  prod.category === 'Perikanan' ? '🐟' :
+                                    prod.category === 'Peternakan' ? '🐄' :
+                                      prod.category === 'Kehutanan' ? '🌳' : '📦'}
+                            </span>
+                            <Badge className="bg-white/80 text-slate-600 border border-slate-200 font-semibold text-[9px] uppercase px-2">
+                              {prod.category}
+                            </Badge>
+                          </>
                         )}
-                      </span>
-                      {/* Grade badge */}
-                      <span className={`absolute top-2 left-2 text-[9px] font-black px-1.5 py-0.5 rounded-full text-white z-10 ${
-                        prod.grade === 'A' ? 'bg-emerald-500' : prod.grade === 'B' ? 'bg-blue-500' : 'bg-slate-400'
-                      }`}>
-                        Kelas {prod.grade}
-                      </span>
-                    </div>
+                        {/* Distance chip */}
+                        <span className={`absolute top-2 right-2 backdrop-blur-sm border text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 z-10 ${osrmLoading
+                            ? 'bg-white/70 border-slate-200 text-slate-400 animate-pulse'
+                            : prod.distanceSource === 'osrm'
+                              ? 'bg-emerald-50/90 border-emerald-200 text-emerald-700'
+                              : 'bg-white/90 border-slate-200 text-slate-600'
+                          }`}>
+                          <MapPin className="h-2.5 w-2.5 text-brand-red" />
+                          {osrmLoading ? '...' : `${prod.distance} km`}
+                          {!osrmLoading && prod.distanceSource === 'osrm' && (
+                            <span className="text-[8px] text-emerald-600 font-black">via jalan</span>
+                          )}
+                        </span>
+                        {/* Grade badge */}
+                        <span className={`absolute top-2 left-2 text-[9px] font-black px-1.5 py-0.5 rounded-full text-white z-10 ${prod.grade === 'A' ? 'bg-emerald-500' : prod.grade === 'B' ? 'bg-blue-500' : 'bg-slate-400'
+                          }`}>
+                          Kelas {prod.grade}
+                        </span>
+                      </div>
 
-                    {/* Card body */}
-                    <div className="p-3 flex flex-col flex-1 gap-2">
-                      {/* Name & coop */}
-                      <div>
-                        <h3 className="text-sm font-bold text-slate-900 leading-tight line-clamp-1">{prod.name}</h3>
-                        <p className="text-[10px] text-slate-400 font-medium mt-0.5 flex items-center gap-1 line-clamp-1">
-                          <Building2 className="h-3 w-3 shrink-0" /> {prod.coopName}
+                      {/* Card body */}
+                      <div className="p-3 flex flex-col flex-1 gap-2">
+                        {/* Name & coop */}
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-900 leading-tight line-clamp-1">{prod.name}</h3>
+                          <p className="text-[10px] text-slate-400 font-medium mt-0.5 flex items-center gap-1 line-clamp-1">
+                            <Building2 className="h-3 w-3 shrink-0" /> {prod.coopName}
+                          </p>
+                        </div>
+
+                        {/* Price */}
+                        <div>
+                          <span className="text-base font-black text-brand-navy tabular-nums">
+                            Rp {prod.pricePerKg.toLocaleString('id-ID')}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-semibold"> / {prod.unit}</span>
+                        </div>
+
+                        {/* Meta row */}
+                        <div className="flex justify-between items-center text-[10px] text-slate-500 font-medium">
+                          <span className="flex items-center gap-0.5">
+                            <Truck className="h-3 w-3" /> Rp {prod.deliveryCost.toLocaleString('id-ID')}
+                          </span>
+                          <span className="flex items-center gap-0.5">
+                            <Clock className="h-3 w-3" /> {prod.eta}
+                          </span>
+                        </div>
+
+                        {/* Stock */}
+                        <p className="text-[10px] text-slate-400 font-medium">
+                          Stok: <strong className="text-slate-700">{prod.available_stock} {prod.unit}</strong>
                         </p>
-                      </div>
 
-                      {/* Price */}
-                      <div>
-                        <span className="text-base font-black text-brand-navy tabular-nums">
-                          Rp {prod.pricePerKg.toLocaleString('id-ID')}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-semibold"> / {prod.unit}</span>
-                      </div>
-
-                      {/* Meta row */}
-                      <div className="flex justify-between items-center text-[10px] text-slate-500 font-medium">
-                        <span className="flex items-center gap-0.5">
-                          <Truck className="h-3 w-3" /> Rp {prod.deliveryCost.toLocaleString('id-ID')}
-                        </span>
-                        <span className="flex items-center gap-0.5">
-                          <Clock className="h-3 w-3" /> {prod.eta}
-                        </span>
-                      </div>
-
-                      {/* Stock */}
-                      <p className="text-[10px] text-slate-400 font-medium">
-                        Stok: <strong className="text-slate-700">{prod.available_stock} {prod.unit}</strong>
-                      </p>
-
-                      {/* CTA */}
-                      <div className="mt-auto flex justify-end">
-                        <button
-                          onClick={() => handleAddToCart(prod)}
-                          className="flex items-center gap-1 text-[11px] font-semibold text-brand-navy hover:text-white hover:bg-brand-navy border border-brand-navy/30 hover:border-brand-navy px-2.5 py-1 rounded-lg transition-all duration-150 cursor-pointer"
-                        >
-                          <ShoppingBag className="h-3 w-3" />
-                          + Keranjang
-                        </button>
+                        {/* CTA */}
+                        <div className="mt-auto flex justify-end">
+                          <button
+                            onClick={() => handleAddToCart(prod)}
+                            className="flex items-center gap-1 text-[11px] font-semibold text-brand-navy hover:text-white hover:bg-brand-navy border border-brand-navy/30 hover:border-brand-navy px-2.5 py-1 rounded-lg transition-all duration-150 cursor-pointer"
+                          >
+                            <ShoppingBag className="h-3 w-3" />
+                            + Keranjang
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
+                  ))
               )}
             </div>
 
@@ -1094,11 +1091,10 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                     <button
                       key={i}
                       onClick={() => handleSelectPage(i)}
-                      className={`w-7 h-7 text-xs font-bold rounded-lg transition-colors cursor-pointer ${
-                        i === currentPage
+                      className={`w-7 h-7 text-xs font-bold rounded-lg transition-colors cursor-pointer ${i === currentPage
                           ? 'bg-brand-navy text-white'
                           : 'border border-slate-200 text-slate-500 hover:bg-slate-50'
-                      }`}
+                        }`}
                     >
                       {i + 1}
                     </button>
@@ -1122,106 +1118,105 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
         )}
 
 
-          {/* ====================================================================
+        {/* ====================================================================
              VIEW C: PESANAN SAYA (MY ORDERS & TRANSACTIONS)
              ==================================================================== */}
-          {activeMarketTab === 'pesanan' && (
-            <div className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-black text-slate-800">
-                  {userData?.role === 'admin' ? 'Daftar Seluruh Transaksi Platform' : 'Riwayat Belanja & Status Pesanan Anda'}
-                </h2>
-              </div>
-
-              {myOrdersWithCoops.length === 0 ? (
-                <div className="bg-white border rounded-2xl p-12 text-center space-y-4 max-w-md mx-auto shadow-3xs">
-                  <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-350 mx-auto">
-                    <ShoppingBag className="h-8 w-8" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-black text-slate-800">Belum Ada Transaksi</h3>
-                    <p className="text-[10px] text-slate-400 mt-1 max-w-[240px] mx-auto leading-relaxed">
-                      Anda belum melakukan pemesanan komoditas. Silakan cari produk di halaman utama belanja.
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {myOrdersWithCoops.map((order) => (
-                    <Card key={order.id} className="border-slate-200 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex flex-col justify-between">
-                      <CardHeader className="pb-3 flex flex-row justify-between items-start gap-3">
-                        <div className="space-y-1">
-                          <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${
-                            order.status === 'Menunggu Pembayaran' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                            order.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' : 
-                            'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          }`}>
-                            {order.status}
-                          </span>
-                          <h3 className="text-base font-black text-slate-900 pt-1.5 font-sans">
-                            {order.commodity_name}
-                          </h3>
-                          <span className="text-[9px] text-slate-400 block font-semibold font-sans">
-                            Tanggal: {order.created_at ? new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
-                          </span>
-                          <span className="text-[9px] text-slate-450 block font-bold font-sans">
-                            Invoice: <span className="font-extrabold text-slate-700">{order.invoice_number || order.id.slice(0, 8).toUpperCase()}</span>
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[9px] text-slate-400 block font-bold uppercase">Volume</span>
-                          <span className="text-sm font-black text-brand-red">{order.quantity} {order.unit}</span>
-                        </div>
-                      </CardHeader>
-                      
-                      <CardContent className="space-y-3">
-                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs font-semibold text-slate-655 flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-slate-400 animate-pulse" />
-                          <div>
-                            <span className="text-[10px] text-slate-400 block font-bold uppercase">Koperasi Penyedia</span>
-                            {order.coopName} ({order.coopCity})
-                          </div>
-                        </div>
-
-                        {/* Display delivery address detail */}
-                        {order.shipping_address && (
-                          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[10px] font-semibold text-slate-500 space-y-1">
-                            <span className="text-slate-400 block font-black uppercase text-[8px]">Tujuan Pengiriman</span>
-                            <p className="line-clamp-2 leading-relaxed text-slate-650">{order.shipping_address}</p>
-                          </div>
-                        )}
-
-                        {/* If Admin and pending payment, show Verify Payment button */}
-                        {order.status === 'Menunggu Pembayaran' && userData?.role === 'admin' && (
-                          <Button 
-                            onClick={() => handleApprovePaymentRequest(order)}
-                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
-                          >
-                            <CheckCircle2 className="h-4.5 w-4.5" /> Verifikasi Pembayaran
-                          </Button>
-                        )}
-
-                        {/* If Buyer and pending payment, show payment details button */}
-                        {order.status === 'Menunggu Pembayaran' && userData?.role !== 'admin' && (
-                          <Button 
-                            onClick={() => {
-                              const mockCommodityPrice = 12000; 
-                              const deliveryCost = 25000;
-                              const totalAmount = order.quantity * mockCommodityPrice + deliveryCost;
-                              handleShowOrderPaymentDetails(order);
-                            }}
-                            className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
-                          >
-                            <CreditCard className="h-4 w-4" /> Lihat Detail VA
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
+        {activeMarketTab === 'pesanan' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-black text-slate-800">
+                {userData?.role === 'admin' ? 'Daftar Seluruh Transaksi Platform' : 'Riwayat Belanja & Status Pesanan Anda'}
+              </h2>
             </div>
-          )}
+
+            {myOrdersWithCoops.length === 0 ? (
+              <div className="bg-white border rounded-2xl p-12 text-center space-y-4 max-w-md mx-auto shadow-3xs">
+                <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-350 mx-auto">
+                  <ShoppingBag className="h-8 w-8" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-slate-800">Belum Ada Transaksi</h3>
+                  <p className="text-[10px] text-slate-400 mt-1 max-w-[240px] mx-auto leading-relaxed">
+                    Anda belum melakukan pemesanan komoditas. Silakan cari produk di halaman utama belanja.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {myOrdersWithCoops.map((order) => (
+                  <Card key={order.id} className="border-slate-200 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 flex flex-col justify-between">
+                    <CardHeader className="pb-3 flex flex-row justify-between items-start gap-3">
+                      <div className="space-y-1">
+                        <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${order.status === 'Menunggu Pembayaran' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                            order.status === 'Menunggu Pemenuhan' ? 'bg-amber-50 text-brand-orange border border-amber-200' :
+                              'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          }`}>
+                          {order.status}
+                        </span>
+                        <h3 className="text-base font-black text-slate-900 pt-1.5 font-sans">
+                          {order.commodity_name}
+                        </h3>
+                        <span className="text-[9px] text-slate-400 block font-semibold font-sans">
+                          Tanggal: {order.created_at ? new Date(order.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
+                        </span>
+                        <span className="text-[9px] text-slate-450 block font-bold font-sans">
+                          Invoice: <span className="font-extrabold text-slate-700">{order.invoice_number || order.id.slice(0, 8).toUpperCase()}</span>
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[9px] text-slate-400 block font-bold uppercase">Volume</span>
+                        <span className="text-sm font-black text-brand-red">{order.quantity} {order.unit}</span>
+                      </div>
+                    </CardHeader>
+
+                    <CardContent className="space-y-3">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs font-semibold text-slate-655 flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-slate-400 animate-pulse" />
+                        <div>
+                          <span className="text-[10px] text-slate-400 block font-bold uppercase">Koperasi Penyedia</span>
+                          {order.coopName} ({order.coopCity})
+                        </div>
+                      </div>
+
+                      {/* Display delivery address detail */}
+                      {order.shipping_address && (
+                        <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-[10px] font-semibold text-slate-500 space-y-1">
+                          <span className="text-slate-400 block font-black uppercase text-[8px]">Tujuan Pengiriman</span>
+                          <p className="line-clamp-2 leading-relaxed text-slate-650">{order.shipping_address}</p>
+                        </div>
+                      )}
+
+                      {/* If Admin and pending payment, show Verify Payment button */}
+                      {order.status === 'Menunggu Pembayaran' && userData?.role === 'admin' && (
+                        <Button
+                          onClick={() => handleApprovePaymentRequest(order)}
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
+                        >
+                          <CheckCircle2 className="h-4.5 w-4.5" /> Verifikasi Pembayaran
+                        </Button>
+                      )}
+
+                      {/* If Buyer and pending payment, show payment details button */}
+                      {order.status === 'Menunggu Pembayaran' && userData?.role !== 'admin' && (
+                        <Button
+                          onClick={() => {
+                            const mockCommodityPrice = 12000;
+                            const deliveryCost = 25000;
+                            const totalAmount = order.quantity * mockCommodityPrice + deliveryCost;
+                            handleShowOrderPaymentDetails(order);
+                          }}
+                          className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-2 flex items-center justify-center gap-1.5 cursor-pointer rounded-xl font-sans"
+                        >
+                          <CreditCard className="h-4 w-4" /> Lihat Detail VA
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* ─── MODAL 1: ADD GOTONG ROYONG DEMAND REQUEST ────────────────────────── */}
         {isModalOpen && (
@@ -1241,16 +1236,16 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                     onChange={setSelectedBuyerId}
                   />
                 )}
-                  <CustomSelect
-                    label="Pilih Jenis Komoditas:"
-                    options={COMMODITY_OPTIONS}
-                    value={commodityName}
-                    onChange={setCommodityName}
-                  />
+                <CustomSelect
+                  label="Pilih Jenis Komoditas:"
+                  options={COMMODITY_OPTIONS}
+                  value={commodityName}
+                  onChange={setCommodityName}
+                />
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 block uppercase">Volume Kebutuhan Pasokan (Ton):</label>
-                  <input 
+                  <input
                     type="number"
                     step="any"
                     value={quantity}
@@ -1273,16 +1268,16 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 )}
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     onClick={handleCloseCreateModal}
                     className="text-xs cursor-pointer rounded-xl h-10 px-4"
                   >
                     Batal
                   </Button>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={isSubmitting}
                     className="bg-brand-red hover:bg-brand-red/90 text-white font-black text-xs cursor-pointer rounded-xl h-10 px-6"
                   >
@@ -1312,7 +1307,7 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
 
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-500 block uppercase">Jumlah Beli (Kg):</label>
-                  <input 
+                  <input
                     type="number"
                     min={1}
                     max={100}
@@ -1334,12 +1329,12 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                         </p>
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col gap-2 pt-1">
                       <label className="flex items-center gap-1.5 text-xs text-slate-700 font-extrabold cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="shipping_opt" 
+                        <input
+                          type="radio"
+                          name="shipping_opt"
                           checked={shippingOption === 'single'}
                           onChange={() => handleSelectShippingOption('single')}
                           className="accent-brand-navy h-4 w-4"
@@ -1347,9 +1342,9 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                         Single Kirim (Satu Kargo Lebih Lambat)
                       </label>
                       <label className="flex items-center gap-1.5 text-xs text-slate-700 font-extrabold cursor-pointer">
-                        <input 
-                          type="radio" 
-                          name="shipping_opt" 
+                        <input
+                          type="radio"
+                          name="shipping_opt"
                           checked={shippingOption === 'split'}
                           onChange={() => handleSelectShippingOption('split')}
                           className="accent-brand-navy h-4 w-4"
@@ -1376,14 +1371,14 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
                 </div>
 
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button 
-                    onClick={handleCloseCheckoutModal} 
+                  <Button
+                    onClick={handleCloseCheckoutModal}
                     variant="outline"
                     className="text-xs cursor-pointer rounded-xl h-10 px-4"
                   >
                     Batal
                   </Button>
-                  <Button 
+                  <Button
                     onClick={initiateDirectPayment}
                     className="bg-brand-navy hover:bg-brand-navy/90 text-white font-black text-xs cursor-pointer rounded-xl h-10 px-6"
                   >
@@ -1395,348 +1390,348 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
           </div>
         )}
 
-      {/* ─── LOGIN PROMPT MODAL ──────────────────────────────────────────────── */}
-      {showLoginPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCloseLoginPrompt} />
-          <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
-            <div className="h-16 w-16 bg-brand-red/10 rounded-full flex items-center justify-center mx-auto">
-              <ShoppingBag className="h-8 w-8 text-brand-red" />
-            </div>
-            <div className="space-y-1.5">
-              <h2 className="text-lg font-black text-slate-900">Masuk untuk Berbelanja</h2>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Buat akun atau masuk untuk menambahkan produk ke keranjang dan melakukan pemesanan ke koperasi.
-              </p>
-            </div>
-            <div className="space-y-2">
-              <Button
-                onClick={handleLoginWithGoogle}
-                className="w-full py-3 bg-brand-red hover:bg-brand-red/90 text-white font-black text-sm flex items-center justify-center gap-2 rounded-xl cursor-pointer"
-              >
-                <LogIn className="h-4 w-4" />
-                Masuk dengan Google
-              </Button>
-              <button
-                onClick={handleCloseLoginPrompt}
-                className="w-full py-2 text-xs text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
-              >
-                Lanjut melihat produk
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─── SHOPPING CART FLOATING BUBBLE AND DRAWER ────────────────────────── */}
-      {/* Floating Bubble */}
-      <button 
-        onClick={handleOpenCart}
-        className="fixed bottom-24 right-6 h-14 w-14 rounded-full bg-brand-red hover:bg-brand-red/95 text-white shadow-2xl flex items-center justify-center cursor-pointer z-40 transition-transform active:scale-95 group"
-        title="Keranjang Belanja"
-      >
-        <ShoppingBag className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
-        {cart.length > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 bg-brand-navy text-white text-[9px] font-black h-5 w-5 rounded-full flex items-center justify-center border border-white animate-pulse">
-            {cart.reduce((sum, item) => sum + item.quantity, 0)}
-          </span>
-        )}
-      </button>
-
-      {/* Cart Drawer */}
-      {isCartOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden font-sans">
-          {/* Backdrop */}
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity" onClick={handleCloseCart} />
-          
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
-            <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col h-full rounded-l-3xl overflow-hidden border-l border-slate-200">
-              
-              {/* Header */}
-              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <div className="flex items-center gap-2">
-                  <ShoppingBag className="h-5 w-5 text-brand-red" />
-                  <h2 className="text-base font-black text-slate-800">Keranjang Belanja</h2>
-                  <Badge variant="secondary" className="font-extrabold text-[10px] bg-slate-200 text-slate-700">
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)} item
-                  </Badge>
-                </div>
-                <button onClick={handleCloseCart} className="text-slate-400 hover:text-slate-600 cursor-pointer">
-                  <X className="h-5 w-5" />
+        {/* ─── LOGIN PROMPT MODAL ──────────────────────────────────────────────── */}
+        {showLoginPrompt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4 font-sans">
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleCloseLoginPrompt} />
+            <div className="relative bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="h-16 w-16 bg-brand-red/10 rounded-full flex items-center justify-center mx-auto">
+                <ShoppingBag className="h-8 w-8 text-brand-red" />
+              </div>
+              <div className="space-y-1.5">
+                <h2 className="text-lg font-black text-slate-900">Masuk untuk Berbelanja</h2>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Buat akun atau masuk untuk menambahkan produk ke keranjang dan melakukan pemesanan ke koperasi.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Button
+                  onClick={handleLoginWithGoogle}
+                  className="w-full py-3 bg-brand-red hover:bg-brand-red/90 text-white font-black text-sm flex items-center justify-center gap-2 rounded-xl cursor-pointer"
+                >
+                  <LogIn className="h-4 w-4" />
+                  Masuk dengan Google
+                </Button>
+                <button
+                  onClick={handleCloseLoginPrompt}
+                  className="w-full py-2 text-xs text-slate-400 hover:text-slate-600 cursor-pointer transition-colors"
+                >
+                  Lanjut melihat produk
                 </button>
               </div>
-
-              {/* Cart Items List */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
-                    <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-350">
-                      <ShoppingBag className="h-8 w-8" />
-                    </div>
-                    <div>
-                      <p className="text-xs font-black text-slate-800">Keranjang Belanja Kosong</p>
-                      <p className="text-[10px] text-slate-400 mt-1 max-w-[200px]">Silakan pilih komoditas dari koperasi terdekat untuk ditambahkan.</p>
-                    </div>
-                  </div>
-                ) : (
-                  cart.map((item, index) => (
-                    <div key={`${item.id}-${item.name}-${index}`} className="flex gap-3 p-3 border border-slate-100 rounded-xl bg-[#faf9f6]/40 hover:bg-[#faf9f6] transition-colors relative">
-                      <div className="flex-1 space-y-1">
-                        <span className="text-[9px] bg-brand-red/10 text-brand-red px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
-                          {item.coopName}
-                        </span>
-                        <h4 className="text-xs font-black text-slate-800 leading-snug">{item.name}</h4>
-                        <p className="text-[10px] text-slate-400 font-extrabold">Rp {item.pricePerKg.toLocaleString('id-ID')} / kg</p>
-                      </div>
-                      <div className="flex flex-col items-end justify-between shrink-0">
-                        <button onClick={() => handleRemoveCartItem(item.id, item.name)} className="text-slate-350 hover:text-red-500 cursor-pointer">
-                          <X className="h-4 w-4" />
-                        </button>
-                        {/* Qty Adjuster */}
-                        <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden text-xs">
-                          <button 
-                            onClick={() => handleUpdateCartQty(item.id, item.name, item.quantity - 1)}
-                            className="px-2 py-1 bg-slate-50 hover:bg-slate-100 font-bold border-r border-slate-200 cursor-pointer"
-                          >
-                            -
-                          </button>
-                          <span className="px-2.5 font-bold text-slate-700 min-w-[20px] text-center">{item.quantity}</span>
-                          <button 
-                            onClick={() => handleUpdateCartQty(item.id, item.name, item.quantity + 1)}
-                            className="px-2 py-1 bg-slate-50 hover:bg-slate-100 font-bold border-l border-slate-200 cursor-pointer"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* Footer Calculations */}
-              {cart.length > 0 && (
-                <div className="p-6 border-t border-slate-100 bg-slate-50 space-y-4 text-xs font-semibold">
-                  <div className="space-y-1.5 text-slate-500">
-                    <div className="flex justify-between">
-                      <span>Subtotal Produk:</span>
-                      <span className="font-extrabold text-slate-800 tabular-nums">
-                        Rp {cart.reduce((sum, item) => sum + (item.pricePerKg * item.quantity), 0).toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Total Ongkos Kirim:</span>
-                      <span className="font-extrabold text-slate-800 tabular-nums">
-                        Rp {cart.reduce((sum, item) => sum + item.deliveryCost, 0).toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-t border-slate-200 pt-2 text-sm">
-                      <span className="font-black text-slate-800">Total Pembayaran:</span>
-                      <span className="font-black text-brand-orange text-base tabular-nums">
-                        Rp {(
-                          cart.reduce((sum, item) => sum + (item.pricePerKg * item.quantity), 0) +
-                          cart.reduce((sum, item) => sum + item.deliveryCost, 0)
-                        ).toLocaleString('id-ID')}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Button 
-                    onClick={initiateCartPayment}
-                    className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer"
-                  >
-                    Checkout Sekarang ({cart.reduce((sum, item) => sum + item.quantity, 0)} kg)
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ─── MODAL 3: PAYMENT ESCROW VERIFICATION ────────────────────────── */}
-      {activePayment && (() => {
-        const coopSplits = activePayment.items.reduce<Record<string, { coopName: string; subtotal: number; delivery: number }>>((acc, it) => {
-          const key = it.coopName || 'Koperasi Desa Merah Putih';
-          if (!acc[key]) {
-            acc[key] = {
-              coopName: key,
-              subtotal: 0,
-              delivery: 0,
-            };
-          }
-          acc[key].subtotal += it.pricePerKg * it.quantity;
-          acc[key].delivery += it.deliveryCost || 0;
-          return acc;
-        }, {});
+        {/* ─── SHOPPING CART FLOATING BUBBLE AND DRAWER ────────────────────────── */}
+        {/* Floating Bubble */}
+        <button
+          onClick={handleOpenCart}
+          className="fixed bottom-24 right-6 h-14 w-14 rounded-full bg-brand-red hover:bg-brand-red/95 text-white shadow-2xl flex items-center justify-center cursor-pointer z-40 transition-transform active:scale-95 group"
+          title="Keranjang Belanja"
+        >
+          <ShoppingBag className="h-6 w-6 text-white group-hover:scale-110 transition-transform" />
+          {cart.length > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 bg-brand-navy text-white text-[9px] font-black h-5 w-5 rounded-full flex items-center justify-center border border-white animate-pulse">
+              {cart.reduce((sum, item) => sum + item.quantity, 0)}
+            </span>
+          )}
+        </button>
 
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs font-sans animate-fade-in">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto">
-              
-              {!paymentSuccess ? (
-                <>
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
-                      <CreditCard className="h-5 w-5 text-brand-navy animate-pulse" />
-                      Gerbang Pembayaran QRIS (ARUNA Hub)
-                    </h3>
-                    {!verifyingPayment && (
-                      <button onClick={handleClosePaymentModal} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                        <X className="h-5 w-5" />
-                      </button>
-                    )}
+        {/* Cart Drawer */}
+        {isCartOpen && (
+          <div className="fixed inset-0 z-50 overflow-hidden font-sans">
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity" onClick={handleCloseCart} />
+
+            <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+              <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col h-full rounded-l-3xl overflow-hidden border-l border-slate-200">
+
+                {/* Header */}
+                <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag className="h-5 w-5 text-brand-red" />
+                    <h2 className="text-base font-black text-slate-800">Keranjang Belanja</h2>
+                    <Badge variant="secondary" className="font-extrabold text-[10px] bg-slate-200 text-slate-700">
+                      {cart.reduce((sum, item) => sum + item.quantity, 0)} item
+                    </Badge>
                   </div>
+                  <button onClick={handleCloseCart} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
 
-                  {/* QRIS Simulated QR Code Graphic */}
-                  <div className="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100/80 space-y-3">
-                    <div className="bg-[#E52A30] px-4 py-1 rounded-full flex items-center justify-center gap-1 text-white font-black text-[9px] tracking-widest uppercase shadow-xs">
-                      <span>QRIS</span>
-                      <span className="text-[7px] font-medium opacity-80">GPN</span>
-                    </div>
-                    
-                    <div className="p-3 bg-white rounded-xl shadow-xs border border-slate-100">
-                      <img 
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=003049&data=aruna-payment-escrow-${activePayment.totalAmount}`} 
-                        alt="QRIS QR Code" 
-                        className="w-44 h-44 rounded-lg object-contain" 
-                      />
-                    </div>
-                    
-                    <div className="text-center space-y-0.5">
-                      <span className="text-[9px] text-slate-400 block font-black uppercase">Sisa Waktu Pembayaran</span>
-                      <span className="text-sm font-black text-brand-navy font-mono animate-pulse">04:59</span>
-                    </div>
-                  </div>
-
-                  {/* Total Amount Box */}
-                  <div className="bg-brand-navy/5 border border-brand-navy/10 p-3.5 rounded-xl flex justify-between items-center text-xs font-semibold">
-                    <span className="text-slate-500 uppercase text-[9px] font-black">Total Tagihan Belanja</span>
-                    <span className="text-base font-black text-brand-orange tabular-nums">
-                      Rp {activePayment.totalAmount.toLocaleString('id-ID')}
-                    </span>
-                  </div>
-
-                  {/* Split Payout Breakdown */}
-                  <div className="space-y-2">
-                    <span className="text-[9.5px] text-slate-400 block font-black uppercase tracking-wide">Rincian Split Payment (Sistem Otomatis)</span>
-                    <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
-                      {Object.values(coopSplits).map((split, idx) => (
-                        <div key={idx} className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex justify-between items-center gap-2">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <div className="h-7 w-7 rounded-lg bg-brand-navy/5 flex items-center justify-center font-black text-brand-navy text-[10px] shrink-0">
-                              🏢
-                            </div>
-                            <div className="min-w-0">
-                              <span className="text-[11px] font-black text-slate-800 block truncate max-w-[170px]">{split.coopName}</span>
-                              <span className="text-[9px] text-emerald-600 font-bold flex items-center gap-1">
-                                <span className="h-1 w-1 rounded-full bg-emerald-500 animate-ping shrink-0" />
-                                Auto-Split (H+1)
-                              </span>
-                            </div>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <span className="text-xs font-black text-slate-850 block">Rp {(split.subtotal + split.delivery).toLocaleString('id-ID')}</span>
-                            <span className="text-[8.5px] text-slate-400 font-extrabold block">Ongkir: Rp {split.delivery.toLocaleString('id-ID')}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Shipping Address Confirmation section */}
-                  {!activePayment.isReadOnly && (
-                    <div className="space-y-2 border-t border-slate-100 pt-3">
-                      <span className="text-[9.5px] text-slate-400 block font-black uppercase tracking-wide">Alamat Pengiriman</span>
-                      
-                      {!useCustomAddress ? (
-                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/50 text-[11px] text-slate-700 font-semibold space-y-1">
-                          <div className="flex justify-between items-center">
-                            <span className="text-[9px] text-slate-400 block font-bold">
-                              {userData?.role === 'customer' ? 'ALAMAT UTAMA PELANGGAN' : 'ALAMAT PROFIL PERUSAHAAN'}
-                            </span>
-                            {userData?.role === 'customer' && (
-                              <button 
-                                onClick={handleShowAddressPrompt}
-                                className="text-[9px] text-brand-red font-black hover:underline cursor-pointer bg-transparent border-0 p-0"
-                              >
-                                Ubah Alamat Utama
-                              </button>
-                            )}
-                          </div>
-                          <p>
-                            {userData?.role === 'customer'
-                              ? (userData?.address || 'Alamat belum diatur. Klik "Atur Alamat" di kanan atas (Navbar) untuk mengaturnya.')
-                              : (buyers.find(b => b.id === (userData?.associatedId || 'guest_customer'))?.address || buyers.find(b => b.id === (userData?.associatedId || 'guest_customer'))?.city || 'Alamat tidak diatur')
-                            }
-                          </p>
-                        </div>
-                      ) : (
-                        <textarea
-                          placeholder="Masukkan alamat pengiriman alternatif untuk pesanan ini..."
-                          value={customAddress}
-                          onChange={(e) => setCustomAddress(e.target.value)}
-                          rows={2}
-                          className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800 resize-none font-sans"
-                        />
-                      )}
-
-                      <label className="flex items-center gap-1.5 text-[11px] text-slate-550 font-bold cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={useCustomAddress}
-                          onChange={(e) => setUseCustomAddress(e.target.checked)}
-                          className="accent-brand-navy h-3.5 w-3.5 rounded border-slate-350"
-                        />
-                        Kirim ke alamat lain untuk pesanan ini
-                      </label>
-                    </div>
-                  )}
-
-                  {activePayment.isReadOnly ? (
-                    <div className="space-y-3 pt-2">
-                      <Button 
-                        onClick={handleClosePaymentModal}
-                        className="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs py-3 rounded-xl cursor-pointer"
-                      >
-                        Tutup
-                      </Button>
+                {/* Cart Items List */}
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {cart.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center space-y-3">
+                      <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-350">
+                        <ShoppingBag className="h-8 w-8" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-slate-800">Keranjang Belanja Kosong</p>
+                        <p className="text-[10px] text-slate-400 mt-1 max-w-[200px]">Silakan pilih komoditas dari koperasi terdekat untuk ditambahkan.</p>
+                      </div>
                     </div>
                   ) : (
-                    <Button 
-                      onClick={confirmPaymentTransfer}
-                      disabled={verifyingPayment}
-                      className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
-                    >
-                      {verifyingPayment ? (
-                        <>
-                          <Loader2 className="h-4.5 w-4.5 animate-spin text-brand-cream" />
-                          Memproses Webhook Pembayaran...
-                        </>
-                      ) : (
-                        'Saya Sudah Scan & Bayar'
-                      )}
-                    </Button>
+                    cart.map((item, index) => (
+                      <div key={`${item.id}-${item.name}-${index}`} className="flex gap-3 p-3 border border-slate-100 rounded-xl bg-[#faf9f6]/40 hover:bg-[#faf9f6] transition-colors relative">
+                        <div className="flex-1 space-y-1">
+                          <span className="text-[9px] bg-brand-red/10 text-brand-red px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                            {item.coopName}
+                          </span>
+                          <h4 className="text-xs font-black text-slate-800 leading-snug">{item.name}</h4>
+                          <p className="text-[10px] text-slate-400 font-extrabold">Rp {item.pricePerKg.toLocaleString('id-ID')} / kg</p>
+                        </div>
+                        <div className="flex flex-col items-end justify-between shrink-0">
+                          <button onClick={() => handleRemoveCartItem(item.id, item.name)} className="text-slate-350 hover:text-red-500 cursor-pointer">
+                            <X className="h-4 w-4" />
+                          </button>
+                          {/* Qty Adjuster */}
+                          <div className="flex items-center border border-slate-200 rounded-lg bg-white overflow-hidden text-xs">
+                            <button
+                              onClick={() => handleUpdateCartQty(item.id, item.name, item.quantity - 1)}
+                              className="px-2 py-1 bg-slate-50 hover:bg-slate-100 font-bold border-r border-slate-200 cursor-pointer"
+                            >
+                              -
+                            </button>
+                            <span className="px-2.5 font-bold text-slate-700 min-w-[20px] text-center">{item.quantity}</span>
+                            <button
+                              onClick={() => handleUpdateCartQty(item.id, item.name, item.quantity + 1)}
+                              className="px-2 py-1 bg-slate-50 hover:bg-slate-100 font-bold border-l border-slate-200 cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
                   )}
-                </>
-              ) : (
-                <div className="text-center py-6 space-y-4">
-                  <div className="h-16 w-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-sm">
-                    <CheckCircle2 className="h-10 w-10 animate-bounce" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <h3 className="text-base font-black text-slate-900">Pembayaran Berhasil!</h3>
-                    <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
-                      Dana telah disalurkan otomatis ke masing-masing rekening koperasi penyedia barang. Stok produk pada sistem telah otomatis dikurangi.
-                    </p>
-                  </div>
                 </div>
-              )}
 
+                {/* Footer Calculations */}
+                {cart.length > 0 && (
+                  <div className="p-6 border-t border-slate-100 bg-slate-50 space-y-4 text-xs font-semibold">
+                    <div className="space-y-1.5 text-slate-500">
+                      <div className="flex justify-between">
+                        <span>Subtotal Produk:</span>
+                        <span className="font-extrabold text-slate-800 tabular-nums">
+                          Rp {cart.reduce((sum, item) => sum + (item.pricePerKg * item.quantity), 0).toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total Ongkos Kirim:</span>
+                        <span className="font-extrabold text-slate-800 tabular-nums">
+                          Rp {cart.reduce((sum, item) => sum + item.deliveryCost, 0).toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-t border-slate-200 pt-2 text-sm">
+                        <span className="font-black text-slate-800">Total Pembayaran:</span>
+                        <span className="font-black text-brand-orange text-base tabular-nums">
+                          Rp {(
+                            cart.reduce((sum, item) => sum + (item.pricePerKg * item.quantity), 0) +
+                            cart.reduce((sum, item) => sum + item.deliveryCost, 0)
+                          ).toLocaleString('id-ID')}
+                        </span>
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={initiateCartPayment}
+                      className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer"
+                    >
+                      Checkout Sekarang ({cart.reduce((sum, item) => sum + item.quantity, 0)} kg)
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        );
-      })()}
+        )}
+
+        {/* ─── MODAL 3: PAYMENT ESCROW VERIFICATION ────────────────────────── */}
+        {activePayment && (() => {
+          const coopSplits = activePayment.items.reduce<Record<string, { coopName: string; subtotal: number; delivery: number }>>((acc, it) => {
+            const key = it.coopName || 'Koperasi Desa Merah Putih';
+            if (!acc[key]) {
+              acc[key] = {
+                coopName: key,
+                subtotal: 0,
+                delivery: 0,
+              };
+            }
+            acc[key].subtotal += it.pricePerKg * it.quantity;
+            acc[key].delivery += it.deliveryCost || 0;
+            return acc;
+          }, {});
+
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-xs font-sans animate-fade-in">
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto">
+
+                {!paymentSuccess ? (
+                  <>
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                      <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
+                        <CreditCard className="h-5 w-5 text-brand-navy animate-pulse" />
+                        Gerbang Pembayaran QRIS (ARUNA Hub)
+                      </h3>
+                      {!verifyingPayment && (
+                        <button onClick={handleClosePaymentModal} className="text-slate-400 hover:text-slate-700 cursor-pointer">
+                          <X className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* QRIS Simulated QR Code Graphic */}
+                    <div className="flex flex-col items-center justify-center p-4 bg-slate-50 rounded-2xl border border-slate-100/80 space-y-3">
+                      <div className="bg-[#E52A30] px-4 py-1 rounded-full flex items-center justify-center gap-1 text-white font-black text-[9px] tracking-widest uppercase shadow-xs">
+                        <span>QRIS</span>
+                        <span className="text-[7px] font-medium opacity-80">GPN</span>
+                      </div>
+
+                      <div className="p-3 bg-white rounded-xl shadow-xs border border-slate-100">
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&color=003049&data=aruna-payment-escrow-${activePayment.totalAmount}`}
+                          alt="QRIS QR Code"
+                          className="w-44 h-44 rounded-lg object-contain"
+                        />
+                      </div>
+
+                      <div className="text-center space-y-0.5">
+                        <span className="text-[9px] text-slate-400 block font-black uppercase">Sisa Waktu Pembayaran</span>
+                        <span className="text-sm font-black text-brand-navy font-mono animate-pulse">04:59</span>
+                      </div>
+                    </div>
+
+                    {/* Total Amount Box */}
+                    <div className="bg-brand-navy/5 border border-brand-navy/10 p-3.5 rounded-xl flex justify-between items-center text-xs font-semibold">
+                      <span className="text-slate-500 uppercase text-[9px] font-black">Total Tagihan Belanja</span>
+                      <span className="text-base font-black text-brand-orange tabular-nums">
+                        Rp {activePayment.totalAmount.toLocaleString('id-ID')}
+                      </span>
+                    </div>
+
+                    {/* Split Payout Breakdown */}
+                    <div className="space-y-2">
+                      <span className="text-[9.5px] text-slate-400 block font-black uppercase tracking-wide">Rincian Split Payment (Sistem Otomatis)</span>
+                      <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
+                        {Object.values(coopSplits).map((split, idx) => (
+                          <div key={idx} className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex justify-between items-center gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className="h-7 w-7 rounded-lg bg-brand-navy/5 flex items-center justify-center font-black text-brand-navy text-[10px] shrink-0">
+                                🏢
+                              </div>
+                              <div className="min-w-0">
+                                <span className="text-[11px] font-black text-slate-800 block truncate max-w-[170px]">{split.coopName}</span>
+                                <span className="text-[9px] text-emerald-600 font-bold flex items-center gap-1">
+                                  <span className="h-1 w-1 rounded-full bg-emerald-500 animate-ping shrink-0" />
+                                  Auto-Split (H+1)
+                                </span>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="text-xs font-black text-slate-850 block">Rp {(split.subtotal + split.delivery).toLocaleString('id-ID')}</span>
+                              <span className="text-[8.5px] text-slate-400 font-extrabold block">Ongkir: Rp {split.delivery.toLocaleString('id-ID')}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Shipping Address Confirmation section */}
+                    {!activePayment.isReadOnly && (
+                      <div className="space-y-2 border-t border-slate-100 pt-3">
+                        <span className="text-[9.5px] text-slate-400 block font-black uppercase tracking-wide">Alamat Pengiriman</span>
+
+                        {!useCustomAddress ? (
+                          <div className="bg-slate-50 p-3 rounded-lg border border-slate-100/50 text-[11px] text-slate-700 font-semibold space-y-1">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[9px] text-slate-400 block font-bold">
+                                {userData?.role === 'customer' ? 'ALAMAT UTAMA PELANGGAN' : 'ALAMAT PROFIL PERUSAHAAN'}
+                              </span>
+                              {userData?.role === 'customer' && (
+                                <button
+                                  onClick={handleShowAddressPrompt}
+                                  className="text-[9px] text-brand-red font-black hover:underline cursor-pointer bg-transparent border-0 p-0"
+                                >
+                                  Ubah Alamat Utama
+                                </button>
+                              )}
+                            </div>
+                            <p>
+                              {userData?.role === 'customer'
+                                ? (userData?.address || 'Alamat belum diatur. Klik "Atur Alamat" di kanan atas (Navbar) untuk mengaturnya.')
+                                : (buyers.find(b => b.id === (userData?.associatedId || 'guest_customer'))?.address || buyers.find(b => b.id === (userData?.associatedId || 'guest_customer'))?.city || 'Alamat tidak diatur')
+                              }
+                            </p>
+                          </div>
+                        ) : (
+                          <textarea
+                            placeholder="Masukkan alamat pengiriman alternatif untuk pesanan ini..."
+                            value={customAddress}
+                            onChange={(e) => setCustomAddress(e.target.value)}
+                            rows={2}
+                            className="w-full p-2 border border-slate-200 rounded-lg text-xs font-semibold bg-white focus:outline-none focus:ring-1 focus:ring-brand-red text-slate-800 resize-none font-sans"
+                          />
+                        )}
+
+                        <label className="flex items-center gap-1.5 text-[11px] text-slate-550 font-bold cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={useCustomAddress}
+                            onChange={(e) => setUseCustomAddress(e.target.checked)}
+                            className="accent-brand-navy h-3.5 w-3.5 rounded border-slate-350"
+                          />
+                          Kirim ke alamat lain untuk pesanan ini
+                        </label>
+                      </div>
+                    )}
+
+                    {activePayment.isReadOnly ? (
+                      <div className="space-y-3 pt-2">
+                        <Button
+                          onClick={handleClosePaymentModal}
+                          className="w-full bg-slate-200 hover:bg-slate-300 text-slate-800 font-black text-xs py-3 rounded-xl cursor-pointer"
+                        >
+                          Tutup
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={confirmPaymentTransfer}
+                        disabled={verifyingPayment}
+                        className="w-full bg-brand-navy hover:bg-brand-navy/95 text-white font-black text-xs py-3 rounded-xl cursor-pointer flex items-center justify-center gap-2"
+                      >
+                        {verifyingPayment ? (
+                          <>
+                            <Loader2 className="h-4.5 w-4.5 animate-spin text-brand-cream" />
+                            Memproses Webhook Pembayaran...
+                          </>
+                        ) : (
+                          'Saya Sudah Scan & Bayar'
+                        )}
+                      </Button>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-6 space-y-4">
+                    <div className="h-16 w-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                      <CheckCircle2 className="h-10 w-10 animate-bounce" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <h3 className="text-base font-black text-slate-900">Pembayaran Berhasil!</h3>
+                      <p className="text-xs text-slate-500 max-w-xs mx-auto leading-relaxed">
+                        Dana telah disalurkan otomatis ke masing-masing rekening koperasi penyedia barang. Stok produk pada sistem telah otomatis dikurangi.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
     </div>

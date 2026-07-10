@@ -5,14 +5,12 @@ import { CooperativeWithCommodities } from '@/types';
 import MapWrapper from '@/components/map/MapWrapper';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, MapPin, Compass, Layers, ArrowLeft, Award, Lightbulb, TrendingUp, Users } from 'lucide-react';
+import { Search, MapPin, Compass, Layers, ArrowLeft, Award, Lightbulb } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { CustomSelect } from '@/components/ui/CustomSelect';
-import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'next/navigation';
 
-interface PetaClientProps {
+interface CooperativeExplorerPanelProps {
   cooperatives: CooperativeWithCommodities[];
   provinces: string[];
   commodityNames: string[];
@@ -54,22 +52,17 @@ function ProgressRing({ value, size = 64, strokeWidth = 6, colorClass = 'stroke-
   );
 }
 
-export default function PetaClient({ cooperatives, provinces, commodityNames }: PetaClientProps) {
-  const { user, userData, loading } = useAuth();
-  const router = useRouter();
-
+/**
+ * Self-contained cooperative explorer (sidebar list + filters + inspector + map).
+ * Extracted from the former standalone /peta page so it can be embedded as a tab
+ * inside the unified Potensi Desa page. Does NOT include an auth guard or page
+ * chrome — the host page is responsible for access control.
+ */
+export default function CooperativeExplorerPanel({ cooperatives, provinces, commodityNames }: CooperativeExplorerPanelProps) {
   const [selectedProvince, setSelectedProvince] = useState<string>('all');
   const [selectedCommodity, setSelectedCommodity] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedCoopId, setSelectedCoopId] = useState<string | undefined>(undefined);
-
-  useEffect(() => {
-    if (!loading) {
-      if (!user || !userData || (userData.role !== 'admin' && userData.role !== 'pemerintah')) {
-        router.push('/');
-      }
-    }
-  }, [user, userData, loading, router]);
 
   // Gemini AI Insights state
   const [geminiInsights, setGeminiInsights] = useState<Record<string, { summary: string; analysis: string[]; recommendations: string[] }>>({});
@@ -142,10 +135,10 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
     return cooperatives.filter(coop => {
       const matchProvince = selectedProvince === 'all' || coop.province === selectedProvince;
       const matchCommodity = selectedCommodity === 'all' || coop.commodities.some(c => c.name === selectedCommodity);
-      const matchSearch = searchQuery === '' || 
-        coop.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      const matchSearch = searchQuery === '' ||
+        coop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         coop.city.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       return matchProvince && matchCommodity && matchSearch;
     });
   }, [cooperatives, selectedProvince, selectedCommodity, searchQuery]);
@@ -156,46 +149,19 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
     return cooperatives.find(c => c.id === selectedCoopId) || null;
   }, [selectedCoopId, cooperatives]);
 
-  if (loading || !user || !userData || (userData.role !== 'admin' && userData.role !== 'pemerintah')) {
-    return (
-      <div className="flex-1 flex items-center justify-center py-20 bg-[#faf9f6]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-navy mx-auto mb-4"></div>
-          <p className="text-xs text-slate-500 font-bold">Memuat...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-1 bg-[#faf9f6] min-h-screen relative font-sans py-6">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col gap-6 h-[calc(100vh-120px)]">
-        
-        {/* Page Title Header */}
-        <div className="flex justify-between items-center shrink-0">
-          <div>
-            <span className="text-[10px] bg-brand-red text-white px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider">
-              Peta Potensi Gotong Royong
-            </span>
-            <h1 className="text-xl font-black text-slate-900 leading-tight mt-1">
-              Command Center Pemetaan Komoditas Nusantara
-            </h1>
-          </div>
-        </div>
+    <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-300px)] min-h-[560px]">
 
-        {/* Workspace Body */}
-        <div className="flex-1 flex flex-col md:flex-row gap-6 min-h-0">
+      {/* Sidebar - Controls and List */}
+      <div className="w-full md:w-[380px] lg:w-[420px] bg-white border border-slate-200/80 rounded-2xl flex flex-col shrink-0 h-full overflow-hidden shadow-3xs">
 
-          {/* Sidebar - Controls and List */}
-          <div className="w-full md:w-[380px] lg:w-[420px] bg-white border border-slate-200/80 rounded-2xl flex flex-col shrink-0 h-full overflow-hidden shadow-3xs">
-        
         {/* If a cooperative is selected, show its Inspector Panel in the sidebar */}
         {selectedCoop ? (
           <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#fcfbf9]">
-            
+
             {/* Inspector Header */}
             <div className="p-4 border-b border-slate-200/80 bg-white flex items-center justify-between">
-              <button 
+              <button
                 onClick={() => setSelectedCoopId(undefined)}
                 className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-900 transition-colors"
               >
@@ -208,7 +174,7 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
 
             {/* Scrollable Inspector Body */}
             <div className="flex-1 overflow-y-auto p-4 space-y-5">
-              
+
               {/* Title & Info */}
               <div className="space-y-2">
                 <span className="text-[10px] bg-brand-navy text-white px-2 py-0.5 rounded font-bold uppercase tracking-wider">
@@ -290,7 +256,7 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
                   </span>
                   <div className="space-y-2">
                     {selectedCoop.insights.map(ins => (
-                      <div 
+                      <div
                         key={ins.id}
                         className={`p-3 rounded-xl border text-xs leading-relaxed flex gap-2 items-start shadow-xs ${
                           ins.severity === 'Kritis' ? 'bg-red-50/50 border-red-200 text-red-800' :
@@ -336,7 +302,7 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
                      <p className="font-semibold text-slate-800 italic leading-relaxed">
                        &ldquo;{geminiInsights[selectedCoop.id].summary}&rdquo;
                      </p>
-                     
+
                      <div className="space-y-1">
                        <span className="text-[9px] font-black text-slate-400 block uppercase">Temuan Kendala</span>
                        <ul className="list-disc pl-4 space-y-0.5 text-slate-600 text-[11px] leading-relaxed">
@@ -383,9 +349,9 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
             {/* Filters Box */}
             <div className="p-4 border-b border-slate-100 space-y-3">
               <h2 className="text-base font-extrabold text-brand-navy flex items-center gap-1.5">
-                <Layers className="h-4.5 w-4.5 text-brand-red" /> Peta Potensi Komoditas
+                <Layers className="h-4.5 w-4.5 text-brand-red" /> Sebaran Koperasi
               </h2>
-              
+
               {/* Search bar */}
               <div className="relative">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
@@ -498,16 +464,14 @@ export default function PetaClient({ cooperatives, provinces, commodityNames }: 
         )}
       </div>
 
-      {/* Map Area — beautiful matching card */}
-      <div className="flex-1 min-w-0 bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-3xs relative h-full">
-        <MapWrapper 
-          cooperatives={filteredCooperatives} 
+      {/* Map Area */}
+      <div className="flex-1 min-w-0 bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-3xs relative h-full min-h-[400px]">
+        <MapWrapper
+          cooperatives={filteredCooperatives}
           selectedCoopId={selectedCoopId}
         />
       </div>
 
     </div>
-  </div>
-</div>
   );
 }
