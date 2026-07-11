@@ -4,9 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "DATABASE_URL=${DATABASE_URL:-${POSTGRES_PRISMA_URL:-${POSTGRES_URL:-${POSTGRES_URL_NON_POOLING:-}}}} DIRECT_URL=${DIRECT_URL:-${POSTGRES_URL_NON_POOLING:-${POSTGRES_URL:-}}} prisma generate && if [ -n \"${DATABASE_URL:-${POSTGRES_PRISMA_URL:-${POSTGRES_URL:-${POSTGRES_URL_NON_POOLING:-}}}}\" ]; then DATABASE_URL=${DATABASE_URL:-${POSTGRES_PRISMA_URL:-${POSTGRES_URL:-${POSTGRES_URL_NON_POOLING:-}}}} DIRECT_URL=${DIRECT_URL:-${POSTGRES_URL_NON_POOLING:-${POSTGRES_URL:-}}} prisma migrate deploy; else echo 'Skipping prisma migrate deploy because DATABASE_URL is not set'; fi && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@fontsource-variable/mona-sans": "^5.2.8",

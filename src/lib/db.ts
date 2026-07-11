@@ -1,10 +1,16 @@
 import { Pool } from 'pg';
 
-const host = process.env.DB_HOST;
+const connectionString =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRES_URL_NON_POOLING;
+
+const host = process.env.DB_HOST || process.env.POSTGRES_HOST || 'localhost';
 const port = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432;
-const database = process.env.DB_DATABASE;
-const user = process.env.DB_USERNAME;
-const password = process.env.DB_PASSWORD;
+const database = process.env.DB_DATABASE || process.env.POSTGRES_DATABASE || 'postgres';
+const user = process.env.DB_USERNAME || process.env.POSTGRES_USER || 'postgres';
+const password = process.env.DB_PASSWORD || process.env.POSTGRES_PASSWORD || 'postgres';
 
 // In development, Next.js hot-reloading can create multiple pools.
 // We store the pool globally in development to prevent connection leaks.
@@ -16,36 +22,33 @@ let pool: Pool;
 // "Connection terminated due to connection timeout" failures.
 const CONNECTION_TIMEOUT_MS = 10000;
 
-if (process.env.NODE_ENV === 'production') {
-  pool = new Pool({
-    host,
-    port,
-    database,
-    user,
-    password,
-    ssl: {
-      rejectUnauthorized: false // Required for some GCF/Cloud SQL connections
-    },
+const sslConfig = {
+  rejectUnauthorized: false,
+};
+
+const createPool = () =>
+  new Pool({
+    ...(connectionString
+      ? { connectionString }
+      : {
+          host,
+          port,
+          database,
+          user,
+          password,
+        }),
+    ssl: sslConfig,
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
   });
+
+if (process.env.NODE_ENV === 'production') {
+  pool = createPool();
 } else {
   const globalPool = global as any;
   if (!globalPool.pgPool) {
-    globalPool.pgPool = new Pool({
-      host,
-      port,
-      database,
-      user,
-      password,
-      ssl: {
-        rejectUnauthorized: false
-      },
-      max: 5,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
-    });
+    globalPool.pgPool = createPool();
   }
   pool = globalPool.pgPool;
 }
