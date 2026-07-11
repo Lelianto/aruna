@@ -11,8 +11,8 @@
 const path = require('path');
 const { Pool } = require('pg');
 
-require('dotenv').config({ path: path.join(__dirname, '../.env') });
-require('dotenv').config({ path: path.join(__dirname, '../.env.local') });
+require('dotenv').config({ path: path.join(__dirname, '../../.env') });
+require('dotenv').config({ path: path.join(__dirname, '../../.env.local') });
 
 const SIMKOPDES_TABLES = [
   'referensi_wilayah',

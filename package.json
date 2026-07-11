@@ -7,7 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "generate-scores-insights": "tsx scripts/generate-scores-insights.ts"
   },
   "dependencies": {
     "@fontsource-variable/mona-sans": "^5.2.8",
