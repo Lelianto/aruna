@@ -42,6 +42,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
@@ -91,6 +96,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Halaman internal (mis. /akses-internal) mematikan ini agar bisa
     // menentukan peran elevated sendiri tanpa dilempar keluar.
     const shouldRedirect = options?.redirect ?? true;
+    if (!auth || !db) {
+      console.warn('Firebase auth is unavailable. Skipping sign-in.');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
@@ -140,7 +151,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     try {
       localStorage.clear(); // Clear all user-related data
-      await signOut(auth);
+      if (auth) {
+        await signOut(auth);
+      }
     } catch (error) {
       console.warn("Firebase Auth signOut failed, proceeding with UI logout:", error);
     } finally {

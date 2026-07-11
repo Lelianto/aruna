@@ -1,4 +1,20 @@
-import { Pool, type PoolConfig } from 'pg';
+import { Pool } from 'pg';
+
+const connectionString =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL ||
+  process.env.POSTGRES_URL_NON_POOLING;
+
+const host = process.env.DB_HOST || process.env.POSTGRES_HOST || 'localhost';
+const port = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432;
+const database = process.env.DB_DATABASE || process.env.POSTGRES_DATABASE || 'postgres';
+const user = process.env.DB_USERNAME || process.env.POSTGRES_USER || 'postgres';
+const password = process.env.DB_PASSWORD || process.env.POSTGRES_PASSWORD || 'postgres';
+
+// In development, Next.js hot-reloading can create multiple pools.
+// We store the pool globally in development to prevent connection leaks.
+let pool: Pool;
 
 // The shared hackathon Postgres instance can have highly variable network
 // latency (connection setup has been observed to take anywhere from ~700ms
@@ -6,49 +22,33 @@ import { Pool, type PoolConfig } from 'pg';
 // "Connection terminated due to connection timeout" failures.
 const CONNECTION_TIMEOUT_MS = 10000;
 
-function buildPoolConfig(): PoolConfig {
-  if (process.env.DATABASE_URL) {
-    const config: PoolConfig = {
-      connectionString: process.env.DATABASE_URL,
-      max: process.env.NODE_ENV === 'production' ? 10 : 5,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
-    };
-    if (process.env.DATABASE_SSL === 'true') {
-      config.ssl = { rejectUnauthorized: false };
-    }
-    return config;
-  }
+const sslConfig = {
+  rejectUnauthorized: false,
+};
 
-  const host = process.env.DB_HOST;
-  const port = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432;
-  const database = process.env.DB_DATABASE;
-  const user = process.env.DB_USERNAME;
-  const password = process.env.DB_PASSWORD;
-
-  return {
-    host,
-    port,
-    database,
-    user,
-    password,
-    ssl: { rejectUnauthorized: false },
-    max: process.env.NODE_ENV === 'production' ? 10 : 5,
+const createPool = () =>
+  new Pool({
+    ...(connectionString
+      ? { connectionString }
+      : {
+          host,
+          port,
+          database,
+          user,
+          password,
+        }),
+    ssl: sslConfig,
+    max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
-  };
-}
-
-// In development, Next.js hot-reloading can create multiple pools.
-// We store the pool globally in development to prevent connection leaks.
-let pool: Pool;
+  });
 
 if (process.env.NODE_ENV === 'production') {
-  pool = new Pool(buildPoolConfig());
+  pool = createPool();
 } else {
   const globalPool = global as typeof globalThis & { pgPool?: Pool };
   if (!globalPool.pgPool) {
-    globalPool.pgPool = new Pool(buildPoolConfig());
+    globalPool.pgPool = createPool();
   }
   pool = globalPool.pgPool;
 }

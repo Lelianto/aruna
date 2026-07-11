@@ -2,7 +2,12 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { defineConfig, env } from 'prisma/config';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+const databaseUrl =
+  process.env.DATABASE_URL ||
+  process.env.POSTGRES_PRISMA_URL ||
+  process.env.POSTGRES_URL_NON_POOLING ||
+  process.env.POSTGRES_URL ||
+  '';
 
 const SIMKOPDES_TABLES = [
   'akun_bank_koperasi',
@@ -45,7 +50,7 @@ export default defineConfig({
   //   externalTables: true,
   // },
   datasource: {
-    url: env('DATABASE_URL'),
+    url: databaseUrl || env('DATABASE_URL'),
   },
   // tables: {
   //   external: [...SIMKOPDES_TABLES],
