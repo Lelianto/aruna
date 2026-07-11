@@ -13,6 +13,7 @@ import {
   FileText, Check, Plus, Trash2, Users, TrendingUp, Boxes, X
 } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase/config';
 import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 
@@ -186,6 +187,27 @@ export default function MatchDetailsClient({
   cooperatives,
   buyerCoords
 }: MatchDetailsClientProps) {
+  const { userData, loading: authLoading } = useAuth();
+
+  // Ownership gate for this gotong-royong match view:
+  //  - admin / pemerintah: full oversight access
+  //  - buyer / customer: only their own request (buyer_id === associatedId)
+  //  - koperasi: only if they are a recommended supplier in the match result
+  const isAuthorized = useMemo(() => {
+    const role = userData?.role;
+    if (role === 'admin' || role === 'pemerintah') return true;
+    if (role === 'buyer' || role === 'customer') {
+      return !!userData?.associatedId && request.buyer_id === userData.associatedId;
+    }
+    if (role === 'koperasi') {
+      return (
+        !!userData?.associatedId &&
+        result.matches.some((m) => m.cooperative.id === userData.associatedId)
+      );
+    }
+    return false;
+  }, [userData?.role, userData?.associatedId, request.buyer_id, result.matches]);
+
   // 1. Find all candidate cooperatives that produce this specific commodity
   const candidateCoops = useMemo(() => {
     return cooperatives.map(coop => {
@@ -214,6 +236,10 @@ export default function MatchDetailsClient({
   const [selectedCoopId, setSelectedCoopId] = useState<string | undefined>(
     result.matches[0]?.cooperative.id || undefined
   );
+
+  // Hardcoded buyer detail maps are keyed by the buyer's stable slug
+  // (aruna_buyers.slug), not the numeric Postgres id.
+  const buyerSlug = request.buyer.slug ?? '';
 
   // 4. Modal and Release states
   const [isSpkOpen, setIsSpkOpen] = useState(false);
@@ -349,6 +375,29 @@ export default function MatchDetailsClient({
   // Pricing helper (Rp 10.500 / kg standard demo pricing)
   const UNIT_PRICE = 10500;
 
+  // Block rendering of match details for users who don't own / supply this request.
+  if (!authLoading && !isAuthorized) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center py-24 px-6 text-center bg-slate-50">
+        <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-4">
+          <AlertTriangle className="w-7 h-7 text-red-600" />
+        </div>
+        <h1 className="text-lg font-bold text-slate-900">Akses Ditolak</h1>
+        <p className="mt-2 max-w-md text-sm text-slate-500">
+          Anda tidak memiliki izin untuk melihat detail pemenuhan permintaan ini.
+          Hanya admin, pembeli terkait, dan koperasi pemasok yang direkomendasikan
+          yang dapat mengakses halaman ini.
+        </p>
+        <Link
+          href="/marketplace"
+          className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-700 hover:text-emerald-900"
+        >
+          <ArrowLeft className="w-4 h-4" /> Kembali ke Pasar Digital
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 flex flex-col md:flex-row h-[calc(100dvh-68px)] overflow-hidden bg-slate-50">
 
@@ -385,12 +434,12 @@ export default function MatchDetailsClient({
                 <MapPin className="h-4 w-4 text-brand-red/70 shrink-0 mt-0.5" />
                 <div>
                   <span className="font-semibold text-slate-700 block">Alamat Pabrik Penerima:</span>
-                  <span className="text-slate-600 block leading-relaxed">{buyerDetailsMap[request.buyer_id]?.address || `${request.buyer.city}, Indonesia`}</span>
+                  <span className="text-slate-600 block leading-relaxed">{buyerDetailsMap[buyerSlug]?.address || `${request.buyer.city}, Indonesia`}</span>
                 </div>
               </div>
               <div className="pl-6 border-l-2 border-slate-100 flex flex-col gap-0.5 text-[11px] text-slate-500 font-semibold">
-                <span>Persona Penerima: <strong className="text-slate-700">{buyerDetailsMap[request.buyer_id]?.persona || 'Bpk. Logistik Manager'}</strong></span>
-                <span>Kontak: <strong className="text-slate-700">{buyerDetailsMap[request.buyer_id]?.phone || '+62 8xx'}</strong></span>
+                <span>Persona Penerima: <strong className="text-slate-700">{buyerDetailsMap[buyerSlug]?.persona || 'Bpk. Logistik Manager'}</strong></span>
+                <span>Kontak: <strong className="text-slate-700">{buyerDetailsMap[buyerSlug]?.phone || '+62 8xx'}</strong></span>
               </div>
             </div>
           </div>
@@ -968,10 +1017,10 @@ export default function MatchDetailsClient({
                     <span className="text-slate-400 font-semibold block uppercase tracking-wider text-[9px]">Penerima & Alamat Pengiriman (Buyer)</span>
                     <span className="font-semibold text-brand-navy text-sm block">{request.buyer.company_name}</span>
                     <p className="text-slate-650 leading-relaxed font-semibold">
-                      {buyerDetailsMap[request.buyer_id]?.address || `${request.buyer.city}, Indonesia`}
+                      {buyerDetailsMap[buyerSlug]?.address || `${request.buyer.city}, Indonesia`}
                     </p>
                     <span className="text-slate-500 block text-[11px] font-semibold mt-1">
-                      UP: {buyerDetailsMap[request.buyer_id]?.persona || 'Bpk. Logistik Manager'} ({buyerDetailsMap[request.buyer_id]?.phone || '+62 8xx'})
+                      UP: {buyerDetailsMap[buyerSlug]?.persona || 'Bpk. Logistik Manager'} ({buyerDetailsMap[buyerSlug]?.phone || '+62 8xx'})
                     </span>
                   </div>
                   <div className="space-y-1.5 md:border-l md:pl-4">
@@ -1042,9 +1091,9 @@ export default function MatchDetailsClient({
                 <div className="space-y-1.5 text-[11px] text-slate-550 leading-relaxed border-t pt-3">
                   <span className="font-semibold text-slate-700 uppercase tracking-wider block text-[10px]">Syarat & Ketentuan Logistik Gotong Royong:</span>
                   <ul className="list-disc pl-4 space-y-1">
-                    <li>Pengiriman komoditas dari masing-masing koperasi mitra akan ditujukan langsung ke alamat pabrik penerima: <strong>{buyerDetailsMap[request.buyer_id]?.address || `${request.buyer.city}`}</strong>.</li>
+                    <li>Pengiriman komoditas dari masing-masing koperasi mitra akan ditujukan langsung ke alamat pabrik penerima: <strong>{buyerDetailsMap[buyerSlug]?.address || `${request.buyer.city}`}</strong>.</li>
                     <li>Pihak pengirim dari masing-masing koperasi dipimpin oleh Ketua Koperasi masing-masing yang bertindak sebagai Narahubung Pengiriman Utama.</li>
-                    <li>Pembayaran termin pertama (50%) akan otomatis cair setelah kargo tiba di gerbang pabrik dan lolos Verifikasi Kualitas oleh <strong>{buyerDetailsMap[request.buyer_id]?.persona.split(' (')[0] || 'Representatif Buyer'}</strong>.</li>
+                    <li>Pembayaran termin pertama (50%) akan otomatis cair setelah kargo tiba di gerbang pabrik dan lolos Verifikasi Kualitas oleh <strong>{buyerDetailsMap[buyerSlug]?.persona.split(' (')[0] || 'Representatif Buyer'}</strong>.</li>
                   </ul>
                 </div>
               </div>
@@ -1059,7 +1108,7 @@ export default function MatchDetailsClient({
                         TANDATANGAN DIGITAL
                       </div>
                       <span className="block font-semibold text-slate-800">
-                        {buyerDetailsMap[request.buyer_id]?.persona.split(' (')[0] || 'Representatif Buyer'}
+                        {buyerDetailsMap[buyerSlug]?.persona.split(' (')[0] || 'Representatif Buyer'}
                       </span>
                     </div>
                   ) : (

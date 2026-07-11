@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import { AuthProvider } from '@/context/AuthContext';
 import AuthGuard from '@/components/AuthGuard';
 import PwaRegistration from '@/components/PwaRegistration';
+import QueryProvider from '@/components/QueryProvider';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
@@ -47,15 +48,17 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-[var(--bg-base)] text-slate-900 pb-16 lg:pb-0">
         <PwaRegistration />
-        <AuthProvider>
-          <Navbar />
+        <QueryProvider>
+          <AuthProvider>
+            <Navbar />
 
-          <main className="flex-1 flex flex-col">
-            <AuthGuard>
-              {children}
-            </AuthGuard>
-          </main>
-        </AuthProvider>
+            <main className="flex-1 flex flex-col">
+              <AuthGuard>
+                {children}
+              </AuthGuard>
+            </main>
+          </AuthProvider>
+        </QueryProvider>
 
         <Footer />
       </body>

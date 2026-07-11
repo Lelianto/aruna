@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
+import { cooperativeRepositoryServer } from '@/lib/repositories/cooperative.repository.server';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const coop = await cooperativeRepository.getByIdWithDetails(cooperativeId);
+    const coop = await cooperativeRepositoryServer.getByIdWithDetails(cooperativeId);
     if (!coop) {
       return NextResponse.json({ error: 'Cooperative not found' }, { status: 404 });
     }

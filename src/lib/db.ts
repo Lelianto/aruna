@@ -46,7 +46,7 @@ const createPool = () =>
 if (process.env.NODE_ENV === 'production') {
   pool = createPool();
 } else {
-  const globalPool = global as any;
+  const globalPool = global as typeof globalThis & { pgPool?: Pool };
   if (!globalPool.pgPool) {
     globalPool.pgPool = createPool();
   }

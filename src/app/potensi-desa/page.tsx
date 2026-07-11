@@ -1,8 +1,8 @@
 import React from 'react';
 import PotensiDesaClient from '@/components/potensi/PotensiDesaClient';
 import { query } from '@/lib/db';
-import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
-import { commodityRepository } from '@/lib/repositories/commodity.repository';
+import { cooperativeRepositoryServer } from '@/lib/repositories/cooperative.repository.server';
+import { commodityRepositoryServer } from '@/lib/repositories/commodity.repository.server';
 import { CooperativeWithCommodities } from '@/types';
 
 export const revalidate = 0; // Refresh data on demand
@@ -22,8 +22,8 @@ export default async function PotensiDesaPage() {
   let commodityNames: string[] = [];
   try {
     const [coops, comNames] = await Promise.all([
-      cooperativeRepository.getAllWithDetails(),
-      commodityRepository.getUniqueNames()
+      cooperativeRepositoryServer.getAllWithDetails(),
+      commodityRepositoryServer.getUniqueNames()
     ]);
     detailedCooperatives = coops;
     commodityNames = comNames;
