@@ -15,8 +15,10 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { db } from '@/lib/firebase/config';
-import { collection, onSnapshot, getDocs, doc, getDoc, updateDoc, addDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { useQuery } from '@tanstack/react-query';
 import { marketRequestRepository } from '@/lib/repositories/market-request.repository';
+import { supplyMatchRepository } from '@/lib/repositories/supply-match.repository';
 import { buyerRepository } from '@/lib/repositories/buyer.repository';
 import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
 import { commodityRepository } from '@/lib/repositories/commodity.repository';
@@ -139,13 +141,11 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     let isMounted = true;
     const checkBuyerType = async () => {
       try {
-        const docRef = doc(db, 'buyers', userData.associatedId!);
-        const docSnap = await getDoc(docRef);
+        const buyer = await buyerRepository.getById(userData.associatedId!);
         if (!isMounted) return;
 
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const isUmkm = data.buyer_type === 'umkm';
+        if (buyer) {
+          const isUmkm = buyer.buyer_type === 'umkm';
           setIsUmkmUser(isUmkm);
           setActiveMarketTab(isUmkm ? 'customer' : 'gotong_royong');
         }
@@ -257,43 +257,28 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     removeFromCart(id, name);
   };
 
-  // Real-time listener for requests
+  // Poll market requests (with buyer joined) from Postgres via react-query.
+  // Replaces the former Firestore onSnapshot listener; getAllWithBuyer already
+  // returns rows ordered by created_at desc.
+  const { data: polledRequests } = useQuery<MarketRequestWithBuyer[]>({
+    queryKey: ['market-requests-with-buyer'],
+    queryFn: () => marketRequestRepository.getAllWithBuyer(),
+    initialData: initialRequests,
+    refetchInterval: 4000,
+  });
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'market_requests'), async (snapshot) => {
-      try {
-        const reqList: MarketRequest[] = [];
-        snapshot.forEach((docSnap) => {
-          reqList.push({ id: docSnap.id, ...docSnap.data() } as MarketRequest);
-        });
+    if (polledRequests) setRequests(polledRequests);
+  }, [polledRequests]);
 
-        const buyerList = await buyerRepository.getAll();
-        setBuyers(buyerList);
-
-        const merged = reqList.map((req) => {
-          const buyer = buyerList.find((b) => b.id === req.buyer_id);
-          return {
-            ...req,
-            buyer: buyer || {
-              id: req.buyer_id,
-              company_name: 'Unknown Buyer',
-              city: 'Unknown',
-              industry: 'Unknown',
-            },
-          };
-        }).sort((a, b) => {
-          const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
-          const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
-          return timeB - timeA;
-        });
-
-        setRequests(merged);
-      } catch (err) {
-        console.error('Error processing real-time updates:', err);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+  // Poll buyer directory (used by the create-request modal & filtering).
+  const { data: polledBuyers } = useQuery<Buyer[]>({
+    queryKey: ['buyers'],
+    queryFn: () => buyerRepository.getAll(),
+    refetchInterval: 4000,
+  });
+  useEffect(() => {
+    if (polledBuyers) setBuyers(polledBuyers);
+  }, [polledBuyers]);
 
   // Load Cooperatives & Commodities for Customer search.
   // Products load progressively in batches (see loadInStockCommodities) so the
@@ -380,17 +365,15 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
     fetchAll();
   }, [coops, coords]);
 
-  // Real-time listener for supply matches
+  // Poll supply matches from Postgres via react-query (replaces onSnapshot).
+  const { data: polledMatches } = useQuery<SupplyMatch[]>({
+    queryKey: ['supply-matches'],
+    queryFn: () => supplyMatchRepository.getAll(),
+    refetchInterval: 4000,
+  });
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, 'supply_matches'), (snapshot) => {
-      const list: any[] = [];
-      snapshot.forEach(docSnap => {
-        list.push({ id: docSnap.id, ...docSnap.data() });
-      });
-      setSupplyMatches(list);
-    });
-    return () => unsubscribe();
-  }, []);
+    if (polledMatches) setSupplyMatches(polledMatches);
+  }, [polledMatches]);
 
   const COMMODITY_OPTIONS = [
     { value: 'Jagung', label: 'Jagung' },
@@ -723,9 +706,8 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
       for (const item of activePayment.items) {
         const invoiceNum = activePayment.items.length > 1 ? `${baseInvoice}-${index + 1}` : baseInvoice;
 
-        // 1. Create paid/fulfilled request immediately
-        const reqCol = collection(db, 'market_requests');
-        const newReqDoc = await addDoc(reqCol, {
+        // 1. Create paid/fulfilled request immediately (Postgres).
+        const newRequestId = await marketRequestRepository.create({
           buyer_id: buyerId,
           commodity_name: item.name,
           quantity: item.quantity,
@@ -734,17 +716,16 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
           shipping_address: resolvedAddress,
           created_at: now.toISOString(),
           invoice_number: invoiceNum,
-          coopName: item.coopName || 'Koperasi Desa Merah Putih',
-          total_price: item.pricePerKg * item.quantity + (item.deliveryCost || 0)
+          coop_name: item.coopName || 'Koperasi Desa Merah Putih',
+          total_price: item.pricePerKg * item.quantity + (item.deliveryCost || 0),
         });
 
-        // 2. Create supply matching record
-        const matchCol = collection(db, 'supply_matches');
-        await addDoc(matchCol, {
-          request_id: newReqDoc.id,
+        // 2. Create supply matching record (Postgres).
+        await supplyMatchRepository.create({
+          request_id: newRequestId,
           cooperative_id: item.cooperative_id || item.cooperativeId || (coops.length > 0 ? coops[0].id : 'coop-jabar-garut'),
           allocated_quantity: item.quantity,
-          matched_at: now.toISOString()
+          matched_at: now.toISOString(),
         });
 
         // 3. Auto-decrement stock in Firestore
@@ -800,41 +781,9 @@ export default function MarketplaceClient({ initialRequests }: MarketplaceClient
   const handleAdminApprovePayment = async (req: MarketRequestWithBuyer) => {
     if (confirm(`Apakah Anda yakin ingin memverifikasi pembayaran untuk pesanan ${req.commodity_name} sebanyak ${req.quantity} ${req.unit} ini?`)) {
       try {
-        // 1. Fetch matching supply allocation from supply_matches collection
-        const matchSnap = await getDocs(collection(db, 'supply_matches'));
-        let matchDoc: any = null;
-        matchSnap.forEach(docSnap => {
-          const d = docSnap.data();
-          if (d.request_id === req.id) {
-            matchDoc = { id: docSnap.id, ...d };
-          }
-        });
-
-        if (matchDoc) {
-          // 2. Find the commodity of this cooperative with the matching name
-          const comSnap = await getDocs(collection(db, 'commodities'));
-          let targetComDocId: string | null = null;
-          let currentStock = 0;
-
-          comSnap.forEach(docSnap => {
-            const d = docSnap.data();
-            if (d.cooperative_id === matchDoc.cooperative_id && d.name.toLowerCase() === req.commodity_name.toLowerCase()) {
-              targetComDocId = docSnap.id;
-              currentStock = d.available_stock || 0;
-            }
-          });
-
-          // 3. Decrement stock in Firestore
-          if (targetComDocId) {
-            const comRef = doc(db, 'commodities', targetComDocId);
-            const newStock = Math.max(0, currentStock - req.quantity);
-            await updateDoc(comRef, { available_stock: newStock });
-          }
-        }
-
-        // 4. Update request status to 'Terpenuhi'
-        const reqRef = doc(db, 'market_requests', req.id);
-        await updateDoc(reqRef, { status: 'Terpenuhi' });
+        // Supply-match lookup + request status flip run in Postgres; commodity
+        // stock decrement (Firestore override) is handled inside approvePayment.
+        await marketRequestRepository.approvePayment(req);
 
         // Refresh local UI: reuse the batched in-stock loader for consistency.
         const [coopList, comList] = await Promise.all([

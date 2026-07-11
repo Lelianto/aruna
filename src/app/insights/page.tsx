@@ -1,5 +1,5 @@
 import React from 'react';
-import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
+import { cooperativeRepositoryServer } from '@/lib/repositories/cooperative.repository.server';
 import InsightsClient from '@/components/insights/InsightsClient';
 
 export const revalidate = 0;
@@ -9,7 +9,7 @@ interface PageProps {
 }
 
 export default async function InsightsPage({ searchParams }: PageProps) {
-  const cooperatives = await cooperativeRepository.getAllWithDetails();
+  const cooperatives = await cooperativeRepositoryServer.getAllWithDetails();
   const resolvedSearchParams = await searchParams;
   const initialCoopId = resolvedSearchParams.coopId;
 

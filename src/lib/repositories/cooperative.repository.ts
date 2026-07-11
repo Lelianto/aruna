@@ -1,6 +1,6 @@
-import { Cooperative, CooperativeScore, Insight, CooperativeWithCommodities, Commodity } from '@/types';
+import { Cooperative, CooperativeScore, CooperativeScoreInput, Insight, CooperativeWithCommodities, Commodity } from '@/types';
 import { db } from '../firebase/config';
-import { collection, getDocs, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import { calculateCooperativeScore } from '../services/score-engine';
 import { generateCooperativeInsights } from '../services/insight-engine';
 import { commodityRepository } from './commodity.repository';
@@ -9,8 +9,11 @@ function getBaseUrl() {
   if (typeof window !== 'undefined') {
     return '';
   }
-  // Fallback for Vercel/production or dev environments
-  const host = process.env.VERCEL_URL || 'localhost:3000';
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+  }
+  const port = process.env.PORT || '3000';
+  const host = process.env.VERCEL_URL || `localhost:${port}`;
   const protocol = host.includes('localhost') ? 'http' : 'https';
   return `${protocol}://${host}`;
 }
@@ -19,6 +22,8 @@ export interface CooperativeRepository {
   getAll(): Promise<Cooperative[]>;
   getById(id: string): Promise<Cooperative | null>;
   getScore(cooperativeId: string): Promise<CooperativeScore | null>;
+  upsertCooperativeScore(cooperativeId: string, scoreData: CooperativeScoreInput): Promise<void>;
+  deleteCooperativeScore(cooperativeId: string): Promise<void>;
   getInsights(cooperativeId: string): Promise<Insight[]>;
   getAllWithDetails(): Promise<CooperativeWithCommodities[]>;
   getByIdWithDetails(id: string): Promise<CooperativeWithCommodities | null>;
@@ -86,13 +91,23 @@ export class HybridCooperativeRepository implements CooperativeRepository {
   }
 
   async getScore(cooperativeId: string): Promise<CooperativeScore | null> {
-    // 1. Check if score already exists in Firestore
-    const scoreSnap = await getDoc(doc(db, 'scores', cooperativeId));
-    if (scoreSnap.exists()) {
-      return { id: scoreSnap.id, ...scoreSnap.data() } as CooperativeScore;
+    let stored: CooperativeScore | null = null;
+
+    try {
+      const baseUrl = getBaseUrl();
+      const res = await fetch(
+        `${baseUrl}/api/cooperative-scores?cooperativeId=${encodeURIComponent(cooperativeId)}`,
+        { cache: 'no-store' },
+      );
+      if (res.ok) {
+        stored = await res.json();
+      }
+    } catch (error) {
+      console.error(`Error in cooperativeRepository.getScore for ${cooperativeId}:`, error);
     }
 
-    // 2. Otherwise calculate dynamic score
+    if (stored) return stored;
+
     const coop = await this.getById(cooperativeId);
     if (!coop) return null;
 
@@ -101,27 +116,55 @@ export class HybridCooperativeRepository implements CooperativeRepository {
     return calculateCooperativeScore(coop, commodities, maxRev);
   }
 
+  async upsertCooperativeScore(cooperativeId: string, scoreData: CooperativeScoreInput): Promise<void> {
+    const baseUrl = getBaseUrl();
+    const res = await fetch(`${baseUrl}/api/cooperative-scores`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cooperativeId, ...scoreData }),
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to upsert cooperative score: ${res.status}`);
+    }
+  }
+
+  async deleteCooperativeScore(cooperativeId: string): Promise<void> {
+    const baseUrl = getBaseUrl();
+    const res = await fetch(
+      `${baseUrl}/api/cooperative-scores?cooperativeId=${encodeURIComponent(cooperativeId)}`,
+      { method: 'DELETE' },
+    );
+    if (!res.ok) {
+      throw new Error(`Failed to delete cooperative score: ${res.status}`);
+    }
+  }
+
   async getInsights(cooperativeId: string): Promise<Insight[]> {
-    const coop = await this.getById(cooperativeId);
-    if (!coop) return [];
-
-    const score = await this.getScore(cooperativeId);
-    if (!score) return [];
-
-    const commodities = await commodityRepository.getByCooperativeId(cooperativeId);
-    return generateCooperativeInsights(coop, commodities, score);
+    try {
+      const baseUrl = getBaseUrl();
+      const res = await fetch(
+        `${baseUrl}/api/insights?cooperativeId=${encodeURIComponent(cooperativeId)}`,
+        { cache: 'no-store' },
+      );
+      if (!res.ok) return [];
+      return await res.json();
+    } catch (error) {
+      console.error(`Error in cooperativeRepository.getInsights for ${cooperativeId}:`, error);
+      return [];
+    }
   }
 
   async getAllWithDetails(): Promise<CooperativeWithCommodities[]> {
     // Bulk-load everything in parallel (3 round-trips total) instead of a
     // per-cooperative fan-out. The previous version called getByCooperativeId()
-    // (a full ~14k-row commodity fetch) and getScore() (a Firestore read) for
+    // (a full ~14k-row commodity fetch) and getScore() (a Prisma read) for
     // EACH of the 1000+ cooperatives — thousands of redundant fetches that made
     // dashboard/insights/scoring/potensi-desa pages extremely slow.
-    const [coops, allCommodities, scoresSnap] = await Promise.all([
+    const baseUrl = getBaseUrl();
+    const [coops, allCommodities, scoresRes] = await Promise.all([
       this.getAll(),
       commodityRepository.getAll(),
-      getDocs(collection(db, 'scores')),
+      fetch(`${baseUrl}/api/cooperative-scores?all=1`, { cache: 'no-store' }),
     ]);
 
     // Group commodities by cooperative_id in a single pass (O(n)).
@@ -135,11 +178,10 @@ export class HybridCooperativeRepository implements CooperativeRepository {
       }
     }
 
-    // Index precomputed scores from Firestore for O(1) lookup.
-    const scoresMap: Record<string, CooperativeScore> = {};
-    scoresSnap.forEach((docSnap) => {
-      scoresMap[docSnap.id] = { id: docSnap.id, ...docSnap.data() } as CooperativeScore;
-    });
+    // Index precomputed scores from Postgres (aruna_cooperative_scores) for O(1) lookup.
+    const scoresMap: Record<string, CooperativeScore> = scoresRes.ok
+      ? await scoresRes.json()
+      : {};
 
     const maxRev = coops.length > 0 ? Math.max(...coops.map(c => c.annual_revenue || 0), 1) : 1;
 
@@ -205,16 +247,13 @@ export class HybridCooperativeRepository implements CooperativeRepository {
       const maxRev = await this.getMaxRevenue();
       const newScore = calculateCooperativeScore(updatedCoop, commodities, maxRev);
 
-      // Save updated score to Firestore
-      const scoreRef = doc(db, 'scores', coopId);
-      await setDoc(scoreRef, {
-        cooperative_id: coopId,
+      await this.upsertCooperativeScore(coopId, {
         health_score: newScore.health_score,
         growth_score: newScore.growth_score,
         supply_score: newScore.supply_score,
         final_score: newScore.final_score,
         grade: newScore.grade,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       });
     }
   }

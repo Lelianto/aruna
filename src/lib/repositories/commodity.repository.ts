@@ -6,7 +6,11 @@ function getBaseUrl() {
   if (typeof window !== 'undefined') {
     return '';
   }
-  const host = process.env.VERCEL_URL || 'localhost:3000';
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+  }
+  const port = process.env.PORT || '3000';
+  const host = process.env.VERCEL_URL || `localhost:${port}`;
   const protocol = host.includes('localhost') ? 'http' : 'https';
   return `${protocol}://${host}`;
 }

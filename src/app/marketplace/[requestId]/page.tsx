@@ -1,8 +1,8 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { marketRequestRepository } from '@/lib/repositories/market-request.repository';
-import { cooperativeRepository } from '@/lib/repositories/cooperative.repository';
-import { commodityRepository } from '@/lib/repositories/commodity.repository';
+import { cooperativeRepositoryServer } from '@/lib/repositories/cooperative.repository.server';
+import { commodityRepositoryServer } from '@/lib/repositories/commodity.repository.server';
 import { performGotongRoyongMatch } from '@/lib/services/supply-engine';
 import MatchDetailsClient from '@/components/marketplace/MatchDetailsClient';
 
@@ -24,8 +24,8 @@ export default async function MatchDetailsPage({ params }: PageProps) {
 
   // 2. Fetch all cooperatives & commodities
   const [cooperatives, commodities] = await Promise.all([
-    cooperativeRepository.getAllWithDetails(),
-    commodityRepository.getAll()
+    cooperativeRepositoryServer.getAllWithDetails(),
+    commodityRepositoryServer.getAll()
   ]);
 
   // 3. Buyer coordinate database mapping
@@ -37,7 +37,9 @@ export default async function MatchDetailsPage({ params }: PageProps) {
     'buyer-charoen': { lat: -6.2088, lng: 106.8456 } // Jakarta
   };
 
-  const buyerCoords = buyerCoordsMap[request.buyer_id] || { lat: -6.2088, lng: 106.8456 };
+  // Key the hardcoded coordinate map by the buyer's stable slug (aruna_buyers.slug),
+  // not the numeric Postgres id, so the lookup keeps matching after migration.
+  const buyerCoords = buyerCoordsMap[request.buyer.slug ?? ''] || { lat: -6.2088, lng: 106.8456 };
 
   // 4. Run Greedy Gotong Royong Matching
   const result = performGotongRoyongMatch(request, cooperatives, commodities);

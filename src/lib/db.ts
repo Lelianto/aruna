@@ -1,14 +1,4 @@
-import { Pool } from 'pg';
-
-const host = process.env.DB_HOST;
-const port = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432;
-const database = process.env.DB_DATABASE;
-const user = process.env.DB_USERNAME;
-const password = process.env.DB_PASSWORD;
-
-// In development, Next.js hot-reloading can create multiple pools.
-// We store the pool globally in development to prevent connection leaks.
-let pool: Pool;
+import { Pool, type PoolConfig } from 'pg';
 
 // The shared hackathon Postgres instance can have highly variable network
 // latency (connection setup has been observed to take anywhere from ~700ms
@@ -16,36 +6,49 @@ let pool: Pool;
 // "Connection terminated due to connection timeout" failures.
 const CONNECTION_TIMEOUT_MS = 10000;
 
-if (process.env.NODE_ENV === 'production') {
-  pool = new Pool({
+function buildPoolConfig(): PoolConfig {
+  if (process.env.DATABASE_URL) {
+    const config: PoolConfig = {
+      connectionString: process.env.DATABASE_URL,
+      max: process.env.NODE_ENV === 'production' ? 10 : 5,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
+    };
+    if (process.env.DATABASE_SSL === 'true') {
+      config.ssl = { rejectUnauthorized: false };
+    }
+    return config;
+  }
+
+  const host = process.env.DB_HOST;
+  const port = process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432;
+  const database = process.env.DB_DATABASE;
+  const user = process.env.DB_USERNAME;
+  const password = process.env.DB_PASSWORD;
+
+  return {
     host,
     port,
     database,
     user,
     password,
-    ssl: {
-      rejectUnauthorized: false // Required for some GCF/Cloud SQL connections
-    },
-    max: 10,
+    ssl: { rejectUnauthorized: false },
+    max: process.env.NODE_ENV === 'production' ? 10 : 5,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
-  });
+  };
+}
+
+// In development, Next.js hot-reloading can create multiple pools.
+// We store the pool globally in development to prevent connection leaks.
+let pool: Pool;
+
+if (process.env.NODE_ENV === 'production') {
+  pool = new Pool(buildPoolConfig());
 } else {
-  const globalPool = global as any;
+  const globalPool = global as typeof globalThis & { pgPool?: Pool };
   if (!globalPool.pgPool) {
-    globalPool.pgPool = new Pool({
-      host,
-      port,
-      database,
-      user,
-      password,
-      ssl: {
-        rejectUnauthorized: false
-      },
-      max: 5,
-      idleTimeoutMillis: 30000,
-      connectionTimeoutMillis: CONNECTION_TIMEOUT_MS,
-    });
+    globalPool.pgPool = new Pool(buildPoolConfig());
   }
   pool = globalPool.pgPool;
 }
